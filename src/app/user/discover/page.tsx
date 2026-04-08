@@ -2,11 +2,24 @@
 
 import Link from "next/link";
 import { useState, useEffect, useMemo, useCallback } from "react";
+import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { useStudiosForMap } from "@/lib/hooks";
+
+// Dynamic import of Leaflet map to avoid SSR issues
+const LeafletMap = dynamic(() => import("@/components/LeafletMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full bg-[#0e0e0e] flex items-center justify-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#E5C487]"></div>
+    </div>
+  ),
+});
 
 const filters = ["Near Me", "Open Now", "Top Rated", "VIP Only"];
 
 export default function DiscoverPage() {
+  const router = useRouter();
   const [activeFilter, setActiveFilter] = useState("Near Me");
   const [searchQuery, setSearchQuery] = useState("");
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -101,24 +114,10 @@ export default function DiscoverPage() {
     }
   }, []);
 
-  // Calculate map pin positions based on relative lat/lng
-  const getMapPosition = useCallback((studio: { lat: number; lng: number }) => {
-    if (!userLocation || !studio.lat || !studio.lng) {
-      return { top: "50%", left: "50%" };
-    }
-    
-    // Calculate position relative to user location
-    // Map spans roughly 0.5 degrees in each direction
-    const mapSpan = 0.15;
-    const latDiff = studio.lat - userLocation.lat;
-    const lngDiff = studio.lng - userLocation.lng;
-    
-    // Convert to percentage (center is 50%)
-    const top = Math.max(10, Math.min(90, 50 - (latDiff / mapSpan) * 40));
-    const left = Math.max(10, Math.min(90, 50 + (lngDiff / mapSpan) * 40));
-    
-    return { top: `${top}%`, left: `${left}%` };
-  }, [userLocation]);
+  // Navigate to studio page
+  const handleViewStudio = useCallback((id: number) => {
+    router.push(`/user/studio/${id}`);
+  }, [router]);
 
   return (
     <main className="relative h-screen w-full pt-20 overflow-hidden flex">
@@ -282,121 +281,24 @@ export default function DiscoverPage() {
 
       {/* Map Area */}
       <div className="flex-1 relative bg-[#0e0e0e]">
-        {/* Map Background */}
-        <div className="absolute inset-0 grayscale contrast-125 brightness-75 opacity-40 mix-blend-overlay">
-          <img
-            className="w-full h-full object-cover"
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuChEluSNu1DpxF74kftC9ILh-IZV_QxnFGv1riDHKXhfh3vOsAZ8hFDq9CHZ0vfAMKbQyR5N0b9DMT5K7My3pIPA3axBRZygx_aC3BztFMsdDjUoXpuRaC0JaeXZu9TtuZOP7lESam83cXR3qyZ3t-GBVwd3acVymqZtjgTEw-V_eAgPtLVEjd-Fz5DaH-XGI_j_2bHKOGFCtu7f-wUoTLMYBix9PNn4cXsu2B0G-tdxsw3VZfPgPZPFaZU8kX7LNOf7pwjlLPkqqY"
-            alt="Map"
-          />
-        </div>
-
-        {/* User Location Marker */}
-        {userLocation && (
-          <div 
-            className="absolute flex flex-col items-center z-20"
-            style={{ top: "50%", left: "50%", transform: "translate(-50%, -50%)" }}
-          >
-            <div className="relative">
-              <div className="absolute w-8 h-8 bg-blue-500/30 rounded-full animate-ping"></div>
-              <div className="relative w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-lg"></div>
-            </div>
-            <span className="mt-1 text-[10px] bg-blue-500/80 text-white px-2 py-0.5 rounded-full font-label">
-              You
-            </span>
-          </div>
-        )}
-
-        {/* Dynamic Map Pins */}
-        <div className="absolute inset-0 pointer-events-none">
-          {studios.map((studio, index) => {
-            const pos = getMapPosition(studio);
-            const isSelected = selectedStudio === studio.id;
-            const isHovered = hoveredStudio === studio.id;
-            const isFeatured = index === 0 && !selectedStudio;
-            const showExpanded = isSelected || isHovered || isFeatured;
-
-            return (
-              <div
-                key={studio.id}
-                style={{ top: pos.top, left: pos.left }}
-                className={`absolute flex flex-col items-center pointer-events-auto cursor-pointer group transition-all duration-200 ${
-                  showExpanded ? "z-30" : "z-10"
-                }`}
-                onMouseEnter={() => setHoveredStudio(studio.id)}
-                onMouseLeave={() => setHoveredStudio(null)}
-                onClick={() => setSelectedStudio(isSelected ? null : studio.id)}
-              >
-                {showExpanded ? (
-                  <>
-                    <div className="relative flex items-center justify-center">
-                      <div className={`absolute w-12 h-12 rounded-full animate-ping ${
-                        isSelected ? "bg-[#E5C487]/40" : "bg-[#E5C487]/20"
-                      }`}></div>
-                      <div className={`relative w-10 h-10 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(229,196,135,0.6)] border-2 border-white ${
-                        studio.is_open ? "bg-[#E5C487]" : "bg-gray-500"
-                      }`}>
-                        <span className="material-symbols-outlined text-[#402d00] text-lg icon-filled">
-                          content_cut
-                        </span>
-                      </div>
-                    </div>
-                    <div className={`mt-2 bg-[#2a2a2a]/95 backdrop-blur-sm px-4 py-2 rounded-xl border shadow-xl max-w-[200px] ${
-                      isSelected ? "border-[#E5C487]" : "border-[#E5C487]/30"
-                    }`}>
-                      <p className="text-sm font-headline font-bold text-[#E5C487] truncate">{studio.name}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="material-symbols-outlined text-[#E5C487] text-xs icon-filled">star</span>
-                        <span className="text-xs text-white">{studio.rating || "New"}</span>
-                        {studio.distance_km !== undefined && (
-                          <>
-                            <span className="text-gray-500">•</span>
-                            <span className="text-xs text-gray-400">{studio.distance_km}km</span>
-                          </>
-                        )}
-                      </div>
-                      <span className={`text-[9px] mt-1 inline-block ${
-                        studio.is_open ? "text-green-400" : "text-gray-400"
-                      }`}>
-                        {studio.is_open ? "Open Now" : "Closed"}
-                      </span>
-                      {isSelected && (
-                        <Link
-                          href={`/user/studio/${studio.id}`}
-                          className="block mt-2 py-1.5 bg-[#E5C487] text-[#1a1a1a] rounded-lg text-xs font-bold text-center hover:bg-[#d4b377] transition-colors"
-                        >
-                          View Details
-                        </Link>
-                      )}
-                    </div>
-                  </>
-                ) : (
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center border transition-all hover:scale-110 ${
-                    studio.is_open 
-                      ? "bg-[#2a2a2a] border-[#E5C487]/50 group-hover:bg-[#E5C487]"
-                      : "bg-[#2a2a2a] border-gray-500/50 group-hover:bg-gray-500"
-                  }`}>
-                    <span className={`material-symbols-outlined text-sm icon-filled transition-colors ${
-                      studio.is_open 
-                        ? "text-[#E5C487] group-hover:text-[#402d00]"
-                        : "text-gray-500 group-hover:text-white"
-                    }`}>
-                      content_cut
-                    </span>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+        {/* Leaflet Map */}
+        <LeafletMap
+          studios={studios}
+          userLocation={userLocation}
+          selectedStudio={selectedStudio}
+          hoveredStudio={hoveredStudio}
+          onStudioSelect={setSelectedStudio}
+          onStudioHover={setHoveredStudio}
+          onViewStudio={handleViewStudio}
+        />
 
         {/* Search & Filters */}
-        <div className="absolute top-8 left-1/2 -translate-x-1/2 w-[600px] z-30 space-y-4">
+        <div className="absolute top-8 left-1/2 -translate-x-1/2 w-[600px] z-[1001] space-y-4">
           <div className="bg-[#1a1a1a]/80 backdrop-blur-xl rounded-2xl p-2 shadow-2xl flex items-center gap-4 border border-[#4D463A]/20">
             <div className="flex-1 flex items-center px-4 gap-3">
               <span className="material-symbols-outlined text-gray-500">search</span>
               <input
-                className="bg-transparent border-none focus:ring-0 w-full text-white font-body placeholder:text-gray-500"
+                className="bg-transparent border-none focus:ring-0 focus:outline-none w-full text-white font-body placeholder:text-gray-500"
                 placeholder="Search studios, barbers, or styles..."
                 type="text"
                 value={searchQuery}
@@ -452,7 +354,7 @@ export default function DiscoverPage() {
 
         {/* Location Error Banner */}
         {locationError && !userLocation && (
-          <div className="absolute top-36 left-1/2 -translate-x-1/2 z-30">
+          <div className="absolute top-36 left-1/2 -translate-x-1/2 z-[1001]">
             <div className="bg-amber-900/80 backdrop-blur-sm text-amber-200 px-4 py-2 rounded-lg text-sm flex items-center gap-2">
               <span className="material-symbols-outlined text-sm">warning</span>
               {locationError}
@@ -466,32 +368,8 @@ export default function DiscoverPage() {
           </div>
         )}
 
-        {/* Map Controls */}
-        <div className="absolute bottom-12 right-12 flex flex-col gap-3">
-          <button 
-            onClick={handleCenterOnUser}
-            disabled={locationLoading}
-            className={`w-12 h-12 bg-[#1a1a1a]/90 backdrop-blur-xl border border-[#4D463A]/30 rounded-xl flex items-center justify-center hover:bg-[#E5C487] hover:text-[#402d00] transition-all group ${
-              locationLoading ? "animate-pulse" : ""
-            }`}
-            title="Center on my location"
-          >
-            <span className={`material-symbols-outlined ${userLocation ? "icon-filled" : ""}`}>
-              my_location
-            </span>
-          </button>
-          <div className="flex flex-col bg-[#1a1a1a]/90 backdrop-blur-xl border border-[#4D463A]/30 rounded-xl divide-y divide-[#4D463A]/20">
-            <button className="w-12 h-12 flex items-center justify-center hover:bg-[#E5C487]/20 transition-all">
-              <span className="material-symbols-outlined">add</span>
-            </button>
-            <button className="w-12 h-12 flex items-center justify-center hover:bg-[#E5C487]/20 transition-all">
-              <span className="material-symbols-outlined">remove</span>
-            </button>
-          </div>
-        </div>
-
         {/* Studios count badge */}
-        <div className="absolute bottom-12 left-12 bg-[#1a1a1a]/90 backdrop-blur-xl border border-[#4D463A]/30 rounded-xl px-4 py-3">
+        <div className="absolute bottom-12 left-12 z-[1000] bg-[#1a1a1a]/90 backdrop-blur-xl border border-[#4D463A]/30 rounded-xl px-4 py-3">
           <div className="text-xs text-gray-400 font-label uppercase tracking-widest">Studios nearby</div>
           <div className="text-2xl font-headline font-bold text-[#E5C487]">{studios.length}</div>
         </div>

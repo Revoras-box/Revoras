@@ -1,5 +1,20 @@
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
+import type {
+  Admin,
+  AdminLoginResponse,
+  AdminDashboardStats,
+  AdminStudiosResponse,
+  AdminStudioResponse,
+  AdminUsersResponse,
+  StudioActionResponse,
+  GeocodeResponse,
+  ApiError,
+} from "./types";
+
+// Re-export types for convenience
+export type * from "./types";
+
 // Types
 interface AuthCredentials {
   email: string;
@@ -660,7 +675,7 @@ export const api = {
       localStorage.setItem("adminToken", result.token);
       localStorage.setItem("admin", JSON.stringify(result.admin));
     }
-    return result;
+    return result as AdminLoginResponse;
   },
 
   adminLogout: () => {
@@ -669,15 +684,15 @@ export const api = {
     window.location.href = "/admin/login";
   },
 
-  getAdminProfile: async () => {
+  getAdminProfile: async (): Promise<{ admin: Admin } & ApiError> => {
     return adminAuthFetch(`${API}/admin/me`);
   },
 
-  getAdminDashboard: async () => {
+  getAdminDashboard: async (): Promise<AdminDashboardStats> => {
     return adminAuthFetch(`${API}/admin/dashboard`);
   },
 
-  getAdminStudios: async (params: { status?: string; search?: string; page?: number; limit?: number; sortBy?: string; sortOrder?: string } = {}) => {
+  getAdminStudios: async (params: { status?: string; search?: string; page?: number; limit?: number; sortBy?: string; sortOrder?: string } = {}): Promise<AdminStudiosResponse> => {
     const filteredParams: Record<string, string> = {};
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) filteredParams[key] = String(value);
@@ -686,46 +701,46 @@ export const api = {
     return adminAuthFetch(`${API}/admin/studios${query ? `?${query}` : ""}`);
   },
 
-  getAdminStudio: async (id: string | number) => {
+  getAdminStudio: async (id: string | number): Promise<AdminStudioResponse> => {
     return adminAuthFetch(`${API}/admin/studios/${id}`);
   },
 
-  updateAdminStudio: async (id: string | number, data: Record<string, unknown>) => {
+  updateAdminStudio: async (id: string | number, data: Record<string, unknown>): Promise<StudioActionResponse> => {
     return adminAuthFetch(`${API}/admin/studios/${id}`, {
       method: "PUT",
       body: JSON.stringify(data)
     });
   },
 
-  approveStudio: async (id: string | number, adminNotes?: string) => {
+  approveStudio: async (id: string | number, adminNotes?: string): Promise<StudioActionResponse> => {
     return adminAuthFetch(`${API}/admin/studios/${id}/approve`, {
       method: "POST",
       body: JSON.stringify({ admin_notes: adminNotes })
     });
   },
 
-  rejectStudio: async (id: string | number, reason: string, adminNotes?: string) => {
+  rejectStudio: async (id: string | number, reason: string, adminNotes?: string): Promise<StudioActionResponse> => {
     return adminAuthFetch(`${API}/admin/studios/${id}/reject`, {
       method: "POST",
       body: JSON.stringify({ reason, admin_notes: adminNotes })
     });
   },
 
-  suspendStudio: async (id: string | number, reason: string) => {
+  suspendStudio: async (id: string | number, reason: string): Promise<StudioActionResponse> => {
     return adminAuthFetch(`${API}/admin/studios/${id}/suspend`, {
       method: "POST",
       body: JSON.stringify({ reason })
     });
   },
 
-  geocodeStudio: async (id: string | number, addressOverride?: { address?: string; city?: string; state?: string; country?: string }) => {
+  geocodeStudio: async (id: string | number, addressOverride?: { address?: string; city?: string; state?: string; country?: string }): Promise<GeocodeResponse> => {
     return adminAuthFetch(`${API}/admin/studios/${id}/geocode`, {
       method: "POST",
       body: JSON.stringify(addressOverride || {})
     });
   },
 
-  getAdminUsers: async (params: { search?: string; page?: number; limit?: number } = {}) => {
+  getAdminUsers: async (params: { search?: string; page?: number; limit?: number } = {}): Promise<AdminUsersResponse> => {
     const filteredParams: Record<string, string> = {};
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) filteredParams[key] = String(value);
@@ -734,11 +749,11 @@ export const api = {
     return adminAuthFetch(`${API}/admin/users${query ? `?${query}` : ""}`);
   },
 
-  getAdmins: async () => {
+  getAdmins: async (): Promise<{ admins: Admin[] } & ApiError> => {
     return adminAuthFetch(`${API}/admin/admins`);
   },
 
-  createAdmin: async (data: { name: string; email: string; password: string; role?: string }) => {
+  createAdmin: async (data: { name: string; email: string; password: string; role?: string }): Promise<{ message?: string; admin?: Admin } & ApiError> => {
     return adminAuthFetch(`${API}/admin/admins`, {
       method: "POST",
       body: JSON.stringify(data)

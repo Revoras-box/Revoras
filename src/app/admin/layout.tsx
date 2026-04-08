@@ -2,24 +2,31 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import type { Admin } from "@/lib/types";
 
-const navItems = [
+interface NavItem {
+  href: string;
+  label: string;
+  icon: string;
+}
+
+const navItems: readonly NavItem[] = [
   { href: "/admin", label: "Dashboard", icon: "dashboard" },
   { href: "/admin/studios", label: "Studios", icon: "store" },
   { href: "/admin/users", label: "Users", icon: "people" },
   { href: "/admin/settings", label: "Settings", icon: "settings" },
-];
+] as const;
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+interface AdminLayoutProps {
+  children: ReactNode;
+}
+
+export default function AdminLayout({ children }: AdminLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const [admin, setAdmin] = useState<{ name: string; email: string; role: string } | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [admin, setAdmin] = useState<Admin | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     // Check if user is logged in
@@ -35,7 +42,7 @@ export default function AdminLayout({
     }
 
     try {
-      setAdmin(JSON.parse(adminData));
+      setAdmin(JSON.parse(adminData) as Admin);
     } catch {
       localStorage.removeItem("adminToken");
       localStorage.removeItem("admin");
@@ -44,7 +51,7 @@ export default function AdminLayout({
     setIsLoading(false);
   }, [pathname, router]);
 
-  const handleLogout = () => {
+  const handleLogout = (): void => {
     localStorage.removeItem("adminToken");
     localStorage.removeItem("admin");
     router.push("/admin/login");

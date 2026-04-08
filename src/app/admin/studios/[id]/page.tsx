@@ -1,12 +1,17 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useState, use, type ChangeEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { api } from "@/lib/api";
+import { 
+  api, 
+  type AdminStudioDetail, 
+  type StudioApprovalStatus 
+} from "@/lib/api";
 
-interface Studio {
-  id: number;
+type TabType = "details" | "team" | "services";
+
+interface StudioFormData {
   name: string;
   description: string;
   address: string;
@@ -14,45 +19,32 @@ interface Studio {
   state: string;
   zip_code: string;
   country: string;
-  lat: number | null;
-  lng: number | null;
+  lat: string;
+  lng: string;
   phone: string;
   email: string;
-  image_url: string;
-  rating: number;
-  review_count: number;
-  amenities: string[];
-  approval_status: string;
   admin_notes: string;
-  rejection_reason: string;
-  approved_at: string;
-  approved_by_name: string;
-  created_at: string;
-  owner_id: string;
-  owner_name: string;
-  owner_email: string;
-  owner_phone: string;
-  owner_since: string;
-  barbers: Array<{ id: string; name: string; phone: string; title: string; is_active: boolean }>;
-  services: Array<{ id: number; name: string; price: number; duration: number; category: string }>;
-  workingHours: Array<{ day_of_week: number; open_time: string; close_time: string; is_closed: boolean }>;
 }
 
-const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const dayNames: readonly string[] = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-export default function AdminStudioDetailPage({ params }: { params: Promise<{ id: string }> }) {
+interface PageParams {
+  id: string;
+}
+
+export default function AdminStudioDetailPage({ params }: { params: Promise<PageParams> }) {
   const { id } = use(params);
   const router = useRouter();
   
-  const [studio, setStudio] = useState<Studio | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [geocoding, setGeocoding] = useState(false);
-  const [activeTab, setActiveTab] = useState<"details" | "team" | "services">("details");
+  const [studio, setStudio] = useState<AdminStudioDetail | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [saving, setSaving] = useState<boolean>(false);
+  const [geocoding, setGeocoding] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<TabType>("details");
   
   // Edit form state
-  const [editMode, setEditMode] = useState(false);
-  const [formData, setFormData] = useState({
+  const [editMode, setEditMode] = useState<boolean>(false);
+  const [formData, setFormData] = useState<StudioFormData>({
     name: "",
     description: "",
     address: "",
@@ -71,7 +63,7 @@ export default function AdminStudioDetailPage({ params }: { params: Promise<{ id
     loadStudio();
   }, [id]);
 
-  const loadStudio = async () => {
+  const loadStudio = async (): Promise<void> => {
     try {
       const result = await api.getAdminStudio(id);
       if (result.studio) {
@@ -98,7 +90,7 @@ export default function AdminStudioDetailPage({ params }: { params: Promise<{ id
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = async (): Promise<void> => {
     setSaving(true);
     try {
       const updateData = {
@@ -121,7 +113,7 @@ export default function AdminStudioDetailPage({ params }: { params: Promise<{ id
     }
   };
 
-  const handleGeocode = async () => {
+  const handleGeocode = async (): Promise<void> => {
     setGeocoding(true);
     try {
       const result = await api.geocodeStudio(id, {
@@ -137,7 +129,6 @@ export default function AdminStudioDetailPage({ params }: { params: Promise<{ id
           lat: result.location.lat.toString(),
           lng: result.location.lng.toString(),
         });
-        alert(`Coordinates found: ${result.location.lat}, ${result.location.lng}\n\nAddress matched: ${result.location.displayName}`);
         loadStudio();
       } else {
         alert(result.error || "Could not geocode address");
@@ -149,7 +140,7 @@ export default function AdminStudioDetailPage({ params }: { params: Promise<{ id
     }
   };
 
-  const handleApprove = async () => {
+  const handleApprove = async (): Promise<void> => {
     if (!confirm("Are you sure you want to approve this studio?")) return;
     
     try {
@@ -164,7 +155,7 @@ export default function AdminStudioDetailPage({ params }: { params: Promise<{ id
     }
   };
 
-  const handleReject = async () => {
+  const handleReject = async (): Promise<void> => {
     const reason = prompt("Please provide a reason for rejection:");
     if (!reason) return;
     
@@ -180,7 +171,7 @@ export default function AdminStudioDetailPage({ params }: { params: Promise<{ id
     }
   };
 
-  const handleSuspend = async () => {
+  const handleSuspend = async (): Promise<void> => {
     const reason = prompt("Please provide a reason for suspension:");
     if (!reason) return;
     
@@ -549,7 +540,7 @@ export default function AdminStudioDetailPage({ params }: { params: Promise<{ id
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">Registered</p>
-                    <p className="text-white">{new Date(studio.owner_since).toLocaleDateString()}</p>
+                    <p className="text-white">{studio.owner_since ? new Date(studio.owner_since).toLocaleDateString() : "Unknown"}</p>
                   </div>
                 </div>
               ) : (

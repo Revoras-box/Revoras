@@ -1,35 +1,11 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, type ChangeEvent, type FormEvent } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { api } from "@/lib/api";
+import { api, type AdminStudioSummary, type Pagination, type StudioApprovalStatus } from "@/lib/api";
 
-interface Studio {
-  id: number;
-  name: string;
-  address: string;
-  city: string;
-  state: string;
-  approval_status: string;
-  rating: number;
-  lat: number | null;
-  lng: number | null;
-  created_at: string;
-  owner_name: string;
-  owner_email: string;
-  booking_count: number;
-  barber_count: number;
-}
-
-interface Pagination {
-  page: number;
-  limit: number;
-  total: number;
-  pages: number;
-}
-
-const statusColors: Record<string, string> = {
+const statusColors: Record<StudioApprovalStatus, string> = {
   pending: "bg-amber-500/20 text-amber-400",
   approved: "bg-green-500/20 text-green-400",
   rejected: "bg-red-500/20 text-red-400",
@@ -40,13 +16,13 @@ export default function AdminStudiosPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  const [studios, setStudios] = useState<Studio[]>([]);
+  const [studios, setStudios] = useState<AdminStudioSummary[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState(searchParams.get("search") || "");
-  const [status, setStatus] = useState(searchParams.get("status") || "");
+  const [loading, setLoading] = useState<boolean>(true);
+  const [search, setSearch] = useState<string>(searchParams.get("search") || "");
+  const [status, setStatus] = useState<string>(searchParams.get("status") || "");
 
-  const loadStudios = useCallback(async () => {
+  const loadStudios = useCallback(async (): Promise<void> => {
     setLoading(true);
     try {
       const params: Record<string, string> = {
@@ -72,14 +48,14 @@ export default function AdminStudiosPage() {
     loadStudios();
   }, [loadStudios]);
 
-  const updateFilters = (newStatus?: string, newSearch?: string) => {
+  const updateFilters = (newStatus?: string, newSearch?: string): void => {
     const params = new URLSearchParams();
     if (newStatus ?? status) params.set("status", newStatus ?? status);
     if (newSearch ?? search) params.set("search", newSearch ?? search);
     router.push(`/admin/studios?${params.toString()}`);
   };
 
-  const handleApprove = async (id: number) => {
+  const handleApprove = async (id: number): Promise<void> => {
     if (!confirm("Are you sure you want to approve this studio?")) return;
     
     try {
@@ -94,7 +70,7 @@ export default function AdminStudiosPage() {
     }
   };
 
-  const handleReject = async (id: number) => {
+  const handleReject = async (id: number): Promise<void> => {
     const reason = prompt("Please provide a reason for rejection:");
     if (!reason) return;
     

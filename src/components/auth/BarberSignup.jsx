@@ -20,6 +20,8 @@ export default function BarberSignup() {
     speciality: "",
     shopAddress: "",
     city: "",
+    state: "",
+    zipCode: "",
     panCard: "",
     password: "",
     confirmPassword: "",
@@ -212,20 +214,19 @@ export default function BarberSignup() {
     }
 
     setLoading(true);
-    toast.loading("Creating your profile...");
+    toast.loading("Creating your studio...");
 
     try {
-      const result = await api.barberSignup({
-        name: formData.name,
-        salonName: formData.salonName,
+      const result = await api.studioSignup({
+        ownerName: formData.name,
+        studioName: formData.salonName,
         phone: formData.phone,
         email: formData.email,
         password: formData.password,
-        panCard: formData.panCard,
-        experience: formData.experience,
-        speciality: formData.speciality,
-        shopAddress: formData.shopAddress,
+        address: formData.shopAddress,
         city: formData.city,
+        state: formData.state,
+        zipCode: formData.zipCode,
         emailVerified: formData.emailVerified,
         phoneVerified: formData.phoneVerified,
       });
@@ -235,7 +236,7 @@ export default function BarberSignup() {
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("Application submitted! Awaiting admin approval.");
+        toast.success("Studio registered! Awaiting admin approval.");
         router.push("/login-barber");
       }
     } catch (err) {
@@ -528,15 +529,27 @@ export default function BarberSignup() {
                   onChange={(e) => updateField("city", e.target.value)}
                   disabled={loading}
                 />
+                <Input
+                  label="State"
+                  value={formData.state}
+                  onChange={(e) => updateField("state", e.target.value)}
+                  disabled={loading}
+                />
+                <Input
+                  label="ZIP Code"
+                  value={formData.zipCode}
+                  onChange={(e) => updateField("zipCode", e.target.value)}
+                  disabled={loading}
+                />
                 <div className="col-span-2">
                   <Input
-                    label="PAN Card Number"
+                    label="PAN Card Number (Optional)"
                     value={formData.panCard}
                     onChange={(e) => updateField("panCard", e.target.value.toUpperCase())}
                     placeholder="XXXXX0000X"
                     disabled={loading}
                   />
-                  <p className="text-xs text-gray-500 mt-1">Required for verification (Format: XXXXX0000X)</p>
+                  <p className="text-xs text-gray-500 mt-1">Optional - for verification (Format: XXXXX0000X)</p>
                 </div>
               </div>
               <button onClick={next} className="primary-btn w-full" disabled={loading}>

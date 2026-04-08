@@ -1,36 +1,19 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, type ChangeEvent, type KeyboardEvent } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { api } from "@/lib/api";
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  is_active: boolean;
-  created_at: string;
-  booking_count: number;
-}
-
-interface Pagination {
-  page: number;
-  limit: number;
-  total: number;
-  pages: number;
-}
+import { api, type AdminUser, type Pagination } from "@/lib/api";
 
 export default function AdminUsersPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<AdminUser[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState(searchParams.get("search") || "");
+  const [loading, setLoading] = useState<boolean>(true);
+  const [search, setSearch] = useState<string>(searchParams.get("search") || "");
 
-  const loadUsers = useCallback(async () => {
+  const loadUsers = useCallback(async (): Promise<void> => {
     setLoading(true);
     try {
       const params: Record<string, string> = {
@@ -55,7 +38,7 @@ export default function AdminUsersPage() {
     loadUsers();
   }, [loadUsers]);
 
-  const handleSearch = () => {
+  const handleSearch = (): void => {
     const params = new URLSearchParams();
     if (search) params.set("search", search);
     router.push(`/admin/users?${params.toString()}`);

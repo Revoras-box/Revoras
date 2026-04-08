@@ -2,55 +2,24 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { api } from "@/lib/api";
-
-interface DashboardStats {
-  studios: {
-    pending: number;
-    approved: number;
-    rejected: number;
-    suspended: number;
-    total: number;
-  };
-  users: { total: number };
-  bookings: {
-    total: number;
-    completed: number;
-    upcoming: number;
-    revenue: number;
-  };
-  recentPendingStudios: Array<{
-    id: number;
-    name: string;
-    city: string;
-    state: string;
-    created_at: string;
-  }>;
-  recentActivity: Array<{
-    id: number;
-    admin_name: string;
-    action: string;
-    entity_type: string;
-    created_at: string;
-  }>;
-}
+import { api, type AdminDashboardStats } from "@/lib/api";
 
 export default function AdminDashboardPage() {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<AdminDashboardStats | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadDashboard();
   }, []);
 
-  const loadDashboard = async () => {
+  const loadDashboard = async (): Promise<void> => {
     try {
       const result = await api.getAdminDashboard();
       if (result.error) {
         setError(result.error);
       } else {
-        setStats(result as DashboardStats);
+        setStats(result);
       }
     } catch {
       setError("Failed to load dashboard");
