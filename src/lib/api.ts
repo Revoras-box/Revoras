@@ -1,4 +1,4 @@
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const API = "http://localhost:5000/api";
 
 import type {
   Admin,
@@ -28,6 +28,15 @@ interface SignupData extends AuthCredentials {
 
 interface BarberSignupData extends SignupData {
   specialties?: string[];
+  salonName?: string;
+  panCard?: string;
+  experience?: string;
+  speciality?: string;
+  shopAddress?: string;
+  city?: string;
+  emailVerified?: boolean;
+  phoneVerified?: boolean;
+  registrationPaymentToken?: string;
 }
 
 interface BookingData {
@@ -89,19 +98,155 @@ interface WalkInData {
 }
 
 // Studio settings interface
+interface WorkingHourInput {
+  dayOfWeek: number;
+  openTime: string;
+  closeTime: string;
+  isClosed?: boolean;
+}
+
+interface StudioBarberSettingsData {
+  id?: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  title?: string;
+  imageUrl?: string;
+  logoUrl?: string;
+  specialties?: string[];
+  isActive?: boolean;
+  workingHours?: WorkingHourInput[];
+}
+
 interface StudioSettingsData {
   name?: string;
+  description?: string;
   address?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  country?: string;
   phone?: string;
   email?: string;
+  lat?: number;
+  lng?: number;
   imageUrl?: string;
-  workingHours?: Array<{
+  logoUrl?: string;
+  bannerUrl?: string;
+  amenities?: string[];
+  workingHours?: WorkingHourInput[];
+  barber?: StudioBarberSettingsData;
+  barbers?: StudioBarberSettingsData[];
+}
+
+interface AddBarberToStudioData extends StudioBarberSettingsData {
+  name: string;
+  phone: string;
+  password: string;
+}
+
+type NormalizedWorkingHours = {
+  camel: Array<{
     dayOfWeek: number;
     openTime: string;
     closeTime: string;
-    isClosed?: boolean;
+    isClosed: boolean;
   }>;
-}
+  snake: Array<{
+    day_of_week: number;
+    open_time: string;
+    close_time: string;
+    is_closed: boolean;
+  }>;
+};
+
+const normalizeWorkingHours = (workingHours?: WorkingHourInput[]): NormalizedWorkingHours | undefined => {
+  if (!workingHours) return undefined;
+
+  const camel = workingHours.map((hour) => ({
+    dayOfWeek: hour.dayOfWeek,
+    openTime: hour.openTime,
+    closeTime: hour.closeTime,
+    isClosed: hour.isClosed ?? false,
+  }));
+
+  return {
+    camel,
+    snake: camel.map((hour) => ({
+      day_of_week: hour.dayOfWeek,
+      open_time: hour.openTime,
+      close_time: hour.closeTime,
+      is_closed: hour.isClosed,
+    })),
+  };
+};
+
+const normalizeStudioBarberPayload = (barber: StudioBarberSettingsData): Record<string, unknown> => {
+  const payload: Record<string, unknown> = {};
+
+  if (barber.id !== undefined) payload.id = barber.id;
+  if (barber.name !== undefined) payload.name = barber.name;
+  if (barber.email !== undefined) payload.email = barber.email;
+  if (barber.phone !== undefined) payload.phone = barber.phone;
+  if (barber.title !== undefined) payload.title = barber.title;
+  if (barber.specialties !== undefined) payload.specialties = barber.specialties;
+  if (barber.isActive !== undefined) payload.is_active = barber.isActive;
+
+  const resolvedImage = barber.imageUrl ?? barber.logoUrl;
+  if (resolvedImage !== undefined) {
+    payload.image_url = resolvedImage;
+  }
+
+  const normalizedHours = normalizeWorkingHours(barber.workingHours);
+  if (normalizedHours) {
+    payload.workingHours = normalizedHours.camel;
+    payload.working_hours = normalizedHours.snake;
+  }
+
+  return payload;
+};
+
+const normalizeStudioSettingsPayload = (data: StudioSettingsData): Record<string, unknown> => {
+  const payload: Record<string, unknown> = {};
+
+  if (data.name !== undefined) payload.name = data.name;
+  if (data.description !== undefined) payload.description = data.description;
+  if (data.address !== undefined) payload.address = data.address;
+  if (data.city !== undefined) payload.city = data.city;
+  if (data.state !== undefined) payload.state = data.state;
+  if (data.zipCode !== undefined) payload.zip_code = data.zipCode;
+  if (data.country !== undefined) payload.country = data.country;
+  if (data.phone !== undefined) payload.phone = data.phone;
+  if (data.email !== undefined) payload.email = data.email;
+  if (data.lat !== undefined) payload.lat = data.lat;
+  if (data.lng !== undefined) payload.lng = data.lng;
+  if (data.amenities !== undefined) payload.amenities = data.amenities;
+
+  if (data.imageUrl !== undefined) payload.image_url = data.imageUrl;
+  if (data.logoUrl !== undefined) payload.logo_url = data.logoUrl;
+  if (data.bannerUrl !== undefined) payload.banner_url = data.bannerUrl;
+
+  const resolvedStudioImage = data.imageUrl ?? data.logoUrl;
+  if (resolvedStudioImage !== undefined) payload.image_url = resolvedStudioImage;
+
+  const normalizedHours = normalizeWorkingHours(data.workingHours);
+  if (normalizedHours) {
+    payload.workingHours = normalizedHours.camel;
+    payload.working_hours = normalizedHours.snake;
+  }
+
+  if (data.barber) {
+    const barberPayload = normalizeStudioBarberPayload(data.barber);
+    payload.barber = barberPayload;
+    payload.barber_profile = barberPayload;
+  }
+
+  if (data.barbers) {
+    payload.barbers = data.barbers.map((barber) => normalizeStudioBarberPayload(barber));
+  }
+
+  return payload;
+};
 
 // Helper to get auth token (user)
 const getToken = (): string => {
@@ -277,18 +422,16 @@ export const api = {
     window.location.href = "/";
   },
 
-  addBarberToStudio: async (data: {
-    name: string;
-    email?: string;
-    phone: string;
-    password: string;
-    title?: string;
-    specialties?: string[];
-  }) => {
+  addBarberToStudio: async (data: AddBarberToStudioData) => {
+    const payload = {
+      ...normalizeStudioBarberPayload(data),
+      password: data.password,
+    };
+
     return barberAuthFetch(`${API}/studios/auth/barbers`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
+      body: JSON.stringify(payload)
     });
   },
 
@@ -309,11 +452,11 @@ export const api = {
   },
 
   // ==========================================
-  // Legacy Barber Auth (Backward Compatibility)
+  // Legacy Studio Manage Auth (Backward Compatibility)
   // ==========================================
 
   barberSignup: async (data: BarberSignupData) => {
-    const res = await fetch(`${API}/barbers/signup`, {
+    const res = await fetch(`${API}/studios/manage/signup`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)
@@ -321,8 +464,30 @@ export const api = {
     return res.json();
   },
 
+  createBarberSignupPaymentOrder: async (data: { name: string; email: string; phone: string }) => {
+    const res = await fetch(`${API}/studios/manage/signup/payment/order`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    return res.json();
+  },
+
+  verifyBarberSignupPayment: async (data: {
+    razorpay_order_id: string;
+    razorpay_payment_id: string;
+    razorpay_signature: string;
+  }) => {
+    const res = await fetch(`${API}/studios/manage/signup/payment/verify`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    return res.json();
+  },
+
   barberLogin: async (data: { phone: string; password: string }) => {
-    const res = await fetch(`${API}/barbers/login`, {
+    const res = await fetch(`${API}/studios/manage/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)
@@ -448,15 +613,15 @@ export const api = {
 
   cancelBooking: async (id: string, reason?: string) => {
     return authFetch(`${API}/bookings/${id}/cancel`, {
-      method: "PUT",
+      method: "PATCH",
       body: JSON.stringify({ reason })
     });
   },
 
   rescheduleBooking: async (id: string, data: { date: string; startTime: string }) => {
     return authFetch(`${API}/bookings/${id}/reschedule`, {
-      method: "PUT",
-      body: JSON.stringify(data)
+      method: "PATCH",
+      body: JSON.stringify({ appointmentDate: data.date, appointmentTime: data.startTime })
     });
   },
 
@@ -540,7 +705,7 @@ export const api = {
   // ==========================================
 
   getBarberStatus: async () => {
-    const res = await fetch(`${API}/barbers/me/status`, {
+    const res = await fetch(`${API}/studios/manage/me/status`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -551,12 +716,12 @@ export const api = {
   },
 
   // ==========================================
-  // Barber Dashboard APIs
+  // Studio Manage APIs
   // ==========================================
   
   // Dashboard stats
   getBarberDashboard: async () => {
-    return barberAuthFetch(`${API}/barbers/dashboard`);
+    return barberAuthFetch(`${API}/studios/manage/dashboard`);
   },
 
   // Barber's bookings/schedule
@@ -566,12 +731,12 @@ export const api = {
       if (value !== undefined) filteredParams[key] = String(value);
     });
     const query = new URLSearchParams(filteredParams).toString();
-    return barberAuthFetch(`${API}/barbers/bookings${query ? `?${query}` : ""}`);
+    return barberAuthFetch(`${API}/studios/manage/bookings${query ? `?${query}` : ""}`);
   },
 
   // Update booking status
   updateBarberBookingStatus: async (bookingId: string, status: string) => {
-    return barberAuthFetch(`${API}/barbers/bookings/${bookingId}/status`, {
+    return barberAuthFetch(`${API}/studios/manage/bookings/${bookingId}/status`, {
       method: "PATCH",
       body: JSON.stringify({ status })
     });
@@ -579,54 +744,68 @@ export const api = {
 
   // Services management
   getBarberStudioServices: async () => {
-    return barberAuthFetch(`${API}/barbers/services`);
+    return barberAuthFetch(`${API}/studios/manage/services`);
   },
 
   createBarberService: async (data: ServiceData) => {
-    return barberAuthFetch(`${API}/barbers/services`, {
+    return barberAuthFetch(`${API}/studios/manage/services`, {
       method: "POST",
       body: JSON.stringify(data)
     });
   },
 
   updateBarberService: async (serviceId: number, data: Partial<ServiceData>) => {
-    return barberAuthFetch(`${API}/barbers/services/${serviceId}`, {
+    return barberAuthFetch(`${API}/studios/manage/services/${serviceId}`, {
       method: "PUT",
       body: JSON.stringify(data)
     });
   },
 
   deleteBarberService: async (serviceId: number) => {
-    return barberAuthFetch(`${API}/barbers/services/${serviceId}`, {
+    return barberAuthFetch(`${API}/studios/manage/services/${serviceId}`, {
       method: "DELETE"
     });
   },
 
   // Team management
   getBarberTeam: async () => {
-    return barberAuthFetch(`${API}/barbers/team`);
+    return barberAuthFetch(`${API}/studios/manage/team`);
+  },
+
+  updateStudioBarber: async (barberId: string, data: Partial<StudioBarberSettingsData>) => {
+    return barberAuthFetch(`${API}/studios/auth/barbers/${barberId}`, {
+      method: "PUT",
+      body: JSON.stringify(normalizeStudioBarberPayload(data))
+    });
+  },
+
+  deleteStudioBarber: async (barberId: string) => {
+    return barberAuthFetch(`${API}/studios/auth/barbers/${barberId}`, {
+      method: "DELETE"
+    });
   },
 
   // Analytics
   getBarberAnalytics: async (period: 'week' | 'month' | 'quarter' | 'year' = 'month') => {
-    return barberAuthFetch(`${API}/barbers/analytics?period=${period}`);
+    return barberAuthFetch(`${API}/studios/manage/analytics?period=${period}`);
   },
 
   // Studio settings
   getBarberStudioSettings: async () => {
-    return barberAuthFetch(`${API}/barbers/studio`);
+    return barberAuthFetch(`${API}/studio/settings`);
   },
 
   updateBarberStudioSettings: async (data: StudioSettingsData) => {
-    return barberAuthFetch(`${API}/barbers/studio`, {
+    const payload = normalizeStudioSettingsPayload(data);
+    return barberAuthFetch(`${API}/studio/settings`, {
       method: "PUT",
-      body: JSON.stringify(data)
+      body: JSON.stringify(payload)
     });
   },
 
   // Walk-in booking
   createWalkInBooking: async (data: WalkInData) => {
-    return barberAuthFetch(`${API}/barbers/walk-in`, {
+    return barberAuthFetch(`${API}/studios/manage/walk-in`, {
       method: "POST",
       body: JSON.stringify(data)
     });
@@ -639,7 +818,7 @@ export const api = {
       if (value !== undefined) filteredParams[key] = String(value);
     });
     const query = new URLSearchParams(filteredParams).toString();
-    return barberAuthFetch(`${API}/barbers/reviews${query ? `?${query}` : ""}`);
+    return barberAuthFetch(`${API}/studios/manage/reviews${query ? `?${query}` : ""}`);
   },
 
   // Barber payments
@@ -649,11 +828,11 @@ export const api = {
       if (value !== undefined) filteredParams[key] = String(value);
     });
     const query = new URLSearchParams(filteredParams).toString();
-    return barberAuthFetch(`${API}/barbers/payments${query ? `?${query}` : ""}`);
+    return barberAuthFetch(`${API}/studios/manage/payments${query ? `?${query}` : ""}`);
   },
 
   updatePaymentStatus: async (bookingId: number, data: { paymentStatus?: string; paymentMethod?: string }) => {
-    return barberAuthFetch(`${API}/barbers/payments/${bookingId}`, {
+    return barberAuthFetch(`${API}/studios/manage/payments/${bookingId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)

@@ -159,8 +159,8 @@ export default function Analytics() {
 <svg className="absolute bottom-0 left-0 w-full h-48 overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 100">
 <defs>
 <linearGradient id="goldGrad" x1="0%" x2="0%" y1="0%" y2="100%">
-<stop offset="0%" stop-color="#E5C487" stop-opacity="0.8"></stop>
-<stop offset="100%" stop-color="#E5C487" stop-opacity="0"></stop>
+<stop offset="0%" stopColor="#E5C487" stopOpacity="0.8"></stop>
+<stop offset="100%" stopColor="#E5C487" stopOpacity="0"></stop>
 </linearGradient>
 </defs>
 <path d="M0,80 Q10,75 20,85 T40,60 T60,70 T80,30 T100,45 V100 H0 Z" fill="url(#goldGrad)"></path>
@@ -184,8 +184,8 @@ export default function Analytics() {
 <div className="relative w-48 h-48 mb-8">
 <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
 <path className="text-surface-container-highest" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="transparent" stroke="currentColor" strokeWidth="3"></path>
-<path className="text-primary" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="transparent" stroke="currentColor" stroke-dasharray="65, 100" strokeLinecap="round" strokeWidth="3"></path>
-<path className="text-secondary" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="transparent" stroke="currentColor" stroke-dasharray="20, 100" stroke-dashoffset="-65" strokeLinecap="round" strokeWidth="3"></path>
+<path className="text-primary" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="transparent" stroke="currentColor" strokeDasharray="65, 100" strokeLinecap="round" strokeWidth="3"></path>
+<path className="text-secondary" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="transparent" stroke="currentColor" strokeDasharray="20, 100" strokeDashoffset="-65" strokeLinecap="round" strokeWidth="3"></path>
 </svg>
 <div className="absolute inset-0 flex flex-col items-center justify-center">
 <span className="text-3xl font-headline font-bold text-on-surface">65%</span>

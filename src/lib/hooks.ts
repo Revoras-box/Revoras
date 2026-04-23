@@ -52,24 +52,24 @@ export function useApi<T>(
 }
 
 // Studios hooks
-export function useStudios(params: Record<string, string> = {}) {
-  return useApi(() => api.getStudios(params), [JSON.stringify(params)]);
+export function useStudios<T = unknown>(params: Record<string, string> = {}) {
+  return useApi<T>(() => api.getStudios(params) as Promise<T>, [JSON.stringify(params)]);
 }
 
-export function useStudiosForMap(params: { lat?: number; lng?: number; radius?: number; limit?: number } = {}) {
-  return useApi(() => api.getStudiosForMap(params), [JSON.stringify(params)]);
+export function useStudiosForMap<T = unknown>(params: { lat?: number; lng?: number; radius?: number; limit?: number } = {}) {
+  return useApi<T>(() => api.getStudiosForMap(params) as Promise<T>, [JSON.stringify(params)]);
 }
 
-export function useStudio(id: string) {
-  return useApi(() => api.getStudio(id), [id]);
+export function useStudio<T = unknown>(id: string) {
+  return useApi<T>(() => api.getStudio(id) as Promise<T>, [id]);
 }
 
-export function useStudioServices(id: string, category?: string) {
-  return useApi(() => api.getStudioServices(id, category), [id, category]);
+export function useStudioServices<T = unknown>(id: string, category?: string) {
+  return useApi<T>(() => api.getStudioServices(id, category) as Promise<T>, [id, category]);
 }
 
-export function useStudioBarbers(id: string) {
-  return useApi(() => api.getStudioBarbers(id), [id]);
+export function useStudioBarbers<T = unknown>(id: string) {
+  return useApi<T>(() => api.getStudioBarbers(id) as Promise<T>, [id]);
 }
 
 // Booking hooks
@@ -118,22 +118,22 @@ export function useAvailability(studioId: string, barberId: string | null, date:
 }
 
 // Review hooks
-export function useStudioReviews(studioId: string, params: Record<string, string> = {}) {
-  return useApi(
-    () => api.getStudioReviews(studioId, params),
+export function useStudioReviews<T = unknown>(studioId: string, params: Record<string, string> = {}) {
+  return useApi<T>(
+    () => api.getStudioReviews(studioId, params) as Promise<T>,
     [studioId, JSON.stringify(params)]
   );
 }
 
-export function useBarberReviews(barberId: string, params: Record<string, string> = {}) {
-  return useApi(
-    () => api.getBarberReviews(barberId, params),
+export function useBarberReviews<T = unknown>(barberId: string, params: Record<string, string> = {}) {
+  return useApi<T>(
+    () => api.getBarberReviews(barberId, params) as Promise<T>,
     [barberId, JSON.stringify(params)]
   );
 }
 
-export function useMyReviews(params: Record<string, string> = {}) {
-  return useApi(() => api.getMyReviews(params), [JSON.stringify(params)]);
+export function useMyReviews<T = unknown>(params: Record<string, string> = {}) {
+  return useApi<T>(() => api.getMyReviews(params) as Promise<T>, [JSON.stringify(params)]);
 }
 
 // Profile hooks
@@ -146,19 +146,19 @@ export function useFavorites() {
 }
 
 // Mutation hook for actions
-interface MutationResult<T> {
-  mutate: (...args: unknown[]) => Promise<{ success: boolean; data?: T; error?: string }>;
+interface MutationResult<T, TArgs extends unknown[]> {
+  mutate: (...args: TArgs) => Promise<{ success: boolean; data?: T; error?: string }>;
   loading: boolean;
   error: string | null;
 }
 
-export function useMutation<T>(
-  mutationFn: (...args: unknown[]) => Promise<T & { error?: string }>
-): MutationResult<T> {
+export function useMutation<T, TArgs extends unknown[] = unknown[]>(
+  mutationFn: (...args: TArgs) => Promise<T & { error?: string }>
+): MutationResult<T, TArgs> {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const mutate = useCallback(async (...args: unknown[]) => {
+  const mutate = useCallback(async (...args: TArgs) => {
     setLoading(true);
     setError(null);
     try {

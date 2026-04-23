@@ -44,6 +44,13 @@ interface ProfileData {
   stats?: Stats;
 }
 
+interface ApiErrorShape {
+  error?: string;
+}
+
+const isApiError = (value: unknown): value is ApiErrorShape =>
+  typeof value === "object" && value !== null && "error" in value;
+
 export default function BookingsPage() {
   const [activeTab, setActiveTab] = useState<"upcoming" | "past" | "cancelled">("upcoming");
   const [cancelling, setCancelling] = useState(false);
@@ -73,11 +80,11 @@ export default function BookingsPage() {
     setCancelling(true);
     try {
       const result = await api.cancelBooking(bookingId, "User requested cancellation");
-      if (result && !('error' in result)) {
+      if (!isApiError(result) || !result.error) {
         toast.success("Booking cancelled successfully");
         refetch();
       } else {
-        toast.error((result as { error?: string })?.error || "Failed to cancel booking");
+        toast.error(result.error || "Failed to cancel booking");
       }
     } catch {
       toast.error("Failed to cancel booking");

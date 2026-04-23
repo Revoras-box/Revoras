@@ -27,7 +27,7 @@ export default function SlotConfiguration() {
 <span className="font-label uppercase tracking-widest text-xs">Dashboard</span>
 </a>
 <a className="flex items-center gap-4 py-3 group hover:bg-[#1C1B1B] transition-all text-[#E5C487] font-bold border-l-4 border-[#E5C487] pl-4 bg-gradient-to-r from-[#E5C487]/10 to-transparent hover:translate-x-1 duration-300" href="#">
-<span className="material-symbols-outlined" data-icon="calendar_today" style={{ fontVariationSettings: "'FILL' 1" }}>calendar_today</span>
+<span className="material-symbols-outlined icon-filled" data-icon="calendar_today">calendar_today</span>
 <span className="font-label uppercase tracking-widest text-xs">Appointments</span>
 </a>
 <a className="flex items-center gap-4 py-3 group hover:bg-[#1C1B1B] transition-all text-[#4D463A] pl-5 hover:text-[#E5C487] hover:translate-x-1 duration-300" href="#">
@@ -99,9 +99,9 @@ export default function SlotConfiguration() {
 <div className="space-y-4">
 <label className="font-label text-xs uppercase tracking-widest text-outline">Buffer Time (Prep)</label>
 <div className="relative group">
-<select className="w-full bg-surface-container-highest border-b border-outline-variant appearance-none py-4 px-4 rounded-t-xl focus:border-primary focus:ring-0 transition-all text-on-surface">
+<select className="w-full bg-surface-container-highest border-b border-outline-variant appearance-none py-4 px-4 rounded-t-xl focus:border-primary focus:ring-0 transition-all text-on-surface" defaultValue="5 minutes">
 <option>None (Back-to-back)</option>
-<option selected>5 minutes</option>
+<option>5 minutes</option>
 <option>10 minutes</option>
 <option>15 minutes</option>
 </select>
@@ -117,7 +117,7 @@ export default function SlotConfiguration() {
 <p className="text-xs text-on-surface-variant">How far in advance can clients book?</p>
 </div>
 <div className="flex items-center gap-4 bg-surface-container-highest px-4 py-2 rounded-xl">
-<input className="w-12 bg-transparent border-none text-center font-bold text-primary focus:ring-0 p-0" type="number" value="30"/>
+<input className="w-12 bg-transparent border-none text-center font-bold text-primary focus:ring-0 p-0" type="number" defaultValue={30}/>
 <span className="text-xs font-label uppercase tracking-tighter text-outline">Days</span>
 </div>
 </div>

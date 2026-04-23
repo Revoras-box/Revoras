@@ -125,7 +125,7 @@ export default function AddWalkIn() {
 {/* Barber Card 2 */}
 <div className="bg-surface-container-lowest/50 p-4 rounded-2xl border-2 border-primary cursor-pointer transition-all flex items-center gap-4 group relative">
 <div className="absolute -top-2 -right-2 bg-primary text-on-primary p-1 rounded-full">
-<span className="material-symbols-outlined text-xs" data-icon="check" style={{ fontVariationSettings: "'FILL' 1" }}>check</span>
+<span className="material-symbols-outlined text-xs icon-filled" data-icon="check">check</span>
 </div>
 <div className="w-12 h-12 rounded-xl overflow-hidden">
 <img className="w-full h-full object-cover" data-alt="sharp dressed barber in modern studio setting, golden hour lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD66Nko3h0DOR65vyABSv7s6fhxVhO81o_EyCZfU73dchUhOOO4LVnrp4lFmt96bayp5UqKUCqdfxM7TGQ5N3eub0TRsxu-dWEkB14TCrlqiKddMmIpFh8td7JpGiH3sF-LpnSAv8OHm8v9cQhTxQ91LfZv870t0lH4eyJQcBMEouSi6rk03nz2hMs7Pwa3JT-91MiBMlcU7YjihGtlAIrLas2VgPVuSjujBkz-JtbKLonEGWy8vEOiqA9rCY-NNumDOPbxF-7pN1k"/>

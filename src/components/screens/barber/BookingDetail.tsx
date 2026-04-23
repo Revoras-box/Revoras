@@ -179,7 +179,7 @@ export default function BookingDetail() {
 <section className="bg-surface-container-highest p-6 rounded-3xl flex justify-between items-center">
 <div className="flex gap-4">
 <button className="luxury-gradient px-8 py-4 rounded-xl flex items-center gap-3 group active:scale-95 transition-all">
-<span className="material-symbols-outlined text-on-primary" data-icon="check_circle" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+<span className="material-symbols-outlined text-on-primary icon-filled" data-icon="check_circle">check_circle</span>
 <span className="font-headline font-bold text-on-primary tracking-tight">Complete Service</span>
 </button>
 <button className="bg-surface-container-low border border-primary/20 px-8 py-4 rounded-xl flex items-center gap-3 group active:scale-95 transition-all">
@@ -224,7 +224,7 @@ export default function BookingDetail() {
 </div>
 </div>
 <div className="flex items-center gap-2 justify-center py-2 px-4 bg-secondary-container/10 border border-secondary/10 rounded-full">
-<span className="material-symbols-outlined text-[16px] text-secondary" data-icon="shield_checked" style={{ fontVariationSettings: "'FILL' 1" }}>shield</span>
+<span className="material-symbols-outlined text-[16px] text-secondary icon-filled" data-icon="shield_checked">shield</span>
 <span className="text-[10px] font-label uppercase text-secondary font-bold tracking-widest">Transaction Pre-Authorized</span>
 </div>
 </div>

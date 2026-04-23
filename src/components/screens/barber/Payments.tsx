@@ -47,7 +47,7 @@ export default function Payments() {
 <span className="font-['Space_Grotesk'] uppercase tracking-widest text-xs">Inventory</span>
 </a>
 <a className="flex items-center gap-4 py-3 text-[#E5C487] font-bold border-l-4 border-[#E5C487] pl-4 bg-gradient-to-r from-[#E5C487]/10 to-transparent transition-all group duration-300" href="#">
-<span className="material-symbols-outlined" data-icon="payments" style={{ fontVariationSettings: "'FILL' 1" }}>payments</span>
+<span className="material-symbols-outlined icon-filled" data-icon="payments">payments</span>
 <span className="font-['Space_Grotesk'] uppercase tracking-widest text-xs">Revenue</span>
 </a>
 </nav>
@@ -109,7 +109,7 @@ export default function Payments() {
 </div>
 <div className="relative z-10 flex gap-4 mt-12">
 <button className="gold-shimmer text-on-primary font-bold px-10 py-4 rounded-xl shadow-[0_20px_40px_rgba(229,196,135,0.3)] active:scale-95 transition-all flex items-center gap-3">
-<span className="material-symbols-outlined !text-on-primary" data-icon="account_balance_wallet" style={{ fontVariationSettings: "'FILL' 1" }}>account_balance_wallet</span>
+<span className="material-symbols-outlined !text-on-primary icon-filled" data-icon="account_balance_wallet">account_balance_wallet</span>
                         Withdraw Funds
                     </button>
 <button className="bg-surface-container-high px-10 py-4 rounded-xl font-bold text-primary border border-primary/10 hover:bg-surface-container-highest transition-colors active:scale-95">

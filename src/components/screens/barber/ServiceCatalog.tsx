@@ -198,7 +198,7 @@ export default function ServiceCatalog() {
 <button className="w-10 h-10 flex items-center justify-center text-outline hover:text-primary transition-colors" type="button">
 <span className="material-symbols-outlined">remove</span>
 </button>
-<input className="w-full bg-transparent border-0 text-center focus:ring-0 text-on-surface font-['Space_Grotesk'] font-bold" type="number" value="30"/>
+<input className="w-full bg-transparent border-0 text-center focus:ring-0 text-on-surface font-['Space_Grotesk'] font-bold" type="number" defaultValue={30}/>
 <button className="w-10 h-10 flex items-center justify-center text-outline hover:text-primary transition-colors" type="button">
 <span className="material-symbols-outlined">add</span>
 </button>

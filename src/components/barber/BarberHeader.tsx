@@ -46,11 +46,11 @@ export default function BarberHeader({ title }: BarberHeaderProps) {
             </p>
           </div>
           <div className="h-10 w-10 rounded-xl overflow-hidden border border-[#E5C487]/20 bg-[#353534]">
-            {barber?.avatar_url ? (
+            {barber?.image_url ? (
               <img
                 alt="Profile"
                 className="w-full h-full object-cover"
-                src={barber.avatar_url || ""}
+                src={typeof barber.image_url === "string" ? barber.image_url : ""}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-[#E5C487]">

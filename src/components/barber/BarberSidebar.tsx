@@ -28,7 +28,7 @@ export default function BarberSidebar() {
     <nav className="h-screen w-72 flex flex-col fixed left-0 top-0 z-50 bg-[#0E0E0E] border-r border-[#4D463A]/15 py-8">
       <div className="px-8 mb-12">
         <h1 className="font-headline font-black text-[#E5C487] text-2xl tracking-tight">
-          {barber?.salon_name || "Revoras"}
+          {typeof barber?.salon_name === "string" ? barber.salon_name : "Revoras"}
         </h1>
         <p className="uppercase tracking-widest text-[10px] text-[#4D463A] mt-1">
           Elite Management

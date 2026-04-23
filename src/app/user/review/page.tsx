@@ -1,13 +1,50 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useBooking, useMutation } from "@/lib/hooks";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 
-export default function ReviewPage() {
+interface BookingReviewDetails {
+  booking?: {
+    studio_id?: number;
+    barber_id?: string;
+    barber_name?: string;
+    barber_image?: string;
+    studio_name?: string;
+    booking_date: string;
+    services?: Array<{ name: string }>;
+  };
+}
+
+interface CreateReviewPayload {
+  bookingId: string | null;
+  studioId: number | undefined;
+  barberId: string | null;
+  rating: number;
+  title?: string;
+  comment?: string;
+}
+
+interface CreateReviewResponse {
+  message?: string;
+  error?: string;
+}
+
+const quickTags = [
+  "Excellent technique",
+  "Great conversation",
+  "Attention to detail",
+  "Professional",
+  "Relaxing atmosphere",
+  "On time",
+  "Clean studio",
+  "Will return",
+];
+
+function ReviewPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const bookingId = searchParams.get("booking");
@@ -19,25 +56,20 @@ export default function ReviewPage() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
 
-  // Fetch booking details if bookingId provided
   const { data: bookingData, loading } = useBooking(bookingId || "");
-  const booking = bookingData?.booking;
+  const typedBookingData = bookingData as BookingReviewDetails | null;
+  const booking = typedBookingData?.booking;
 
-  // Create review mutation
-  const { mutate: submitReview, loading: submitting } = useMutation(
-    (data: any) => api.createReview(data)
+  const { mutate: submitReview, loading: submitting } = useMutation<CreateReviewResponse, [CreateReviewPayload]>(
+    (data) => api.createReview({
+      bookingId: data.bookingId ?? "",
+      studioId: data.studioId ?? 0,
+      barberId: data.barberId ?? undefined,
+      rating: data.rating,
+      title: data.title,
+      comment: data.comment,
+    }) as Promise<CreateReviewResponse & { error?: string }>
   );
-
-  const quickTags = [
-    "Excellent technique",
-    "Great conversation",
-    "Attention to detail",
-    "Professional",
-    "Relaxing atmosphere",
-    "On time",
-    "Clean studio",
-    "Will return",
-  ];
 
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) =>
@@ -104,14 +136,12 @@ export default function ReviewPage() {
 
   return (
     <main className="relative z-10 flex flex-col px-6 pt-20 pb-20 max-w-4xl mx-auto min-h-screen">
-      {/* Header */}
       <div className="text-center mb-12">
         <p className="font-label text-[10px] uppercase tracking-widest text-[#E5C487]/60 mb-2">Share Your Experience</p>
         <h1 className="font-headline text-5xl md:text-6xl font-black tracking-tighter mb-4">Leave a Review</h1>
         <p className="text-gray-400">Your feedback helps others discover exceptional service</p>
       </div>
 
-      {/* Booking Summary Card */}
       {loading ? (
         <div className="bg-[#1a1a1a] rounded-3xl p-8 mb-10 border border-[#4D463A]/20 animate-pulse h-28"></div>
       ) : booking ? (
@@ -126,7 +156,7 @@ export default function ReviewPage() {
             )}
             <div className="flex-1">
               <h3 className="font-headline text-2xl font-bold text-white mb-1">
-                {booking.services?.map((s: any) => s.name).join(", ") || "Your Appointment"}
+                {booking.services?.map((s) => s.name).join(", ") || "Your Appointment"}
               </h3>
               {booking.barber_name && (
                 <p className="text-gray-400">
@@ -145,14 +175,12 @@ export default function ReviewPage() {
         </div>
       )}
 
-      {/* Rating Section */}
       <div className="bg-[#1a1a1a] rounded-3xl p-10 mb-8 border border-[#4D463A]/20">
         <div className="text-center mb-10">
           <h2 className="font-headline text-2xl font-bold mb-3">How was your experience?</h2>
           <p className="text-gray-400 text-sm">Tap a star to rate</p>
         </div>
 
-        {/* Star Rating */}
         <div className="flex justify-center gap-4 mb-10">
           {[1, 2, 3, 4, 5].map((star) => (
             <button
@@ -173,7 +201,6 @@ export default function ReviewPage() {
           ))}
         </div>
 
-        {/* Rating Label */}
         <p className="text-center text-lg font-semibold mb-10">
           {rating === 1 && <span className="text-red-400">Poor</span>}
           {rating === 2 && <span className="text-orange-400">Fair</span>}
@@ -183,7 +210,6 @@ export default function ReviewPage() {
           {rating === 0 && <span className="text-gray-500">Select a rating</span>}
         </p>
 
-        {/* Quick Tags */}
         <div className="mb-10">
           <p className="font-label text-[10px] uppercase tracking-widest text-gray-500 mb-4 text-center">
             Quick Feedback (Optional)
@@ -208,7 +234,6 @@ export default function ReviewPage() {
           </div>
         </div>
 
-        {/* Title (optional) */}
         <div className="mb-6">
           <label className="block font-label text-[10px] uppercase tracking-widest text-gray-500 mb-3">
             Title (Optional)
@@ -223,7 +248,6 @@ export default function ReviewPage() {
           />
         </div>
 
-        {/* Written Review */}
         <div>
           <label className="block font-label text-[10px] uppercase tracking-widest text-gray-500 mb-3">
             Share More Details (Optional)
@@ -239,7 +263,6 @@ export default function ReviewPage() {
         </div>
       </div>
 
-      {/* Photo Upload */}
       <div className="bg-[#1a1a1a] rounded-3xl p-8 mb-10 border border-[#4D463A]/20">
         <div className="text-center">
           <span className="material-symbols-outlined text-4xl text-gray-500 mb-4 block">add_photo_alternate</span>
@@ -253,7 +276,6 @@ export default function ReviewPage() {
         </div>
       </div>
 
-      {/* Submit Button */}
       <button
         onClick={handleSubmit}
         disabled={rating === 0 || submitting}
@@ -276,7 +298,6 @@ export default function ReviewPage() {
         )}
       </button>
 
-      {/* Skip Link */}
       <Link
         href="/user/bookings"
         className="text-center text-gray-500 text-sm mt-6 hover:text-gray-300 transition-colors block"
@@ -284,5 +305,22 @@ export default function ReviewPage() {
         Maybe later
       </Link>
     </main>
+  );
+}
+
+function ReviewPageLoading() {
+  return (
+    <main className="relative z-10 flex flex-col items-center justify-center px-6 pt-24 pb-20 max-w-7xl mx-auto min-h-screen">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#E5C487]"></div>
+      <p className="text-gray-400 mt-4">Loading...</p>
+    </main>
+  );
+}
+
+export default function ReviewPage() {
+  return (
+    <Suspense fallback={<ReviewPageLoading />}>
+      <ReviewPageContent />
+    </Suspense>
   );
 }

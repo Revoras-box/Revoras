@@ -1,4 +1,4 @@
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const API = "http://localhost:5000/api";
 
 // Helper to get auth token
 const getToken = () => {
@@ -64,7 +64,7 @@ export const api = {
   },
 
   barberSignup: async (data) => {
-    const res = await fetch(`${API}/barbers/signup`, {
+    const res = await fetch(`${API}/studios/manage/signup`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)
@@ -72,8 +72,26 @@ export const api = {
     return res.json();
   },
 
+  createBarberSignupPaymentOrder: async (data) => {
+    const res = await fetch(`${API}/studios/manage/signup/payment/order`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    return res.json();
+  },
+
+  verifyBarberSignupPayment: async (data) => {
+    const res = await fetch(`${API}/studios/manage/signup/payment/verify`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    return res.json();
+  },
+
   barberLogin: async (data) => {
-    const res = await fetch(`${API}/barbers/login`, {
+    const res = await fetch(`${API}/studios/manage/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)

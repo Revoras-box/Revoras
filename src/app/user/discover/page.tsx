@@ -5,6 +5,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useStudiosForMap } from "@/lib/hooks";
+import type { MapStudiosResponse } from "@/lib/types";
 
 // Dynamic import of Leaflet map to avoid SSR issues
 const LeafletMap = dynamic(() => import("@/components/LeafletMap"), {
@@ -57,12 +58,13 @@ export default function DiscoverPage() {
   }), [userLocation]);
 
   const { data: mapData, loading, error, refetch } = useStudiosForMap(mapParams);
+  const typedMapData = mapData as MapStudiosResponse | null;
   
   // Filter studios based on active filter and search
   const studios = useMemo(() => {
-    if (!mapData?.studios) return [];
+    if (!typedMapData?.studios) return [];
     
-    let filtered = mapData.studios;
+    let filtered = typedMapData.studios;
     
     // Search filter
     if (searchQuery) {
@@ -80,7 +82,7 @@ export default function DiscoverPage() {
         filtered = filtered.filter(s => s.is_open);
         break;
       case "Top Rated":
-        filtered = filtered.filter(s => s.rating >= 4.5);
+        filtered = filtered.filter(s => (s.rating ?? 0) >= 4.5);
         break;
       case "Near Me":
         // Already sorted by distance from API
@@ -88,7 +90,7 @@ export default function DiscoverPage() {
     }
     
     return filtered;
-  }, [mapData?.studios, searchQuery, activeFilter]);
+  }, [typedMapData?.studios, searchQuery, activeFilter]);
 
   // Helper to get status display
   const getStudioStatus = (studio: { is_open: boolean; next_open: string | null }) => {
