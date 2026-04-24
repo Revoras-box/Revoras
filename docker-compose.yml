@@ -6,7 +6,7 @@ services:
     environment:
       NODE_ENV: production
       NEXT_TELEMETRY_DISABLED: "1"
-      NEXT_PUBLIC_API_URL: https://revaros.tech/api
+      NEXT_PUBLIC_API_URL: https://revoras.tech/api
     ports:
       - "3000:3000"
     depends_on:
@@ -22,7 +22,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 5000
-      FRONTEND_URL: https://revaros.tech
+      FRONTEND_URL: https://revoras.tech
       DATABASE_URL: postgresql://postgres:postgres@db:5432/revoras
     ports:
       - "5000:5000"
