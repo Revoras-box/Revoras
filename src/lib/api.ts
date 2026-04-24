@@ -1,4 +1,4 @@
-const API = "http://localhost:5000/api";
+const API = process.env.NEXT_PUBLIC_API_URL;
 
 import type {
   Admin,

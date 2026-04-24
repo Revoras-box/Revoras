@@ -59,7 +59,7 @@ interface StudioSettings {
 
 const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const dayAbbr  = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-const API_BASE = "http://localhost:5000/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 // ─── Image Upload Hook ────────────────────────────────────────────────────────
 

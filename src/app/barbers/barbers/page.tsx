@@ -23,7 +23,7 @@ interface TeamMember {
 }
 
 const specialtyOptions = ["Fade", "Beard", "Classic", "Razor", "Modern", "Design", "Color", "Texture"];
-const API_BASE = "http://localhost:5000/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 function BarbersContent() {
   const [showAddForm, setShowAddForm] = useState(false);
