@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useApi, useAvailability } from "@/lib/hooks";
 import { toast } from "sonner";
@@ -137,7 +137,7 @@ const formatDisplayTime = (time: string): string => {
   return `${hour12}:${String(mins).padStart(2, "0")} ${period}`;
 };
 
-export default function BookPage() {
+function BookPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -617,5 +617,21 @@ export default function BookPage() {
         </aside>
       </div>
     </main>
+  );
+}
+
+function BookPageFallback() {
+  return (
+    <main className="min-h-screen bg-[#1A1A1A] text-white flex items-center justify-center">
+      <p className="text-sm text-gray-300">Loading booking page...</p>
+    </main>
+  );
+}
+
+export default function BookPage() {
+  return (
+    <Suspense fallback={<BookPageFallback />}>
+      <BookPageContent />
+    </Suspense>
   );
 }

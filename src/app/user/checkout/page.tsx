@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { useApi } from "@/lib/hooks";
@@ -141,7 +141,7 @@ function extractBarbers(payload: unknown): BarberItem[] {
   return [];
 }
 
-export default function CheckoutPage() {
+function CheckoutPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -534,5 +534,21 @@ export default function CheckoutPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+function CheckoutPageFallback() {
+  return (
+    <main className="min-h-screen bg-[#1A1A1A] text-white flex items-center justify-center">
+      <p className="text-sm text-gray-300">Loading checkout...</p>
+    </main>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={<CheckoutPageFallback />}>
+      <CheckoutPageContent />
+    </Suspense>
   );
 }
