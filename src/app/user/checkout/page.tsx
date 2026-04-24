@@ -53,6 +53,10 @@ interface BarbersResponse {
 interface BookingResponse {
   message?: string;
   error?: string;
+  id?: string | number;
+  booking?: {
+    id?: string | number;
+  };
 }
 
 const STUDIO_PLACEHOLDER = "/images/studio-placeholder.jpg";
@@ -265,7 +269,12 @@ export default function CheckoutPage() {
       }
 
       toast.success(result.message || "Booking confirmed successfully.");
-      router.push("/user/bookings");
+      const confirmedBookingId = result.booking?.id ?? result.id;
+      if (confirmedBookingId !== undefined && confirmedBookingId !== null) {
+        router.push(`/user/confirmation?booking=${encodeURIComponent(String(confirmedBookingId))}`);
+      } else {
+        router.push("/user/bookings");
+      }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to complete checkout.");
     } finally {
