@@ -111,22 +111,53 @@ export function BarberAuthProvider({ children }: StudioAuthProviderProps) {
 
   const loginAsStudio = useCallback(async (credentials: { phone?: string; email?: string; password: string }) => {
     const result = await api.studioLogin(credentials);
-    if (result.token && result.owner) {
-      setUser(result.owner);
-      setStudio(result.studio);
+    let owner: StudioOwner | undefined = undefined;
+    let studio: Studio | undefined = undefined;
+    if (
+      result.token &&
+      result.owner &&
+      typeof result.owner === 'object' &&
+      Object.keys(result.owner).length > 0
+    ) {
+      owner = result.owner as StudioOwner;
+      setUser(owner);
+      if (result.studio && result.studio !== null && typeof result.studio === 'object' && Object.keys(result.studio).length > 0) {
+        studio = result.studio as Studio;
+        setStudio(studio);
+      } else {
+        setStudio(null);
+      }
       setRole('studio_owner');
     }
-    return result;
+    return {
+      token: result.token,
+      owner,
+      studio: studio ?? (result.studio as Studio | undefined),
+      error: result.error,
+    };
   }, []);
 
   const loginAsBarber = useCallback(async (credentials: { phone: string; password: string }) => {
     const result = await api.barberEmployeeLogin(credentials);
-    if (result.token && result.barber) {
-      setUser(result.barber);
-      setStudio(result.studio);
+    let barber: Barber | undefined = undefined;
+    let studio: Studio | undefined = undefined;
+    if (result.token && result.barber && typeof result.barber === 'object' && Object.keys(result.barber).length > 0) {
+      barber = result.barber as Barber;
+      setUser(barber);
+      if (result.studio && typeof result.studio === 'object' && Object.keys(result.studio).length > 0) {
+        studio = result.studio as Studio;
+        setStudio(studio);
+      } else {
+        setStudio(null);
+      }
       setRole('barber');
     }
-    return result;
+    return {
+      token: result.token,
+      barber,
+      studio: studio ?? (result.studio as Studio | undefined),
+      error: result.error,
+    };
   }, []);
 
   const logout = useCallback(() => {

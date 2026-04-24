@@ -46,12 +46,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setLoading(false);
   }, []);
 
-  const login = useCallback(async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string): Promise<{ token?: string; user?: User; error?: string }> => {
     const result = await api.userLogin({ email, password });
-    if (result.token) {
-      setUser(result.user);
+    let user: User | undefined = undefined;
+    if (result.token && result.user) {
+      user = result.user as User;
+      setUser(user);
+      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("token", result.token);
     }
-    return result;
+    return {
+      token: result.token,
+      user,
+      error: result.error,
+    };
   }, []);
 
   const logout = useCallback(() => {

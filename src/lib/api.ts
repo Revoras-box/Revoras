@@ -23,6 +23,14 @@ interface AuthCredentials {
   password: string;
 }
 
+interface StudioAuthLoginResponse {
+  token?: string;
+  owner?: unknown;
+  barber?: unknown;
+  studio?: unknown;
+  error?: string;
+}
+
 interface SignupData extends AuthCredentials {
   name: string;
   phone?: string;
@@ -375,7 +383,9 @@ export const api = {
   },
 
   userLogin: async (data: AuthCredentials) => {
-    const res = await fetch<{ token?: string; user?: unknown }>(`${API}/users/login`, {
+    const res = await fetch<{
+      error: string | undefined; token?: string; user?: unknown 
+}>(`${API}/users/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)
@@ -420,7 +430,7 @@ export const api = {
   },
 
   studioLogin: async (data: { phone?: string; email?: string; password: string }) => {
-    const res = await fetch<{ token?: string; owner?: unknown; studio?: unknown }>(`${API}/studios/auth/login`, {
+    const res = await fetch<StudioAuthLoginResponse>(`${API}/studios/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)
@@ -459,7 +469,7 @@ export const api = {
 
   // Barber login (for barbers added by studio)
   barberEmployeeLogin: async (data: { phone: string; password: string }) => {
-    const res = await fetch<{ token?: string; barber?: unknown; studio?: unknown }>(`${API}/studios/auth/barber-login`, {
+    const res = await fetch<StudioAuthLoginResponse>(`${API}/studios/auth/barber-login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)
