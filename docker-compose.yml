@@ -3,8 +3,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    args:
-      NEXT_PUBLIC_API_URL: https://revoras.tech/api
+      args:
+        NEXT_PUBLIC_API_URL: https://revoras.tech/api
     environment:
       NODE_ENV: production
       NEXT_TELEMETRY_DISABLED: "1"
