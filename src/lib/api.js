@@ -160,8 +160,7 @@ export const api = {
   // Booking APIs
   // ==========================================
   getAvailability: async (studioId, barberId, date) => {
-    const params = new URLSearchParams({ studioId, date });
-    if (barberId) params.append("barberId", barberId);
+    const params = new URLSearchParams({ studioId, barberId, date });
     return authFetch(`${API}/bookings/availability?${params}`);
   },
 

@@ -65,7 +65,11 @@ export function useAvailability(studioId, barberId, date) {
   const [error, setError] = useState(null);
 
   const fetchSlots = useCallback(async () => {
-    if (!studioId || !date) return;
+    if (!studioId || !barberId || !date) {
+      setSlots([]);
+      setError(null);
+      return;
+    }
     setLoading(true);
     try {
       const result = await api.getAvailability(studioId, barberId, date);

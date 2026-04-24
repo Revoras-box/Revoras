@@ -94,10 +94,14 @@ export function useAvailability(studioId: string, barberId: string | null, date:
   const [error, setError] = useState<string | null>(null);
 
   const fetchSlots = useCallback(async () => {
-    if (!studioId || !date) return;
+    if (!studioId || !barberId || !date) {
+      setSlots([]);
+      setError(null);
+      return;
+    }
     setLoading(true);
     try {
-      const result = await api.getAvailability(studioId, barberId || undefined, date);
+      const result = await api.getAvailability(studioId, barberId, date);
       if (result.error) {
         setError(result.error);
       } else {

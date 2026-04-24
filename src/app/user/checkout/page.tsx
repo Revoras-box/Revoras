@@ -1,7 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { api } from "@/lib/api";
+import { useApi } from "@/lib/hooks";
+import { toast } from "sonner";
 
 const paymentMethods = [
   { id: "upi", name: "UPI Transfer", description: "Google Pay, PhonePe, Paytm", icon: "contactless" },
@@ -9,17 +13,284 @@ const paymentMethods = [
   { id: "wallet", name: "Digital Wallets", description: "Apple Pay, PayPal", icon: "account_balance" },
 ];
 
+interface StudioDetails {
+  id: string | number;
+  name: string;
+  city?: string | null;
+  state?: string | null;
+  image_url?: string | null;
+}
+
+interface StudioResponse {
+  studio?: StudioDetails;
+  error?: string;
+}
+
+interface ServiceItem {
+  id: number;
+  name: string;
+  price: number;
+  duration: number;
+}
+
+interface ServicesResponse {
+  services?: ServiceItem[];
+  error?: string;
+}
+
+interface BarberItem {
+  id: string;
+  name: string;
+  title?: string | null;
+  image_url?: string | null;
+}
+
+interface BarbersResponse {
+  barbers?: BarberItem[];
+  error?: string;
+}
+
+interface BookingResponse {
+  message?: string;
+  error?: string;
+}
+
+const STUDIO_PLACEHOLDER = "/images/studio-placeholder.jpg";
+
+const parseIdList = (value: string | null): string[] => {
+  if (!value) return [];
+  return value
+    .split(",")
+    .map((v) => v.trim())
+    .filter(Boolean);
+};
+
+const to24HourTime = (raw: string): string | null => {
+  const value = raw.trim();
+  if (!value) return null;
+  const strict24 = value.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+  if (strict24) {
+    const hour = Number(strict24[1]);
+    const min = Number(strict24[2]);
+    if (hour >= 0 && hour <= 23 && min >= 0 && min <= 59) {
+      return `${String(hour).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
+    }
+  }
+  const ampm = value.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (ampm) {
+    const hour = Number(ampm[1]);
+    const min = Number(ampm[2]);
+    const period = ampm[3].toUpperCase();
+    if (hour >= 1 && hour <= 12 && min >= 0 && min <= 59) {
+      const normalizedHour = period === "PM" ? (hour % 12) + 12 : hour % 12;
+      return `${String(normalizedHour).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
+    }
+  }
+  return null;
+};
+
+const formatDisplayTime = (time: string): string => {
+  const [hoursRaw, minsRaw] = time.split(":");
+  const hours = Number(hoursRaw);
+  const mins = Number(minsRaw);
+  if (Number.isNaN(hours) || Number.isNaN(mins)) return time;
+  const period = hours >= 12 ? "PM" : "AM";
+  const hour12 = hours % 12 || 12;
+  return `${hour12}:${String(mins).padStart(2, "0")} ${period}`;
+};
+
+const formatDisplayDate = (date: string): string => {
+  const parsed = new Date(`${date}T00:00:00`);
+  if (Number.isNaN(parsed.getTime())) return date;
+  return parsed.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+};
+
+function extractStudio(payload: unknown): StudioDetails | null {
+  if (!payload || typeof payload !== "object") return null;
+  const obj = payload as Record<string, unknown>;
+  if ("studio" in obj && obj.studio && typeof obj.studio === "object") {
+    return obj.studio as StudioDetails;
+  }
+  if ("id" in obj && "name" in obj) {
+    return obj as unknown as StudioDetails;
+  }
+  return null;
+}
+
+function extractServices(payload: unknown): ServiceItem[] {
+  if (!payload || typeof payload !== "object") return [];
+  const obj = payload as Record<string, unknown>;
+  if (Array.isArray(obj)) return obj as ServiceItem[];
+  if ("services" in obj && Array.isArray(obj.services)) {
+    return obj.services as ServiceItem[];
+  }
+  return [];
+}
+
+function extractBarbers(payload: unknown): BarberItem[] {
+  if (!payload || typeof payload !== "object") return [];
+  const obj = payload as Record<string, unknown>;
+  if (Array.isArray(obj)) return obj as BarberItem[];
+  if ("barbers" in obj && Array.isArray(obj.barbers)) {
+    return obj.barbers as BarberItem[];
+  }
+  return [];
+}
+
 export default function CheckoutPage() {
-  const [selectedPayment, setSelectedPayment] = useState("upi");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const studioId = searchParams.get("studioId")?.trim() ?? "";
+  const barberId = searchParams.get("barberId")?.trim() ?? "";
+  const bookingDate = searchParams.get("date")?.trim() ?? "";
+  const bookingTimeRaw = searchParams.get("time")?.trim() ?? "";
+  const bookingTime = to24HourTime(bookingTimeRaw);
+  const selectedServiceIds = useMemo(() => parseIdList(searchParams.get("services")), [searchParams]);
+  const noteFromBooking = searchParams.get("notes")?.trim() ?? "";
+
+  const [selectedPayment, setSelectedPayment] = useState("card");
   const [formData, setFormData] = useState({
     fullName: "",
     mobile: "",
     promoCode: "",
   });
+  const [submitting, setSubmitting] = useState(false);
+
+  const { data: studioData, loading: studioLoading } = useApi<StudioResponse>(
+    () => {
+      if (!studioId) return Promise.resolve({});
+      return api.getStudio(studioId) as Promise<StudioResponse>;
+    },
+    [studioId]
+  );
+
+  const { data: servicesData, loading: servicesLoading } = useApi<ServicesResponse>(
+    () => {
+      if (!studioId) return Promise.resolve({ services: [] });
+      return api.getStudioServices(studioId) as Promise<ServicesResponse>;
+    },
+    [studioId]
+  );
+
+  const { data: barbersData, loading: barbersLoading } = useApi<BarbersResponse>(
+    () => {
+      if (!studioId) return Promise.resolve({ barbers: [] });
+      return api.getStudioBarbers(studioId) as Promise<BarbersResponse>;
+    },
+    [studioId]
+  );
+
+  const studio = useMemo(() => extractStudio(studioData), [studioData]);
+  const services = useMemo(() => extractServices(servicesData), [servicesData]);
+  const barbers = useMemo(() => extractBarbers(barbersData), [barbersData]);
+
+  const selectedServiceDetails = useMemo(
+    () => services.filter((service) => selectedServiceIds.includes(String(service.id))),
+    [services, selectedServiceIds]
+  );
+  const selectedBarber = useMemo(
+    () => barbers.find((barber) => barber.id === barberId),
+    [barbers, barberId]
+  );
+  const subtotal = useMemo(
+    () => selectedServiceDetails.reduce((sum, service) => sum + service.price, 0),
+    [selectedServiceDetails]
+  );
+  const totalDuration = useMemo(
+    () => selectedServiceDetails.reduce((sum, service) => sum + service.duration, 0),
+    [selectedServiceDetails]
+  );
+
+  const invalidContext = !studioId || !barberId || !bookingDate || !bookingTime || selectedServiceIds.length === 0;
+  const loadingSummary = studioLoading || servicesLoading || barbersLoading;
+  const backToBookHref = useMemo(() => {
+    const params = new URLSearchParams();
+    if (studioId) params.set("studioId", studioId);
+    if (barberId) params.set("barberId", barberId);
+    if (selectedServiceIds.length > 0) params.set("services", selectedServiceIds.join(","));
+    const query = params.toString();
+    return query ? `/user/book?${query}` : "/user/book";
+  }, [studioId, barberId, selectedServiceIds]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+
+  const handlePayAndConfirm = async () => {
+    if (invalidContext) {
+      toast.error("Missing booking details. Please return and select your slot again.");
+      return;
+    }
+    if (selectedServiceDetails.length === 0) {
+      toast.error("Unable to load selected services. Please go back and retry.");
+      return;
+    }
+    if (!selectedBarber) {
+      toast.error("Unable to load selected barber. Please go back and retry.");
+      return;
+    }
+    if (!bookingTime) {
+      toast.error("Invalid booking time. Please go back and select time again.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const noteParts = [noteFromBooking];
+      if (formData.fullName.trim() || formData.mobile.trim()) {
+        noteParts.push(`Checkout details: ${formData.fullName.trim()} ${formData.mobile.trim()}`.trim());
+      }
+      if (formData.promoCode.trim()) {
+        noteParts.push(`Promo code: ${formData.promoCode.trim()}`);
+      }
+
+      const result = (await api.createBooking({
+        studioId: studio?.id || studioId,
+        barberId,
+        date: bookingDate,
+        startTime: bookingTime,
+        services: selectedServiceDetails.map((service) => ({
+          serviceId: service.id,
+          price: service.price,
+          duration: service.duration,
+        })),
+        notes: noteParts.filter(Boolean).join(" | ") || undefined,
+        paymentMethod: selectedPayment,
+      })) as BookingResponse;
+
+      if (result.error) {
+        toast.error(result.error);
+        return;
+      }
+
+      toast.success(result.message || "Booking confirmed successfully.");
+      router.push("/user/bookings");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to complete checkout.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (invalidContext) {
+    return (
+      <main className="pt-32 pb-24 px-6 md:px-12 max-w-4xl mx-auto min-h-screen">
+        <div className="bg-[#1a1a1a] border border-[#4D463A]/20 rounded-3xl p-10 text-center">
+          <span className="material-symbols-outlined text-6xl text-[#E5C487]">error</span>
+          <h1 className="font-headline text-3xl font-bold text-white mt-4 mb-3">Checkout details are incomplete</h1>
+          <p className="text-gray-400 mb-8">Please return to booking and select studio, barber, services, date and time.</p>
+          <Link
+            href={backToBookHref}
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#E5C487] to-[#C8A96E] text-[#402d00] font-headline font-bold"
+          >
+            Back to Booking
+            <span className="material-symbols-outlined">arrow_back</span>
+          </Link>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="pt-32 pb-24 px-6 md:px-12 max-w-7xl mx-auto min-h-screen">
@@ -150,17 +421,21 @@ export default function CheckoutPage() {
             <div className="h-32 relative">
               <img
                 className="w-full h-full object-cover opacity-40"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAon_D8YwnccdagcfN8GKTlaftDGliRUbapMLbGjIJibLU1adbj1znvn3WPUF3fwDAsyeOHH-Jv32N4RtV4Uw6lB-X3BjukCLsoZHrPijbGWzZ5vrks86DSBJZefeJ3IBQkWT8CWgUy2oQs-6qpnUqTYwzgxb-8JCybKHS7hkiLGbVGDCiARUNHKOF3VQRAjTD8SEpaIa5cSktDKOe44SYM-Plg1A8rFqD83u4Mz57A4CNEHNH_F5wwPhtc8pZfRSw_uhk2HxHseH4"
+                src={studio?.image_url || STUDIO_PLACEHOLDER}
                 alt="Studio"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#1e1e1e] to-transparent"></div>
               <div className="absolute bottom-4 left-6 flex items-center gap-4">
                 <div className="w-16 h-16 rounded-xl bg-[#0e0e0e] border border-[#E5C487]/30 flex items-center justify-center p-2">
-                  <span className="font-headline font-black text-[#E5C487] text-2xl tracking-tighter">SC</span>
+                  <span className="font-headline font-black text-[#E5C487] text-2xl tracking-tighter">
+                    {(studio?.name || "SC").slice(0, 2).toUpperCase()}
+                  </span>
                 </div>
                 <div>
-                  <h3 className="font-headline font-bold text-lg">Revoras Flagship</h3>
-                  <p className="text-xs text-gray-400 font-label">Manhattan District, NY</p>
+                  <h3 className="font-headline font-bold text-lg">{studio?.name || "Loading..."}</h3>
+                  <p className="text-xs text-gray-400 font-label">
+                    {[studio?.city, studio?.state].filter(Boolean).join(", ") || "Location unavailable"}
+                  </p>
                 </div>
               </div>
             </div>
@@ -168,27 +443,33 @@ export default function CheckoutPage() {
             <div className="p-8 space-y-6">
               <div className="flex justify-between items-start">
                 <div>
-                  <h4 className="font-headline font-bold">The Royal Signature Cut</h4>
-                  <p className="text-sm text-gray-400">Includes wash, hot towel, & grooming</p>
+                  <h4 className="font-headline font-bold">
+                    {selectedServiceDetails.map((service) => service.name).join(", ") || "Selected Services"}
+                  </h4>
+                  <p className="text-sm text-gray-400">Booking created directly via backend API</p>
                 </div>
-                <span className="font-headline font-bold text-[#E5C487]">$85.00</span>
+                <span className="font-headline font-bold text-[#E5C487]">${subtotal}</span>
               </div>
 
               {/* Booking Details */}
               <div className="bg-[#1a1a1a]/50 p-4 rounded-lg space-y-3">
                 <div className="flex items-center gap-3 text-sm">
                   <span className="material-symbols-outlined text-[#E5C487] text-lg">event</span>
-                  <span className="text-gray-400 font-medium">October 24, 2024</span>
+                  <span className="text-gray-400 font-medium">{formatDisplayDate(bookingDate)}</span>
                 </div>
                 <div className="flex items-center gap-3 text-sm">
                   <span className="material-symbols-outlined text-[#E5C487] text-lg">schedule</span>
-                  <span className="text-gray-400 font-medium">04:30 PM (45 Mins)</span>
+                  <span className="text-gray-400 font-medium">
+                    {bookingTime ? `${formatDisplayTime(bookingTime)} (${totalDuration} Mins)` : "--"}
+                  </span>
                 </div>
                 <div className="flex items-center gap-3 text-sm">
                   <span className="material-symbols-outlined text-[#E5C487] text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>
                     person
                   </span>
-                  <span className="text-gray-400 font-medium">Senior Barber: Julian V.</span>
+                  <span className="text-gray-400 font-medium">
+                    {selectedBarber ? `${selectedBarber.title || "Barber"}: ${selectedBarber.name}` : "Loading barber..."}
+                  </span>
                 </div>
               </div>
 
@@ -196,15 +477,11 @@ export default function CheckoutPage() {
               <div className="space-y-3 pt-6 border-t border-[#4D463A]/30">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-400">Service Subtotal</span>
-                  <span className="font-medium">$85.00</span>
+                  <span className="font-medium">${subtotal}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Concierge Fee</span>
-                  <span className="font-medium">$4.50</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">GST / Luxury Tax</span>
-                  <span className="font-medium">$7.20</span>
+                  <span className="text-gray-400">Payment Method</span>
+                  <span className="font-medium capitalize">{selectedPayment}</span>
                 </div>
               </div>
 
@@ -213,7 +490,7 @@ export default function CheckoutPage() {
                 <div className="flex justify-between items-end mb-8">
                   <div>
                     <p className="font-label text-[10px] tracking-widest uppercase text-gray-400">Total Amount Due</p>
-                    <p className="font-headline text-3xl font-black text-[#E5C487]">$96.70</p>
+                    <p className="font-headline text-3xl font-black text-[#E5C487]">${subtotal}</p>
                   </div>
                   <div className="bg-green-900/20 px-3 py-1 rounded-full flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
@@ -221,13 +498,14 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
-                <Link
-                  href="/user/confirmation"
+                <button
+                  onClick={handlePayAndConfirm}
+                  disabled={submitting || loadingSummary || selectedServiceDetails.length === 0 || !selectedBarber}
                   className="w-full bg-gradient-to-r from-[#E5C487] to-[#C8A96E] text-[#402d00] font-headline font-bold py-4 rounded-xl shadow-lg shadow-[#E5C487]/20 active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
                 >
-                  PAY & CONFIRM BOOKING
+                  {submitting ? "PROCESSING..." : "PAY & CONFIRM BOOKING"}
                   <span className="material-symbols-outlined text-[#402d00]">arrow_forward</span>
-                </Link>
+                </button>
                 <p className="text-[10px] text-center text-gray-400 font-label mt-4 tracking-tight">
                   By clicking, you agree to our 24h Cancellation Policy.
                 </p>
@@ -238,9 +516,9 @@ export default function CheckoutPage() {
           {/* Queue Position */}
           <div className="mt-6 flex justify-end">
             <div className="bg-[#1e1e1e]/50 backdrop-blur-sm border border-[#4D463A]/20 px-4 py-2 rounded-full flex items-center gap-3">
-              <span className="font-label text-[10px] tracking-widest text-gray-400 uppercase">Current Queue</span>
+              <span className="font-label text-[10px] tracking-widest text-gray-400 uppercase">Checkout Status</span>
               <div className="bg-green-900/30 text-green-400 text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-tighter">
-                Pos: #02
+                {loadingSummary ? "Loading..." : "Ready"}
               </div>
             </div>
           </div>
