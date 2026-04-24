@@ -1,4 +1,4 @@
-const API = process.env.NEXT_PUBLIC_API_URL;
+import axios from "axios";
 
 import type {
   Admin,
@@ -11,6 +11,8 @@ import type {
   GeocodeResponse,
   ApiError,
 } from "./types";
+
+const API = "/api";
 
 // Re-export types for convenience
 export type * from "./types";
@@ -76,6 +78,26 @@ interface NotificationSettings {
 interface FetchOptions extends RequestInit {
   headers?: Record<string, string>;
 }
+
+type AxiosFetchResponse<T = unknown> = {
+  status: number;
+  json: () => Promise<T>;
+};
+
+const fetch = async <T = unknown>(url: string, options: FetchOptions = {}): Promise<AxiosFetchResponse<T>> => {
+  const response = await axios.request<T>({
+    url,
+    method: options.method ?? "GET",
+    data: options.body,
+    headers: options.headers,
+    validateStatus: () => true,
+  });
+
+  return {
+    status: response.status,
+    json: async () => response.data,
+  };
+};
 
 // Service data interface
 interface ServiceData {
@@ -264,7 +286,7 @@ const getBarberToken = (): string => {
 // Helper for authenticated requests (user)
 const authFetch = async <T = unknown>(url: string, options: FetchOptions = {}): Promise<T> => {
   const token = getToken();
-  const res = await fetch(url, {
+  const res = await fetch<T>(url, {
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -288,7 +310,7 @@ const authFetch = async <T = unknown>(url: string, options: FetchOptions = {}): 
 // Helper for authenticated requests (barber)
 const barberAuthFetch = async <T = unknown>(url: string, options: FetchOptions = {}): Promise<T> => {
   const token = getBarberToken();
-  const res = await fetch(url, {
+  const res = await fetch<T>(url, {
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -318,7 +340,7 @@ const getAdminToken = (): string => {
 // Helper for authenticated requests (admin)
 const adminAuthFetch = async <T = unknown>(url: string, options: FetchOptions = {}): Promise<T> => {
   const token = getAdminToken();
-  const res = await fetch(url, {
+  const res = await fetch<T>(url, {
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -353,7 +375,7 @@ export const api = {
   },
 
   userLogin: async (data: AuthCredentials) => {
-    const res = await fetch(`${API}/users/login`, {
+    const res = await fetch<{ token?: string; user?: unknown }>(`${API}/users/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)
@@ -398,7 +420,7 @@ export const api = {
   },
 
   studioLogin: async (data: { phone?: string; email?: string; password: string }) => {
-    const res = await fetch(`${API}/studios/auth/login`, {
+    const res = await fetch<{ token?: string; owner?: unknown; studio?: unknown }>(`${API}/studios/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)
@@ -437,7 +459,7 @@ export const api = {
 
   // Barber login (for barbers added by studio)
   barberEmployeeLogin: async (data: { phone: string; password: string }) => {
-    const res = await fetch(`${API}/studios/auth/barber-login`, {
+    const res = await fetch<{ token?: string; barber?: unknown; studio?: unknown }>(`${API}/studios/auth/barber-login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)
@@ -844,7 +866,7 @@ export const api = {
   // ==========================================
   
   adminLogin: async (data: { email: string; password: string }) => {
-    const res = await fetch(`${API}/admin/login`, {
+    const res = await fetch<AdminLoginResponse>(`${API}/admin/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import BarberSidebar from "@/components/barber/BarberSidebar";
 import { BarberAuthProvider, useBarberAuth } from "@/lib/barber-auth";
 import { api } from "@/lib/api";
+import axios from "axios";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -59,7 +60,6 @@ interface StudioSettings {
 
 const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const dayAbbr  = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 // ─── Image Upload Hook ────────────────────────────────────────────────────────
 
@@ -76,8 +76,10 @@ function useImageUpload(initialUrl = "") {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const res = await fetch(`${API_BASE}/studio/upload-image`, { method: "POST", body: formData });
-      const data = await res.json();
+      const res = await axios.post("/api/studio/upload-image", formData, {
+        validateStatus: () => true,
+      });
+      const data = res.data as { url?: string };
       if (data.url) setPreview(data.url);
     } catch (e) {
       console.error("Upload failed", e);
@@ -519,13 +521,11 @@ function SettingsContent() {
     try {
       setSavingBarbers(true);
       setError(null);
-      const res = await fetch(`${API_BASE}/studio/${settings?.studio?.id}/barbers`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ barbers }),
+      const res = await axios.put(`/api/studio/${settings?.studio?.id}/barbers`, { barbers }, {
+        validateStatus: () => true,
       });
-      const data = await res.json();
-      if (data.error) setError(data.error);
+      const data = res.data as { error?: string };
+      if (res.status >= 400 || data.error) setError(data.error || "Failed to save barbers.");
       else { setSuccess("Barbers saved!"); setTimeout(() => setSuccess(null), 3000); }
     } catch {
       setError("Failed to save barbers.");

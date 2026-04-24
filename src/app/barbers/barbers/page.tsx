@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import BarberSidebar from "@/components/barber/BarberSidebar";
 import { BarberAuthProvider, useBarberAuth } from "@/lib/barber-auth";
 import { api } from "@/lib/api";
+import axios from "axios";
 
 // Types
 interface TeamMember {
@@ -23,7 +24,6 @@ interface TeamMember {
 }
 
 const specialtyOptions = ["Fade", "Beard", "Classic", "Razor", "Modern", "Design", "Color", "Texture"];
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 function BarbersContent() {
   const [showAddForm, setShowAddForm] = useState(false);
@@ -106,14 +106,13 @@ function BarbersContent() {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await fetch(`${API_BASE}/studio/upload-image`, {
-      method: "POST",
-      body: formData,
+    const response = await axios.post("/api/studio/upload-image", formData, {
+      validateStatus: () => true,
     });
 
-    const result = await response.json() as { url?: string; logoUrl?: string; error?: string };
+    const result = response.data as { url?: string; logoUrl?: string; error?: string };
 
-    if (!response.ok || result.error) {
+    if (response.status >= 400 || result.error) {
       throw new Error(result.error || "Failed to upload image");
     }
 

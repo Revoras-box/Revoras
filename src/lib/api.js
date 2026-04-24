@@ -1,4 +1,21 @@
-const API = process.env.NEXT_PUBLIC_API_URL;
+import axios from "axios";
+
+const API = "/api";
+
+const fetch = async (url, options = {}) => {
+  const response = await axios({
+    url,
+    method: options.method || "GET",
+    data: options.body,
+    headers: options.headers,
+    validateStatus: () => true,
+  });
+
+  return {
+    status: response.status,
+    json: async () => response.data,
+  };
+};
 
 // Helper to get auth token
 const getToken = () => {

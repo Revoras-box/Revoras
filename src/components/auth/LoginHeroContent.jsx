@@ -4,8 +4,6 @@ import { api } from "@/lib/api";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
 export default function LoginHeroContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -82,7 +80,7 @@ export default function LoginHeroContent() {
   const handleGoogleLogin = () => {
     setGoogleLoading(true);
     toast.loading("Redirecting to Google...");
-    window.location.href = `${API_URL}/auth/google`;
+    window.location.href = "/api/auth/google";
   };
 
   const updateField = (field, value) => {
