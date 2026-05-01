@@ -186,7 +186,7 @@ export default function BarberSignup() {
   };
 
   const handleSignup = async () => {
-    if (!formData.name || !formData.salonName) {
+    if (!formData.name || !formData.salonName || !formData.shopAddress) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -215,17 +215,14 @@ export default function BarberSignup() {
     toast.loading("Creating your profile...");
 
     try {
-      const result = await api.barberSignup({
-        name: formData.name,
-        salonName: formData.salonName,
-        phone: formData.phone,
+      const result = await api.studioSignup({
+        ownerName: formData.name,
         email: formData.email,
+        phone: formData.phone,
         password: formData.password,
-        panCard: formData.panCard,
-        experience: formData.experience,
-        speciality: formData.speciality,
-        shopAddress: formData.shopAddress,
-        city: formData.city,
+        studioName: formData.salonName,
+        address: formData.shopAddress,
+        city: formData.city || undefined,
         emailVerified: formData.emailVerified,
         phoneVerified: formData.phoneVerified,
       });
@@ -235,7 +232,7 @@ export default function BarberSignup() {
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("Application submitted! Awaiting admin approval.");
+        toast.success("Studio signup submitted! Awaiting admin approval.");
         router.push("/barber-pending");
       }
     } catch (err) {

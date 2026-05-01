@@ -80,6 +80,15 @@ export const api = {
     window.location.href = "/";
   },
 
+  studioSignup: async (data) => {
+    const res = await fetch(`${API}/studios/auth/signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+
   barberSignup: async (data) => {
     const res = await fetch(`${API}/studios/manage/signup`, {
       method: "POST",
