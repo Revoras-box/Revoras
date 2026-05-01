@@ -89,24 +89,6 @@ export const api = {
     return res.json();
   },
 
-  createBarberSignupPaymentOrder: async (data) => {
-    const res = await fetch(`${API}/studios/manage/signup/payment/order`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    return res.json();
-  },
-
-  verifyBarberSignupPayment: async (data) => {
-    const res = await fetch(`${API}/studios/manage/signup/payment/verify`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    return res.json();
-  },
-
   barberLogin: async (data) => {
     const res = await fetch(`${API}/studios/manage/login`, {
       method: "POST",

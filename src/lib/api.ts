@@ -46,7 +46,6 @@ interface BarberSignupData extends SignupData {
   city?: string;
   emailVerified?: boolean;
   phoneVerified?: boolean;
-  registrationPaymentToken?: string;
 }
 
 interface BookingData {
@@ -492,28 +491,6 @@ export const api = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)
-    });
-    return res.json();
-  },
-
-  createBarberSignupPaymentOrder: async (data: { name: string; email: string; phone: string }) => {
-    const res = await fetch(`${API}/studios/manage/signup/payment/order`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    return res.json();
-  },
-
-  verifyBarberSignupPayment: async (data: {
-    razorpay_order_id: string;
-    razorpay_payment_id: string;
-    razorpay_signature: string;
-  }) => {
-    const res = await fetch(`${API}/studios/manage/signup/payment/verify`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
     });
     return res.json();
   },

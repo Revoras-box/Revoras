@@ -7,11 +7,8 @@ import { toast } from "sonner";
 
 export default function BarberSignup() {
   const router = useRouter();
-  const REGISTRATION_FEE = 99;
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-  const [registrationPaymentToken, setRegistrationPaymentToken] = useState("");
   const [devOtp, setDevOtp] = useState({ email: null, phone: null });
 
   const [formData, setFormData] = useState({
@@ -188,78 +185,6 @@ export default function BarberSignup() {
     return panRegex.test(pan);
   };
 
-  const loadRazorpayScript = async () => {
-    if (typeof window === "undefined") return false;
-    if (window.Razorpay) return true;
-
-    return new Promise((resolve) => {
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.async = true;
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
-  };
-
-  const collectRegistrationPayment = async () => {
-    if (registrationPaymentToken) return registrationPaymentToken;
-
-    if (!formData.name || !formData.email || !formData.phone) {
-      throw new Error("Name, email and phone are required before payment");
-    }
-
-    const scriptLoaded = await loadRazorpayScript();
-    if (!scriptLoaded) {
-      throw new Error("Unable to load payment gateway. Please check your connection.");
-    }
-
-    const orderResult = await api.createBarberSignupPaymentOrder({
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone,
-    });
-
-    if (orderResult.error || !orderResult.orderId || !orderResult.keyId) {
-      throw new Error(orderResult.error || "Could not start payment");
-    }
-
-    const paymentResponse = await new Promise((resolve, reject) => {
-      const razorpay = new window.Razorpay({
-        key: orderResult.keyId,
-        amount: orderResult.amount,
-        currency: orderResult.currency || "INR",
-        name: "SnapCut",
-        description: `Professional registration fee - ₹${REGISTRATION_FEE}`,
-        order_id: orderResult.orderId,
-        prefill: {
-          name: formData.name,
-          email: formData.email,
-          contact: formData.phone,
-        },
-        theme: { color: "#C8A96E" },
-        handler: resolve,
-        modal: {
-          ondismiss: () => reject(new Error("Payment was cancelled")),
-        },
-      });
-
-      razorpay.on("payment.failed", (event) => {
-        reject(new Error(event?.error?.description || "Payment failed"));
-      });
-
-      razorpay.open();
-    });
-
-    const verifyResult = await api.verifyBarberSignupPayment(paymentResponse);
-    if (verifyResult.error || !verifyResult.paymentToken) {
-      throw new Error(verifyResult.error || "Payment verification failed");
-    }
-
-    setRegistrationPaymentToken(verifyResult.paymentToken);
-    return verifyResult.paymentToken;
-  };
-
   const handleSignup = async () => {
     if (!formData.name || !formData.salonName) {
       toast.error("Please fill in all required fields");
@@ -287,15 +212,9 @@ export default function BarberSignup() {
     }
 
     setLoading(true);
-    setIsProcessingPayment(!registrationPaymentToken);
-    toast.loading(`Processing registration fee (₹${REGISTRATION_FEE})...`);
+    toast.loading("Creating your profile...");
 
     try {
-      const paymentToken = await collectRegistrationPayment();
-      setIsProcessingPayment(false);
-      toast.dismiss();
-      toast.loading("Creating your profile...");
-
       const result = await api.barberSignup({
         name: formData.name,
         salonName: formData.salonName,
@@ -309,7 +228,6 @@ export default function BarberSignup() {
         city: formData.city,
         emailVerified: formData.emailVerified,
         phoneVerified: formData.phoneVerified,
-        registrationPaymentToken: paymentToken,
       });
 
       toast.dismiss();
@@ -321,7 +239,6 @@ export default function BarberSignup() {
         router.push("/barber-pending");
       }
     } catch (err) {
-      setIsProcessingPayment(false);
       toast.dismiss();
       toast.error(err instanceof Error ? err.message : "Signup failed. Please try again.");
     } finally {
@@ -357,7 +274,7 @@ export default function BarberSignup() {
             />
             <Feature
               title="Instant Settlements"
-              desc="Secure payment infrastructure for professionals"
+              desc="Fast onboarding without registration fees"
             />
             <Feature
               title="Client Analytics"
@@ -633,13 +550,10 @@ export default function BarberSignup() {
             <div className="space-y-8">
               <h2 className="text-2xl font-semibold">Account Setup</h2>
               <div className="rounded-xl border border-[#C8A96E]/30 bg-[#C8A96E]/5 px-4 py-3 text-sm">
-                <p className="text-[#C8A96E] font-semibold">Registration Fee: ₹{REGISTRATION_FEE}</p>
+                <p className="text-[#C8A96E] font-semibold">No registration fee required</p>
                 <p className="text-gray-400 mt-1">
-                  Signup will be submitted only after successful payment confirmation.
+                  Complete your details and submit your profile for approval.
                 </p>
-                {registrationPaymentToken && (
-                  <p className="text-green-400 mt-2">✓ Payment verified for this signup attempt.</p>
-                )}
               </div>
               <div className="space-y-6">
                 <Input
@@ -677,10 +591,10 @@ export default function BarberSignup() {
                 {loading ? (
                   <>
                     <LoadingSpinner />
-                    {isProcessingPayment ? "Processing Payment..." : "Creating Profile..."}
+                    Creating Profile...
                   </>
                 ) : (
-                  registrationPaymentToken ? "Create Professional Profile" : `Pay ₹${REGISTRATION_FEE} & Create Profile`
+                  "Create Professional Profile"
                 )}
               </button>
               <button onClick={prev} className="secondary-btn w-full" disabled={loading}>
