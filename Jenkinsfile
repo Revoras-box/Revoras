@@ -36,14 +36,16 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh '''
-                    docker pull $IMAGE:latest
                     docker stop $CONTAINER || true
-                    docker rm $CONTAINER || true
+                    docker rm -f $CONTAINER || true
+                    docker ps -q --filter "publish=3000" | xargs -r docker rm -f || true
+                    sleep 2
+                    docker pull $IMAGE:latest
                     docker run -d \
                         --name $CONTAINER \
                         --restart always \
                         -p 3000:3000 \
-                        -e NEXT_PUBLIC_API_URL=https://api.revoras.com \
+                        -e NEXT_PUBLIC_API_URL=https://api.revoras.tech \
                         $IMAGE:latest
                 '''
             }
