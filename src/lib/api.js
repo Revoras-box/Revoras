@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API = "/api";
+const API = "https://api.revoras.tech/api";
 
 const fetch = async (url, options = {}) => {
   const response = await axios({

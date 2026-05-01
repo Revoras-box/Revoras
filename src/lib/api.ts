@@ -12,7 +12,7 @@ import type {
   ApiError,
 } from "./types";
 
-const API = "/api";
+const API = "https://api.revoras.tech/api";
 
 // Re-export types for convenience
 export type * from "./types";

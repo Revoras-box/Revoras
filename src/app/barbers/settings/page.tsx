@@ -7,6 +7,8 @@ import { BarberAuthProvider, useBarberAuth } from "@/lib/barber-auth";
 import { api } from "@/lib/api";
 import axios from "axios";
 
+const API = "https://api.revoras.tech/api";
+
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 interface WorkingHour {
@@ -76,7 +78,7 @@ function useImageUpload(initialUrl = "") {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const res = await axios.post("/api/studio/upload-image", formData, {
+      const res = await axios.post(`${API}/studio/upload-image`, formData, {
         validateStatus: () => true,
       });
       const data = res.data as { url?: string };
@@ -521,7 +523,7 @@ function SettingsContent() {
     try {
       setSavingBarbers(true);
       setError(null);
-      const res = await axios.put(`/api/studio/${settings?.studio?.id}/barbers`, { barbers }, {
+      const res = await axios.put(`${API}/studio/${settings?.studio?.id}/barbers`, { barbers }, {
         validateStatus: () => true,
       });
       const data = res.data as { error?: string };

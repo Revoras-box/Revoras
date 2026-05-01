@@ -7,6 +7,8 @@ import { BarberAuthProvider, useBarberAuth } from "@/lib/barber-auth";
 import { api } from "@/lib/api";
 import axios from "axios";
 
+const API = "https://api.revoras.tech/api";
+
 // Types
 interface TeamMember {
   id: string;
@@ -106,7 +108,7 @@ function BarbersContent() {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await axios.post("/api/studio/upload-image", formData, {
+    const response = await axios.post(`${API}/studio/upload-image`, formData, {
       validateStatus: () => true,
     });
 
