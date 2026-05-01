@@ -34,19 +34,18 @@ pipeline {
         }
 
         stage('Deploy') {
-        steps {
-            sh '''
-                docker pull $IMAGE:latest
-                docker stop $CONTAINER || true
-                docker rm -f $CONTAINER || true
-                sleep 2
-                docker run -d \
-                    --name $CONTAINER \
-                    --restart always \
-                    -p 5000:5000 \
-                    --env-file /opt/revoras/backend/.env \
-                    $IMAGE:latest
-            '''
+            steps {
+                sh '''
+                    docker pull $IMAGE:latest
+                    docker stop $CONTAINER || true
+                    docker rm $CONTAINER || true
+                    docker run -d \
+                        --name $CONTAINER \
+                        --restart always \
+                        -p 3000:3000 \
+                        -e NEXT_PUBLIC_API_URL=https://api.revoras.com \
+                        $IMAGE:latest
+                '''
             }
         }
     }
