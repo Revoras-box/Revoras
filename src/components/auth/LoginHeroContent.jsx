@@ -4,7 +4,9 @@ import { api } from "@/lib/api";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
-const API = "https://api.revoras.tech/api";
+// const API = "https://api.revoras.tech/api";
+const API = process.env.NEXT_PUBLIC_API_URL || "https://api.revoras.tech/api";
+
 
 export default function LoginHeroContent() {
   const router = useRouter();

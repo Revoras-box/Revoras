@@ -12,7 +12,9 @@ import type {
   ApiError,
 } from "./types";
 
-const API = "https://api.revoras.tech/api";
+// const API = "https://api.revoras.tech/api";
+const API = process.env.NEXT_PUBLIC_API_URL || "https://api.revoras.tech/api";
+
 
 // Re-export types for convenience
 export type * from "./types";

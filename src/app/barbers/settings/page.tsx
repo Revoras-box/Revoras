@@ -7,7 +7,9 @@ import { BarberAuthProvider, useBarberAuth } from "@/lib/barber-auth";
 import { api } from "@/lib/api";
 import axios from "axios";
 
-const API = "https://api.revoras.tech/api";
+// const API = "https://api.revoras.tech/api";
+const API = process.env.NEXT_PUBLIC_API_URL || "https://api.revoras.tech/api";
+
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
