@@ -48,13 +48,13 @@ export default function AdminUsersPage() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-white font-headline">Users</h1>
-          <p className="text-gray-500 mt-1">Manage platform users</p>
+          <h1 className="text-2xl font-bold text-foreground font-headline">Users</h1>
+          <p className="text-secondary-foreground mt-1">Manage platform users</p>
         </div>
       </div>
 
       {/* Search */}
-      <div className="bg-[#111] border border-[#222] rounded-xl p-4 mb-6">
+      <div className="bg-background border border-border rounded-xl p-4 mb-6">
         <div className="flex gap-4 items-center">
           <div className="flex-1">
             <input
@@ -63,18 +63,18 @@ export default function AdminUsersPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              className="w-full px-4 py-2 bg-[#1a1a1a] border border-[#333] rounded-lg text-white placeholder:text-gray-600 focus:outline-none focus:border-[#E5C487]"
+              className="w-full px-4 py-2 bg-card border border-border rounded-lg text-foreground placeholder:text-secondary-foreground focus:outline-none focus:border-primary"
             />
           </div>
           <button
             onClick={handleSearch}
-            className="px-6 py-2 bg-[#E5C487] text-[#1a1a1a] rounded-lg font-medium hover:bg-[#d4b377] transition-colors"
+            className="px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
           >
             Search
           </button>
           <button
             onClick={() => loadUsers()}
-            className="p-2 bg-[#1a1a1a] text-gray-400 hover:text-white rounded-lg"
+            className="p-2 bg-card text-muted hover:text-foreground rounded-lg"
           >
             <span className="material-symbols-outlined">refresh</span>
           </button>
@@ -82,41 +82,41 @@ export default function AdminUsersPage() {
       </div>
 
       {/* Users Table */}
-      <div className="bg-[#111] border border-[#222] rounded-xl overflow-hidden">
+      <div className="bg-background border border-border rounded-xl overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#E5C487]"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
           </div>
         ) : users.length === 0 ? (
           <div className="text-center py-12">
-            <span className="material-symbols-outlined text-4xl text-gray-600 mb-2">people</span>
-            <p className="text-gray-500">No users found</p>
+            <span className="material-symbols-outlined text-4xl text-secondary-foreground mb-2">people</span>
+            <p className="text-secondary-foreground">No users found</p>
           </div>
         ) : (
           <table className="w-full">
-            <thead className="bg-[#1a1a1a] border-b border-[#222]">
+            <thead className="bg-card border-b border-border">
               <tr>
-                <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Bookings</th>
-                <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
+                <th className="text-left px-6 py-4 text-xs font-medium text-secondary-foreground uppercase tracking-wider">User</th>
+                <th className="text-left px-6 py-4 text-xs font-medium text-secondary-foreground uppercase tracking-wider">Contact</th>
+                <th className="text-left px-6 py-4 text-xs font-medium text-secondary-foreground uppercase tracking-wider">Status</th>
+                <th className="text-left px-6 py-4 text-xs font-medium text-secondary-foreground uppercase tracking-wider">Bookings</th>
+                <th className="text-left px-6 py-4 text-xs font-medium text-secondary-foreground uppercase tracking-wider">Joined</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#222]">
+            <tbody className="divide-y divide-border">
               {users.map((user) => (
-                <tr key={user.id} className="hover:bg-[#1a1a1a] transition-colors">
+                <tr key={user.id} className="hover:bg-card transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-[#E5C487]/20 rounded-full flex items-center justify-center">
-                        <span className="material-symbols-outlined text-[#E5C487] text-sm">person</span>
+                      <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
+                        <span className="material-symbols-outlined text-primary text-sm">person</span>
                       </div>
-                      <p className="font-medium text-white">{user.name}</p>
+                      <p className="font-medium text-foreground">{user.name}</p>
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <p className="text-sm text-white">{user.email}</p>
-                    <p className="text-xs text-gray-500">{user.phone || "-"}</p>
+                    <p className="text-sm text-foreground">{user.email}</p>
+                    <p className="text-xs text-secondary-foreground">{user.phone || "-"}</p>
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${
@@ -128,10 +128,10 @@ export default function AdminUsersPage() {
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <p className="text-white">{user.booking_count}</p>
+                    <p className="text-foreground">{user.booking_count}</p>
                   </td>
                   <td className="px-6 py-4">
-                    <p className="text-sm text-gray-400">
+                    <p className="text-sm text-muted">
                       {new Date(user.created_at).toLocaleDateString()}
                     </p>
                   </td>
@@ -143,8 +143,8 @@ export default function AdminUsersPage() {
 
         {/* Pagination */}
         {pagination && pagination.pages > 1 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t border-[#222]">
-            <p className="text-sm text-gray-500">
+          <div className="flex items-center justify-between px-6 py-4 border-t border-border">
+            <p className="text-sm text-secondary-foreground">
               Showing {((pagination.page - 1) * pagination.limit) + 1} to{" "}
               {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} users
             </p>
@@ -156,7 +156,7 @@ export default function AdminUsersPage() {
                   router.push(`/admin/users?${params.toString()}`);
                 }}
                 disabled={pagination.page === 1}
-                className="px-4 py-2 bg-[#1a1a1a] text-gray-400 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:text-white"
+                className="px-4 py-2 bg-card text-muted rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:text-foreground"
               >
                 Previous
               </button>
@@ -167,7 +167,7 @@ export default function AdminUsersPage() {
                   router.push(`/admin/users?${params.toString()}`);
                 }}
                 disabled={pagination.page === pagination.pages}
-                className="px-4 py-2 bg-[#1a1a1a] text-gray-400 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:text-white"
+                className="px-4 py-2 bg-card text-muted rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:text-foreground"
               >
                 Next
               </button>

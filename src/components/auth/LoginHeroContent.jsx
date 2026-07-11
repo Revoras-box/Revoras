@@ -1,6 +1,6 @@
 "use client";
 import { useRouter, useSearchParams } from "next/navigation";
-import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -11,6 +11,7 @@ const API = process.env.NEXT_PUBLIC_API_URL || "https://api.revoras.tech/api";
 export default function LoginHeroContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { login, setSession } = useAuth();
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [form, setForm] = useState({
@@ -33,8 +34,7 @@ export default function LoginHeroContent() {
     if (token && userData) {
       try {
         const user = JSON.parse(decodeURIComponent(userData));
-        localStorage.setItem("userToken", token);
-        localStorage.setItem("user", JSON.stringify(user));
+        setSession(user, token);
         toast.success("Welcome back!");
         router.push("/");
       } catch (e) {
@@ -42,7 +42,7 @@ export default function LoginHeroContent() {
         router.replace("/login");
       }
     }
-  }, [searchParams, router]);
+  }, [searchParams, router, setSession]);
 
   const handleLogin = async () => {
     if (!form.email || !form.password) {
@@ -54,16 +54,11 @@ export default function LoginHeroContent() {
     toast.loading("Signing in...");
 
     try {
-      const res = await api.userLogin({
-        email: form.email,
-        password: form.password,
-      });
+      const res = await login(form.email, form.password);
 
       toast.dismiss();
 
       if (res.token) {
-        localStorage.setItem("userToken", res.token);
-        localStorage.setItem("user", JSON.stringify(res.user));
         toast.success("Welcome back!");
         router.push("/user");
       } else if (res === "User not found") {
@@ -98,34 +93,34 @@ export default function LoginHeroContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white flex flex-col justify-center items-center px-6 relative py-20 overflow-hidden">
+    <div className="min-h-screen bg-background text-foreground flex flex-col justify-center items-center px-6 relative py-20 overflow-hidden">
 
       {/* Background Glow */}
-      <div className="absolute w-150 h-150 bg-[#C8A96E]/10 blur-[120px] rounded-full"></div>
+      <div className="absolute w-150 h-150 bg-primary-container/10 blur-[120px] rounded-full"></div>
 
 
       {/* Center Card */}
-      <div className="relative w-full max-w-md bg-[#0b0b0b] border border-white/5 rounded-3xl p-10 backdrop-blur-xl shadow-[0_20px_80px_rgba(0,0,0,0.8)]">
+      <div className="relative w-full max-w-md bg-card border border-border rounded-3xl p-10 backdrop-blur-xl shadow-floating">
 
         <div className="space-y-8">
 
           {/* Header */}
           <div className="space-y-4">
 
-            <div className="text-[11px] tracking-[0.35em] text-[#C8A96E] uppercase">
+            <div className="text-[11px] tracking-[0.35em] text-primary uppercase">
               Welcome Back
             </div>
 
             <h1 className="text-4xl font-bold leading-tight">
               The Digital <br />
 
-              <span className="bg-linear-to-r from-[#E6D2A4] to-[#C8A96E] text-transparent bg-clip-text">
+              <span className="bg-linear-to-r from-primary-fixed-dim to-primary-container text-transparent bg-clip-text">
                 Concierge
               </span>
 
             </h1>
 
-            <p className="text-gray-400 text-sm leading-relaxed">
+            <p className="text-muted text-sm leading-relaxed">
               Access your grooming profile and manage your
               upcoming elite experiences.
             </p>
@@ -137,7 +132,7 @@ export default function LoginHeroContent() {
           <button
             onClick={handleGoogleLogin}
             disabled={loading || googleLoading}
-            className="w-full flex items-center justify-center gap-3 bg-white text-gray-800 py-4 rounded-xl font-semibold hover:bg-gray-100 transition disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-3 bg-card text-foreground py-4 rounded-xl font-semibold hover:bg-surface transition disabled:opacity-50"
           >
             {googleLoading ? (
               <LoadingSpinner color="#000" />
@@ -156,13 +151,13 @@ export default function LoginHeroContent() {
           {/* Divider */}
           <div className="flex items-center gap-4">
 
-            <div className="flex-1 h-px bg-[#1a1a1a]" />
+            <div className="flex-1 h-px bg-surface" />
 
-            <div className="text-xs text-gray-500 uppercase tracking-widest">
+            <div className="text-xs text-secondary-foreground uppercase tracking-widest">
               or
             </div>
 
-            <div className="flex-1 h-px bg-[#1a1a1a]" />
+            <div className="flex-1 h-px bg-surface" />
 
           </div>
 
@@ -171,12 +166,12 @@ export default function LoginHeroContent() {
           <div className="space-y-8">
 
             <div>
-              <label className="text-xs uppercase text-gray-500 tracking-widest">
+              <label className="text-xs uppercase text-secondary-foreground tracking-widest">
                 Email
               </label>
 
               <input
-                className="w-full bg-transparent border-b border-[#2a2a2a] py-3 outline-none focus:border-[#C8A96E] transition"
+                className="w-full bg-transparent border-b border-border py-3 outline-none focus:border-primary transition"
                 placeholder="Enter your email"
                 value={form.email}
                 onChange={(e) => updateField("email", e.target.value)}
@@ -187,13 +182,13 @@ export default function LoginHeroContent() {
 
 
             <div>
-              <div className="flex justify-between text-xs text-gray-500 mb-1">
+              <div className="flex justify-between text-xs text-secondary-foreground mb-1">
                 <span className="tracking-widest uppercase">
                   Password
                 </span>
 
                 <span 
-                  className="text-[#C8A96E] cursor-pointer hover:opacity-80"
+                  className="text-primary cursor-pointer hover:opacity-80"
                   onClick={() => router.push("/forgot-password")}
                 >
                   Forgot Password?
@@ -202,7 +197,7 @@ export default function LoginHeroContent() {
 
               <input
                 type="password"
-                className="w-full bg-transparent border-b border-[#2a2a2a] py-3 outline-none focus:border-[#C8A96E] transition"
+                className="w-full bg-transparent border-b border-border py-3 outline-none focus:border-primary transition"
                 placeholder="••••••••"
                 value={form.password}
                 onChange={(e) => updateField("password", e.target.value)}
@@ -213,7 +208,7 @@ export default function LoginHeroContent() {
 
 
             <button 
-              className="w-full bg-linear-to-r from-[#E6D2A4] to-[#C8A96E] text-black py-4 rounded-xl font-semibold mt-4 hover:opacity-90 transition disabled:opacity-50 flex items-center justify-center gap-2" 
+              className="w-full bg-linear-to-r from-primary-fixed-dim to-primary-container text-primary-foreground py-4 rounded-xl font-semibold mt-4 hover:opacity-90 transition disabled:opacity-50 flex items-center justify-center gap-2" 
               onClick={handleLogin}
               disabled={loading || googleLoading}
             >
@@ -232,11 +227,11 @@ export default function LoginHeroContent() {
 
 
           {/* Create Account */}
-          <div className="text-center text-xs text-gray-500">
+          <div className="text-center text-xs text-secondary-foreground">
 
             New to the studio?{" "}
             <span
-              className="text-[#C8A96E] cursor-pointer hover:opacity-80"
+              className="text-primary cursor-pointer hover:opacity-80"
               onClick={() => router.push("/signup")}
             >
               Create an Account
@@ -251,7 +246,7 @@ export default function LoginHeroContent() {
 
 
       {/* Bottom Status */}
-      <div className="absolute bottom-10 flex gap-16 text-xs text-gray-500">
+      <div className="absolute bottom-10 flex gap-16 text-xs text-secondary-foreground">
 
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 bg-green-400 rounded-full"></span>

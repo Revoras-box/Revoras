@@ -105,7 +105,7 @@ export default function LocationsPage() {
   }, []);
 
   return (
-    <div className="min-h-screen flex bg-black">
+    <div className="min-h-screen flex bg-background">
       <Navbar />
 
       {/* Left Map Section */}
@@ -113,28 +113,28 @@ export default function LocationsPage() {
         <div id="map" className="w-full h-full min-h-125" />
 
         {!mapLoaded && (
-          <div className="absolute inset-0 bg-[#0a0a0a] flex items-center justify-center">
+          <div className="absolute inset-0 bg-background flex items-center justify-center">
             <div className="text-center">
-              <div className="w-12 h-12 border-4 border-[#C8A96E] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-gray-400">Loading map...</p>
+              <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-muted">Loading map...</p>
             </div>
           </div>
         )}
 
         {/* Bottom Floating Badge */}
-        <div className="absolute bottom-6 left-6 bg-[#111]/90 backdrop-blur-xl px-6 py-3 rounded-full border border-white/10 flex items-center gap-3 z-1000">
+        <div className="absolute bottom-6 left-6 bg-background/90 backdrop-blur-xl px-6 py-3 rounded-full border border-white/10 flex items-center gap-3 z-1000">
           <div className="flex -space-x-2">
-            <img className="w-8 h-8 rounded-full border border-black"
+            <img className="w-8 h-8 rounded-full border border-background"
               src="https://i.pravatar.cc/40?img=1" />
-            <img className="w-8 h-8 rounded-full border border-black"
+            <img className="w-8 h-8 rounded-full border border-background"
               src="https://i.pravatar.cc/40?img=2" />
           </div>
 
           <div className="text-sm">
-            <span className="text-[#C8A96E] font-semibold">
+            <span className="text-primary font-semibold">
               124 Barbers
             </span>
-            <span className="text-gray-400 ml-2">
+            <span className="text-muted ml-2">
               Active in Manhattan
             </span>
           </div>
@@ -142,22 +142,22 @@ export default function LocationsPage() {
       </div>
 
       {/* Right Sidebar */}
-      <div className="w-105 pt-25 bg-[#0b0b0b] border-l border-white/5 p-8 overflow-y-auto">
+      <div className="w-105 pt-25 bg-background border-l border-border p-8 overflow-y-auto">
         {/* Header */}
         <div className="space-y-4 mb-8">
           <h2 className="text-3xl font-bold">
             Find a Studio
           </h2>
 
-          <p className="text-gray-400">
+          <p className="text-muted">
             Premium grooming concierge at your fingertips.
           </p>
 
           {/* Search */}
-          <div className="bg-[#111] rounded-xl px-4 py-3 flex items-center gap-3">
-            <Search className="text-gray-400" size={18} />
+          <div className="bg-background rounded-xl px-4 py-3 flex items-center gap-3">
+            <Search className="text-muted" size={18} />
             <input
-              className="bg-transparent outline-none w-full text-white placeholder-gray-500"
+              className="bg-transparent outline-none w-full text-foreground placeholder:text-secondary-foreground"
               placeholder="Find a different city..."
             />
           </div>
@@ -169,9 +169,9 @@ export default function LocationsPage() {
             <div
               key={location.id}
               onClick={() => setSelectedIndex(index)}
-              className={`bg-[#111] rounded-2xl p-6 space-y-4 border cursor-pointer transition-all ${
+              className={`bg-background rounded-2xl p-6 space-y-4 border cursor-pointer transition-all ${
                 selectedIndex === index
-                  ? "border-[#C8A96E] shadow-lg shadow-[#C8A96E]/10"
+                  ? "border-primary shadow-lg shadow-primary/10"
                   : "border-white/5 hover:border-white/10"
               }`}
             >
@@ -185,21 +185,21 @@ export default function LocationsPage() {
                 </span>
               </div>
 
-              <div className="text-sm text-gray-400">
+              <div className="text-sm text-muted">
                 ⭐ {location.rating} • {location.area}
               </div>
 
-              <p className="text-gray-500 text-sm line-clamp-2">
+              <p className="text-secondary-foreground text-sm line-clamp-2">
                 {location.description}
               </p>
 
               <div className="flex items-center justify-between pt-2">
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-secondary-foreground">
                   {location.activeBarbers} barbers available
                 </span>
                 <Link 
                   href="/login"
-                  className="bg-[#C8A96E] text-black text-sm px-4 py-2 rounded-lg font-semibold hover:bg-[#d4b87a] transition"
+                  className="bg-primary text-primary-foreground text-sm px-4 py-2 rounded-lg font-semibold hover:bg-primary/90 transition"
                   onClick={(e) => e.stopPropagation()}
                 >
                   Book Now

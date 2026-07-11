@@ -128,6 +128,18 @@ interface WalkInData {
   assignedBarberId?: string;
 }
 
+// Barber blocked time / break / time off
+export interface TimeOffEntry {
+  id: string;
+  studio_id: string;
+  barber_id: string;
+  date: string;
+  start_time: string | null;
+  end_time: string | null;
+  is_full_day: boolean;
+  reason: string | null;
+}
+
 // Studio settings interface
 interface WorkingHourInput {
   dayOfWeek: number;
@@ -469,7 +481,7 @@ export const api = {
   },
 
   // Barber login (for barbers added by studio)
-  barberEmployeeLogin: async (data: { phone: string; password: string }) => {
+  barberEmployeeLogin: async (data: { phone?: string; email?: string; password: string }) => {
     const res = await fetch<StudioAuthLoginResponse>(`${API}/studios/auth/barber-login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -591,14 +603,19 @@ export const api = {
     return authFetch(`${API}/studios/${id}/barbers`);
   },
 
+  getBarber: async (id: string) => {
+    return authFetch(`${API}/barbers/${id}`);
+  },
+
   // ==========================================
   // Booking APIs
   // ==========================================
-  getAvailability: async (studioId: string, barberId: string, date: string) => {
+  getAvailability: async (studioId: string, barberId: string, date: string, duration?: number) => {
     const params = new URLSearchParams();
     params.append("studioId", studioId);
     params.append("date", date);
     params.append("barberId", barberId);
+    if (duration) params.append("duration", String(duration));
     return authFetch<{ slots: string[]; error?: string }>(`${API}/bookings/availability?${params}`);
   },
 
@@ -792,6 +809,38 @@ export const api = {
 
   deleteStudioBarber: async (barberId: string) => {
     return barberAuthFetch(`${API}/studios/auth/barbers/${barberId}`, {
+      method: "DELETE"
+    });
+  },
+
+  // Blocked time / breaks / time off
+  getBarberTimeOff: async (params: { date?: string; barberId?: string; from?: string; to?: string } = {}) => {
+    const filteredParams: Record<string, string> = {};
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) filteredParams[key] = value;
+    });
+    const query = new URLSearchParams(filteredParams).toString();
+    return barberAuthFetch<{ timeOff: TimeOffEntry[]; error?: string }>(
+      `${API}/studios/manage/time-off${query ? `?${query}` : ""}`
+    );
+  },
+
+  createBarberTimeOff: async (data: {
+    barberId?: string;
+    date: string;
+    startTime?: string;
+    endTime?: string;
+    isFullDay?: boolean;
+    reason?: string;
+  }) => {
+    return barberAuthFetch<{ timeOff: TimeOffEntry; error?: string }>(`${API}/studios/manage/time-off`, {
+      method: "POST",
+      body: JSON.stringify(data)
+    });
+  },
+
+  deleteBarberTimeOff: async (id: string) => {
+    return barberAuthFetch<{ message?: string; error?: string }>(`${API}/studios/manage/time-off/${id}`, {
       method: "DELETE"
     });
   },

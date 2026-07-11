@@ -31,7 +31,7 @@ export default function AdminDashboardPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#E5C487]"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -40,8 +40,8 @@ export default function AdminDashboardPage() {
     return (
       <div className="text-center py-12">
         <span className="material-symbols-outlined text-4xl text-red-400 mb-2">error</span>
-        <p className="text-gray-400">{error}</p>
-        <button onClick={loadDashboard} className="mt-4 text-[#E5C487] hover:underline">
+        <p className="text-muted">{error}</p>
+        <button onClick={loadDashboard} className="mt-4 text-primary hover:underline">
           Try again
         </button>
       </div>
@@ -51,8 +51,8 @@ export default function AdminDashboardPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white font-headline">Dashboard</h1>
-        <p className="text-gray-500 mt-1">Overview of your platform</p>
+        <h1 className="text-2xl font-bold text-foreground font-headline">Dashboard</h1>
+        <p className="text-secondary-foreground mt-1">Overview of your platform</p>
       </div>
 
       {/* Stats Grid */}
@@ -86,30 +86,30 @@ export default function AdminDashboardPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Pending Studios */}
-        <div className="bg-[#111] border border-[#222] rounded-xl p-6">
+        <div className="bg-background border border-border rounded-xl p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-bold text-white">Pending Approval</h2>
+            <h2 className="text-lg font-bold text-foreground">Pending Approval</h2>
             <Link
               href="/admin/studios?status=pending"
-              className="text-sm text-[#E5C487] hover:underline"
+              className="text-sm text-primary hover:underline"
             >
               View all
             </Link>
           </div>
 
           {stats?.recentPendingStudios.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No pending studios</p>
+            <p className="text-secondary-foreground text-center py-8">No pending studios</p>
           ) : (
             <div className="space-y-4">
               {stats?.recentPendingStudios.map((studio) => (
                 <Link
                   key={studio.id}
                   href={`/admin/studios/${studio.id}`}
-                  className="flex items-center justify-between p-4 bg-[#1a1a1a] rounded-lg hover:bg-[#222] transition-colors"
+                  className="flex items-center justify-between p-4 bg-card rounded-lg hover:bg-surface transition-colors"
                 >
                   <div>
-                    <p className="font-medium text-white">{studio.name}</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="font-medium text-foreground">{studio.name}</p>
+                    <p className="text-sm text-secondary-foreground">
                       {studio.city}, {studio.state}
                     </p>
                   </div>
@@ -117,7 +117,7 @@ export default function AdminDashboardPage() {
                     <span className="text-xs bg-amber-500/20 text-amber-400 px-2 py-1 rounded-full">
                       Pending
                     </span>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-secondary-foreground mt-1">
                       {new Date(studio.created_at).toLocaleDateString()}
                     </p>
                   </div>
@@ -128,29 +128,29 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Recent Activity */}
-        <div className="bg-[#111] border border-[#222] rounded-xl p-6">
-          <h2 className="text-lg font-bold text-white mb-6">Recent Activity</h2>
+        <div className="bg-background border border-border rounded-xl p-6">
+          <h2 className="text-lg font-bold text-foreground mb-6">Recent Activity</h2>
 
           {stats?.recentActivity.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No recent activity</p>
+            <p className="text-secondary-foreground text-center py-8">No recent activity</p>
           ) : (
             <div className="space-y-4">
               {stats?.recentActivity.map((activity) => (
                 <div
                   key={activity.id}
-                  className="flex items-start gap-3 p-3 border-b border-[#222] last:border-0"
+                  className="flex items-start gap-3 p-3 border-b border-border last:border-0"
                 >
-                  <div className="w-8 h-8 rounded-full bg-[#E5C487]/20 flex items-center justify-center flex-shrink-0">
-                    <span className="material-symbols-outlined text-[#E5C487] text-sm">
+                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                    <span className="material-symbols-outlined text-primary text-sm">
                       {getActivityIcon(activity.action)}
                     </span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-white">
+                    <p className="text-sm text-foreground">
                       <span className="font-medium">{activity.admin_name || "System"}</span>{" "}
                       {formatAction(activity.action)} {activity.entity_type}
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-secondary-foreground">
                       {new Date(activity.created_at).toLocaleString()}
                     </p>
                   </div>
@@ -162,20 +162,20 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Bookings Summary */}
-      <div className="mt-8 bg-[#111] border border-[#222] rounded-xl p-6">
-        <h2 className="text-lg font-bold text-white mb-6">Bookings Summary (Last 30 Days)</h2>
+      <div className="mt-8 bg-background border border-border rounded-xl p-6">
+        <h2 className="text-lg font-bold text-foreground mb-6">Bookings Summary (Last 30 Days)</h2>
         <div className="grid grid-cols-3 gap-6">
           <div className="text-center">
-            <p className="text-3xl font-bold text-white">{stats?.bookings.total || 0}</p>
-            <p className="text-sm text-gray-500 mt-1">Total Bookings</p>
+            <p className="text-3xl font-bold text-foreground">{stats?.bookings.total || 0}</p>
+            <p className="text-sm text-secondary-foreground mt-1">Total Bookings</p>
           </div>
           <div className="text-center">
             <p className="text-3xl font-bold text-green-400">{stats?.bookings.completed || 0}</p>
-            <p className="text-sm text-gray-500 mt-1">Completed</p>
+            <p className="text-sm text-secondary-foreground mt-1">Completed</p>
           </div>
           <div className="text-center">
             <p className="text-3xl font-bold text-blue-400">{stats?.bookings.upcoming || 0}</p>
-            <p className="text-sm text-gray-500 mt-1">Upcoming</p>
+            <p className="text-sm text-secondary-foreground mt-1">Upcoming</p>
           </div>
         </div>
       </div>
@@ -204,14 +204,14 @@ function StatCard({
   };
 
   const content = (
-    <div className={`bg-[#111] border border-[#222] rounded-xl p-6 ${href ? "hover:border-[#333] transition-colors cursor-pointer" : ""}`}>
+    <div className={`bg-background border border-border rounded-xl p-6 ${href ? "hover:border-border transition-colors cursor-pointer" : ""}`}>
       <div className="flex items-center gap-4">
         <div className={`w-12 h-12 rounded-lg ${colorClasses[color]} flex items-center justify-center`}>
           <span className="material-symbols-outlined">{icon}</span>
         </div>
         <div>
-          <p className="text-2xl font-bold text-white">{value}</p>
-          <p className="text-sm text-gray-500">{label}</p>
+          <p className="text-2xl font-bold text-foreground">{value}</p>
+          <p className="text-sm text-secondary-foreground">{label}</p>
         </div>
       </div>
     </div>

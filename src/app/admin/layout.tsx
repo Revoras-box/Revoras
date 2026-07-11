@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import type { Admin } from "@/lib/types";
+import ThemeToggleButton from "@/components/ThemeToggleButton";
 
 interface NavItem {
   href: string;
@@ -64,8 +65,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#E5C487]"></div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -75,12 +76,15 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex">
+    <div className="min-h-screen bg-background flex">
       {/* Sidebar */}
-      <aside className="w-64 bg-[#111] border-r border-[#222] fixed h-full">
-        <div className="p-6 border-b border-[#222]">
-          <h1 className="text-xl font-bold text-[#E5C487] font-headline">SnapCut Admin</h1>
-          <p className="text-xs text-gray-500 mt-1">Management Portal</p>
+      <aside className="w-64 bg-background border-r border-border fixed h-full">
+        <div className="p-6 border-b border-border flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-xl font-bold text-primary font-headline">SnapCut Admin</h1>
+            <p className="text-xs text-secondary-foreground mt-1">Management Portal</p>
+          </div>
+          <ThemeToggleButton className="-mr-2 shrink-0" />
         </div>
 
         <nav className="p-4 space-y-1">
@@ -93,8 +97,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 href={item.href}
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                   isActive
-                    ? "bg-[#E5C487]/10 text-[#E5C487]"
-                    : "text-gray-400 hover:bg-[#1a1a1a] hover:text-white"
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted hover:bg-card hover:text-foreground"
                 }`}
               >
                 <span className="material-symbols-outlined text-lg">{item.icon}</span>
@@ -105,19 +109,19 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </nav>
 
         {/* User info */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-[#222]">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-full bg-[#E5C487]/20 flex items-center justify-center">
-              <span className="material-symbols-outlined text-[#E5C487]">admin_panel_settings</span>
+            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+              <span className="material-symbols-outlined text-primary">admin_panel_settings</span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">{admin.name}</p>
-              <p className="text-xs text-gray-500 truncate">{admin.role === "super_admin" ? "Super Admin" : "Admin"}</p>
+              <p className="text-sm font-medium text-foreground truncate">{admin.name}</p>
+              <p className="text-xs text-secondary-foreground truncate">{admin.role === "super_admin" ? "Super Admin" : "Admin"}</p>
             </div>
           </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-muted hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
           >
             <span className="material-symbols-outlined text-sm">logout</span>
             Logout

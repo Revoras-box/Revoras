@@ -289,9 +289,9 @@ function BarbersContent() {
   const getBarberStatus = (member: TeamMember) => {
     const todayBookings = member.todayBookings ?? member.today_bookings ?? 0;
     if (todayBookings > 0) {
-      return { status: 'busy', text: 'Busy', color: 'text-yellow-400', dotColor: 'bg-yellow-400' };
+      return { status: 'busy', text: 'Busy', color: 'text-yellow-700 dark:text-yellow-400', dotColor: 'bg-yellow-500 dark:bg-yellow-400' };
     }
-    return { status: 'available', text: 'Available', color: 'text-green-400', dotColor: 'bg-green-400' };
+    return { status: 'available', text: 'Available', color: 'text-green-600 dark:text-green-400', dotColor: 'bg-green-500 dark:bg-green-400' };
   };
 
   // Calculate queue load percentage based on bookings
@@ -304,26 +304,26 @@ function BarbersContent() {
 
   if (authLoading || !isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#0E0E0E] flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-[#E5C487]/30 border-t-[#E5C487] rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-surface-container-lowest flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-primary-fixed-dim/30 border-t-primary rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0E0E0E] text-white">
+    <div className="min-h-screen bg-surface-container-lowest text-foreground">
       <BarberSidebar />
-      <main className="ml-72 flex-1 min-h-screen flex flex-col">
-        <header className="h-20 px-10 flex justify-between items-center bg-[#1C1B1B]/60 backdrop-blur-xl z-40 sticky top-0">
+      <main className="lg:ml-72 flex-1 min-h-screen flex flex-col">
+        <header className="h-20 pl-16 pr-6 lg:px-10 flex justify-between items-center bg-surface-container-low/60 backdrop-blur-xl z-40 sticky top-0">
           <div className="flex items-center gap-8">
-            <h2 className="font-headline font-black text-2xl tracking-tight text-white">Barber Management</h2>
-            <span className="text-[#4D463A] text-sm">
+            <h2 className="font-headline font-black text-2xl tracking-tight text-foreground">Barber Management</h2>
+            <span className="text-muted text-sm">
               {team.length} {team.length === 1 ? 'barber' : 'barbers'} in your studio
             </span>
           </div>
           <button
             onClick={() => setShowAddForm(!showAddForm)}
-            className="px-6 py-3 bg-gradient-to-r from-[#E5C487] to-[#C8A96E] text-[#402d00] font-headline font-bold rounded-xl active:scale-95 transition-all flex items-center gap-2"
+            className="px-6 py-3 bg-gradient-to-r from-primary-fixed-dim to-primary-container text-primary-foreground font-headline font-bold rounded-xl active:scale-95 transition-all flex items-center gap-2"
           >
             <span className="material-symbols-outlined text-sm">add</span>
             Add Barber
@@ -333,95 +333,95 @@ function BarbersContent() {
         {/* Error Message */}
         {error && (
           <div className="mx-8 mt-4 p-4 bg-red-500/20 border border-red-500/30 rounded-xl flex items-center gap-3">
-            <span className="material-symbols-outlined text-red-400">error</span>
-            <span className="text-red-400">{error}</span>
-            <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-300">
+            <span className="material-symbols-outlined text-red-600 dark:text-red-400">error</span>
+            <span className="text-red-600 dark:text-red-400">{error}</span>
+            <button onClick={() => setError(null)} className="ml-auto text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300">
               <span className="material-symbols-outlined">close</span>
             </button>
           </div>
         )}
         {success && (
           <div className="mx-8 mt-4 p-4 bg-green-500/20 border border-green-500/30 rounded-xl flex items-center gap-3">
-            <span className="material-symbols-outlined text-green-400">check_circle</span>
-            <span className="text-green-400">{success}</span>
-            <button onClick={() => setSuccess(null)} className="ml-auto text-green-400 hover:text-green-300">
+            <span className="material-symbols-outlined text-green-600 dark:text-green-400">check_circle</span>
+            <span className="text-green-600 dark:text-green-400">{success}</span>
+            <button onClick={() => setSuccess(null)} className="ml-auto text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300">
               <span className="material-symbols-outlined">close</span>
             </button>
           </div>
         )}
 
-        <div className="p-8 space-y-8 flex-1 overflow-y-auto bg-[#0E0E0E]">
+        <div className="p-8 space-y-8 flex-1 overflow-y-auto bg-surface-container-lowest">
           {/* Add Barber Form */}
           {showAddForm && (
-            <div className="bg-[#1C1B1B] rounded-3xl p-8 border border-[#4D463A]/10">
-              <h3 className="font-headline font-black text-lg text-white mb-6">Add New Barber</h3>
+            <div className="bg-surface-container-low rounded-3xl p-8 border border-outline-variant/10">
+              <h3 className="font-headline font-black text-lg text-foreground mb-6">Add New Barber</h3>
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <label className="text-xs text-[#4D463A] uppercase tracking-widest mb-2 block">Full Name *</label>
+                  <label className="text-xs text-muted uppercase tracking-widest mb-2 block">Full Name *</label>
                   <input
                     type="text"
                     value={newBarber.name}
                     onChange={(e) => setNewBarber(prev => ({ ...prev, name: e.target.value }))}
-                    className="w-full bg-[#353534]/50 border border-[#4D463A]/20 rounded-xl px-4 py-3 text-white placeholder-[#4D463A] focus:border-[#E5C487] focus:outline-none"
+                    className="w-full bg-surface-container-highest/50 border border-outline-variant/20 rounded-xl px-4 py-3 text-foreground placeholder-muted focus:border-primary focus:outline-none"
                     placeholder="John Doe"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-[#4D463A] uppercase tracking-widest mb-2 block">Phone *</label>
+                  <label className="text-xs text-muted uppercase tracking-widest mb-2 block">Phone *</label>
                   <input
                     type="tel"
                     value={newBarber.phone}
                     onChange={(e) => setNewBarber(prev => ({ ...prev, phone: e.target.value }))}
-                    className="w-full bg-[#353534]/50 border border-[#4D463A]/20 rounded-xl px-4 py-3 text-white placeholder-[#4D463A] focus:border-[#E5C487] focus:outline-none"
+                    className="w-full bg-surface-container-highest/50 border border-outline-variant/20 rounded-xl px-4 py-3 text-foreground placeholder-muted focus:border-primary focus:outline-none"
                     placeholder="+1 234 567 8900"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-[#4D463A] uppercase tracking-widest mb-2 block">Email</label>
+                  <label className="text-xs text-muted uppercase tracking-widest mb-2 block">Email</label>
                   <input
                     type="email"
                     value={newBarber.email}
                     onChange={(e) => setNewBarber(prev => ({ ...prev, email: e.target.value }))}
-                    className="w-full bg-[#353534]/50 border border-[#4D463A]/20 rounded-xl px-4 py-3 text-white placeholder-[#4D463A] focus:border-[#E5C487] focus:outline-none"
+                    className="w-full bg-surface-container-highest/50 border border-outline-variant/20 rounded-xl px-4 py-3 text-foreground placeholder-muted focus:border-primary focus:outline-none"
                     placeholder="barber@studio.com"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-[#4D463A] uppercase tracking-widest mb-2 block">Title</label>
+                  <label className="text-xs text-muted uppercase tracking-widest mb-2 block">Title</label>
                   <input
                     type="text"
                     value={newBarber.title}
                     onChange={(e) => setNewBarber(prev => ({ ...prev, title: e.target.value }))}
-                    className="w-full bg-[#353534]/50 border border-[#4D463A]/20 rounded-xl px-4 py-3 text-white placeholder-[#4D463A] focus:border-[#E5C487] focus:outline-none"
+                    className="w-full bg-surface-container-highest/50 border border-outline-variant/20 rounded-xl px-4 py-3 text-foreground placeholder-muted focus:border-primary focus:outline-none"
                     placeholder="Senior Barber"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-[#4D463A] uppercase tracking-widest mb-2 block">Password *</label>
+                  <label className="text-xs text-muted uppercase tracking-widest mb-2 block">Password *</label>
                   <input
                     type="password"
                     value={newBarber.password}
                     onChange={(e) => setNewBarber(prev => ({ ...prev, password: e.target.value }))}
-                    className="w-full bg-[#353534]/50 border border-[#4D463A]/20 rounded-xl px-4 py-3 text-white placeholder-[#4D463A] focus:border-[#E5C487] focus:outline-none"
+                    className="w-full bg-surface-container-highest/50 border border-outline-variant/20 rounded-xl px-4 py-3 text-foreground placeholder-muted focus:border-primary focus:outline-none"
                     placeholder="Temporary password"
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="text-xs text-[#4D463A] uppercase tracking-widest mb-2 block">Barber Logo URL</label>
+                  <label className="text-xs text-muted uppercase tracking-widest mb-2 block">Barber Logo URL</label>
                   <div className="flex gap-3">
                     <input
                       type="url"
                       value={newBarber.imageUrl}
                       onChange={(e) => setNewBarber(prev => ({ ...prev, imageUrl: e.target.value }))}
-                      className="flex-1 bg-[#353534]/50 border border-[#4D463A]/20 rounded-xl px-4 py-3 text-white placeholder-[#4D463A] focus:border-[#E5C487] focus:outline-none"
+                      className="flex-1 bg-surface-container-highest/50 border border-outline-variant/20 rounded-xl px-4 py-3 text-foreground placeholder-muted focus:border-primary focus:outline-none"
                       placeholder="https://example.com/barber-photo.jpg"
                     />
                     <button
                       onClick={() => newImageInputRef.current?.click()}
                       disabled={uploadingNewImage}
-                      className="px-4 py-3 rounded-xl border border-[#4D463A]/30 text-[#E5C487] hover:bg-[#E5C487]/10 transition-all disabled:opacity-60 flex items-center gap-2"
+                      className="px-4 py-3 rounded-xl border border-outline-variant/30 text-primary hover:bg-primary-fixed-dim/10 transition-all disabled:opacity-60 flex items-center gap-2"
                     >
-                      {uploadingNewImage && <div className="w-4 h-4 border-2 border-[#E5C487]/30 border-t-[#E5C487] rounded-full animate-spin"></div>}
+                      {uploadingNewImage && <div className="w-4 h-4 border-2 border-primary-fixed-dim/30 border-t-primary rounded-full animate-spin"></div>}
                       <span className="material-symbols-outlined text-sm">upload</span>
                       Upload
                     </button>
@@ -438,31 +438,31 @@ function BarbersContent() {
                     />
                   </div>
                   {newBarber.imageUrl && (
-                    <div className="mt-3 w-20 h-20 rounded-xl overflow-hidden border border-[#4D463A]/20">
+                    <div className="mt-3 w-20 h-20 rounded-xl overflow-hidden border border-outline-variant/20">
                       <img src={newBarber.imageUrl} alt="New barber preview" className="w-full h-full object-cover" />
                     </div>
                   )}
                 </div>
                 <div className="col-span-2">
-                  <label className="text-xs text-[#4D463A] uppercase tracking-widest mb-2 block">Working Hours</label>
+                  <label className="text-xs text-muted uppercase tracking-widest mb-2 block">Working Hours</label>
                   <div className="flex gap-2 items-center">
                     <input
                       type="time"
                       value={newBarber.workingHours.start}
                       onChange={(e) => setNewBarber(prev => ({ ...prev, workingHours: { ...prev.workingHours, start: e.target.value } }))}
-                      className="flex-1 bg-[#353534]/50 border border-[#4D463A]/20 rounded-xl px-4 py-3 text-white focus:border-[#E5C487] focus:outline-none"
+                      className="flex-1 bg-surface-container-highest/50 border border-outline-variant/20 rounded-xl px-4 py-3 text-foreground focus:border-primary focus:outline-none"
                     />
-                    <span className="text-[#4D463A]">to</span>
+                    <span className="text-muted">to</span>
                     <input
                       type="time"
                       value={newBarber.workingHours.end}
                       onChange={(e) => setNewBarber(prev => ({ ...prev, workingHours: { ...prev.workingHours, end: e.target.value } }))}
-                      className="flex-1 bg-[#353534]/50 border border-[#4D463A]/20 rounded-xl px-4 py-3 text-white focus:border-[#E5C487] focus:outline-none"
+                      className="flex-1 bg-surface-container-highest/50 border border-outline-variant/20 rounded-xl px-4 py-3 text-foreground focus:border-primary focus:outline-none"
                     />
                   </div>
                 </div>
                 <div className="col-span-2">
-                  <label className="text-xs text-[#4D463A] uppercase tracking-widest mb-2 block">Specialties</label>
+                  <label className="text-xs text-muted uppercase tracking-widest mb-2 block">Specialties</label>
                   <div className="flex flex-wrap gap-2">
                     {specialtyOptions.map((specialty) => (
                       <button
@@ -470,8 +470,8 @@ function BarbersContent() {
                         onClick={() => toggleSpecialty(specialty)}
                         className={`px-4 py-2 rounded-full text-xs uppercase tracking-widest transition-all ${
                           newBarber.specialties.includes(specialty)
-                            ? "bg-[#E5C487] text-[#402d00] font-bold"
-                            : "bg-[#353534]/50 text-[#4D463A] hover:text-white"
+                            ? "bg-primary-fixed-dim text-primary-foreground font-bold"
+                            : "bg-surface-container-highest/50 text-muted hover:text-foreground"
                         }`}
                       >
                         {specialty}
@@ -483,78 +483,78 @@ function BarbersContent() {
               <div className="flex justify-end gap-4 mt-6">
                 <button
                   onClick={() => setShowAddForm(false)}
-                  className="px-6 py-3 text-[#4D463A] hover:text-white transition-colors"
+                  className="px-6 py-3 text-muted hover:text-foreground transition-colors"
                 >
                   Cancel
                 </button>
                 <button 
                   onClick={handleAddBarber}
                   disabled={addingBarber}
-                  className="px-6 py-3 bg-[#E5C487] text-[#402d00] font-bold rounded-xl active:scale-95 transition-all disabled:opacity-50 flex items-center gap-2"
+                  className="px-6 py-3 bg-primary-fixed-dim text-primary-foreground font-bold rounded-xl active:scale-95 transition-all disabled:opacity-50 flex items-center gap-2"
                 >
-                  {addingBarber && <div className="w-4 h-4 border-2 border-[#402d00]/30 border-t-[#402d00] rounded-full animate-spin"></div>}
+                  {addingBarber && <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin"></div>}
                   Add Barber
                 </button>
               </div>
             </div>
           )}
           {editingBarber && (
-            <div className="bg-[#1C1B1B] rounded-3xl p-8 border border-[#E5C487]/20">
-              <h3 className="font-headline font-black text-lg text-white mb-6">Edit Barber Details</h3>
+            <div className="bg-surface-container-low rounded-3xl p-8 border border-primary-fixed-dim/20">
+              <h3 className="font-headline font-black text-lg text-foreground mb-6">Edit Barber Details</h3>
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <label className="text-xs text-[#4D463A] uppercase tracking-widest mb-2 block">Full Name *</label>
+                  <label className="text-xs text-muted uppercase tracking-widest mb-2 block">Full Name *</label>
                   <input
                     type="text"
                     value={editBarberForm.name}
                     onChange={(e) => setEditBarberForm(prev => ({ ...prev, name: e.target.value }))}
-                    className="w-full bg-[#353534]/50 border border-[#4D463A]/20 rounded-xl px-4 py-3 text-white placeholder-[#4D463A] focus:border-[#E5C487] focus:outline-none"
+                    className="w-full bg-surface-container-highest/50 border border-outline-variant/20 rounded-xl px-4 py-3 text-foreground placeholder-muted focus:border-primary focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-[#4D463A] uppercase tracking-widest mb-2 block">Title</label>
+                  <label className="text-xs text-muted uppercase tracking-widest mb-2 block">Title</label>
                   <input
                     type="text"
                     value={editBarberForm.title}
                     onChange={(e) => setEditBarberForm(prev => ({ ...prev, title: e.target.value }))}
-                    className="w-full bg-[#353534]/50 border border-[#4D463A]/20 rounded-xl px-4 py-3 text-white placeholder-[#4D463A] focus:border-[#E5C487] focus:outline-none"
+                    className="w-full bg-surface-container-highest/50 border border-outline-variant/20 rounded-xl px-4 py-3 text-foreground placeholder-muted focus:border-primary focus:outline-none"
                     placeholder="Senior Barber"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-[#4D463A] uppercase tracking-widest mb-2 block">Phone</label>
+                  <label className="text-xs text-muted uppercase tracking-widest mb-2 block">Phone</label>
                   <input
                     type="tel"
                     value={editBarberForm.phone}
                     onChange={(e) => setEditBarberForm(prev => ({ ...prev, phone: e.target.value }))}
-                    className="w-full bg-[#353534]/50 border border-[#4D463A]/20 rounded-xl px-4 py-3 text-white placeholder-[#4D463A] focus:border-[#E5C487] focus:outline-none"
+                    className="w-full bg-surface-container-highest/50 border border-outline-variant/20 rounded-xl px-4 py-3 text-foreground placeholder-muted focus:border-primary focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-[#4D463A] uppercase tracking-widest mb-2 block">Email</label>
+                  <label className="text-xs text-muted uppercase tracking-widest mb-2 block">Email</label>
                   <input
                     type="email"
                     value={editBarberForm.email}
                     onChange={(e) => setEditBarberForm(prev => ({ ...prev, email: e.target.value }))}
-                    className="w-full bg-[#353534]/50 border border-[#4D463A]/20 rounded-xl px-4 py-3 text-white placeholder-[#4D463A] focus:border-[#E5C487] focus:outline-none"
+                    className="w-full bg-surface-container-highest/50 border border-outline-variant/20 rounded-xl px-4 py-3 text-foreground placeholder-muted focus:border-primary focus:outline-none"
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="text-xs text-[#4D463A] uppercase tracking-widest mb-2 block">Barber Logo URL</label>
+                  <label className="text-xs text-muted uppercase tracking-widest mb-2 block">Barber Logo URL</label>
                   <div className="flex gap-3">
                     <input
                       type="url"
                       value={editBarberForm.imageUrl}
                       onChange={(e) => setEditBarberForm(prev => ({ ...prev, imageUrl: e.target.value }))}
-                      className="flex-1 bg-[#353534]/50 border border-[#4D463A]/20 rounded-xl px-4 py-3 text-white placeholder-[#4D463A] focus:border-[#E5C487] focus:outline-none"
+                      className="flex-1 bg-surface-container-highest/50 border border-outline-variant/20 rounded-xl px-4 py-3 text-foreground placeholder-muted focus:border-primary focus:outline-none"
                       placeholder="https://example.com/barber-photo.jpg"
                     />
                     <button
                       onClick={() => editImageInputRef.current?.click()}
                       disabled={uploadingEditImage}
-                      className="px-4 py-3 rounded-xl border border-[#4D463A]/30 text-[#E5C487] hover:bg-[#E5C487]/10 transition-all disabled:opacity-60 flex items-center gap-2"
+                      className="px-4 py-3 rounded-xl border border-outline-variant/30 text-primary hover:bg-primary-fixed-dim/10 transition-all disabled:opacity-60 flex items-center gap-2"
                     >
-                      {uploadingEditImage && <div className="w-4 h-4 border-2 border-[#E5C487]/30 border-t-[#E5C487] rounded-full animate-spin"></div>}
+                      {uploadingEditImage && <div className="w-4 h-4 border-2 border-primary-fixed-dim/30 border-t-primary rounded-full animate-spin"></div>}
                       <span className="material-symbols-outlined text-sm">upload</span>
                       Upload
                     </button>
@@ -571,7 +571,7 @@ function BarbersContent() {
                     />
                   </div>
                   {editBarberForm.imageUrl && (
-                    <div className="mt-3 w-20 h-20 rounded-xl overflow-hidden border border-[#4D463A]/20">
+                    <div className="mt-3 w-20 h-20 rounded-xl overflow-hidden border border-outline-variant/20">
                       <img src={editBarberForm.imageUrl} alt="Edit barber preview" className="w-full h-full object-cover" />
                     </div>
                   )}
@@ -580,16 +580,16 @@ function BarbersContent() {
               <div className="flex justify-end gap-4 mt-6">
                 <button
                   onClick={() => setEditingBarber(null)}
-                  className="px-6 py-3 text-[#4D463A] hover:text-white transition-colors"
+                  className="px-6 py-3 text-muted hover:text-foreground transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleUpdateBarber}
                   disabled={updatingBarberId === editingBarber.id}
-                  className="px-6 py-3 bg-[#E5C487] text-[#402d00] font-bold rounded-xl active:scale-95 transition-all disabled:opacity-50 flex items-center gap-2"
+                  className="px-6 py-3 bg-primary-fixed-dim text-primary-foreground font-bold rounded-xl active:scale-95 transition-all disabled:opacity-50 flex items-center gap-2"
                 >
-                  {updatingBarberId === editingBarber.id && <div className="w-4 h-4 border-2 border-[#402d00]/30 border-t-[#402d00] rounded-full animate-spin"></div>}
+                  {updatingBarberId === editingBarber.id && <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin"></div>}
                   Save Barber
                 </button>
               </div>
@@ -599,13 +599,13 @@ function BarbersContent() {
           {/* Loading State */}
           {loading ? (
             <div className="flex items-center justify-center py-20">
-              <div className="w-10 h-10 border-4 border-[#E5C487]/30 border-t-[#E5C487] rounded-full animate-spin"></div>
+              <div className="w-10 h-10 border-4 border-primary-fixed-dim/30 border-t-primary rounded-full animate-spin"></div>
             </div>
           ) : team.length === 0 ? (
-            <div className="bg-[#1C1B1B] rounded-3xl p-12 border border-[#4D463A]/10 text-center">
-              <span className="material-symbols-outlined text-6xl text-[#4D463A] mb-4">group_off</span>
-              <h3 className="font-headline font-black text-xl text-white mb-2">No Team Members</h3>
-              <p className="text-[#4D463A]">You&apos;re the only barber in this studio. Add team members to grow your business!</p>
+            <div className="bg-surface-container-low rounded-3xl p-12 border border-outline-variant/10 text-center">
+              <span className="material-symbols-outlined text-6xl text-muted mb-4">group_off</span>
+              <h3 className="font-headline font-black text-xl text-foreground mb-2">No Team Members</h3>
+              <p className="text-muted">You&apos;re the only barber in this studio. Add team members to grow your business!</p>
             </div>
           ) : (
             /* Barbers Grid */
@@ -617,44 +617,44 @@ function BarbersContent() {
                 return (
                   <div 
                     key={member.id} 
-                    className={`bg-[#1C1B1B] rounded-3xl p-6 border transition-all ${
+                    className={`bg-surface-container-low rounded-3xl p-6 border transition-all ${
                       member.isCurrentBarber 
-                        ? 'border-[#E5C487]/40 ring-1 ring-[#E5C487]/20' 
-                        : 'border-[#4D463A]/10 hover:border-[#E5C487]/20'
+                        ? 'border-primary-fixed-dim/40 ring-1 ring-primary-fixed-dim/20' 
+                        : 'border-outline-variant/10 hover:border-primary-fixed-dim/20'
                     }`}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-4">
                         <div className="relative">
-                          <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-[#E5C487]/30 bg-[#353534]">
+                          <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-primary-fixed-dim/30 bg-surface-container-highest">
                             {member.image_url ? (
                               <img src={member.image_url} alt={member.name} className="w-full h-full object-cover" />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center text-[#E5C487] font-bold text-xl">
+                              <div className="w-full h-full flex items-center justify-center text-primary font-bold text-xl">
                                 {member.name.charAt(0).toUpperCase()}
                               </div>
                             )}
                           </div>
-                          <span className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-[#1C1B1B] ${statusInfo.dotColor}`}></span>
+                          <span className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-surface-container-low ${statusInfo.dotColor}`}></span>
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <h3 className="text-lg font-bold text-white">{member.name}</h3>
+                            <h3 className="text-lg font-bold text-foreground">{member.name}</h3>
                             {member.isCurrentBarber && (
-                              <span className="px-2 py-0.5 bg-[#E5C487]/10 text-[#E5C487] text-[10px] uppercase rounded-full">You</span>
+                              <span className="px-2 py-0.5 bg-primary-fixed-dim/10 text-primary text-[10px] uppercase rounded-full">You</span>
                             )}
                           </div>
                           <p className={`text-xs uppercase font-bold ${statusInfo.color}`}>
                             {statusInfo.text}
                           </p>
                           {member.title && (
-                            <p className="text-xs text-[#4D463A] mt-1">{member.title}</p>
+                            <p className="text-xs text-muted mt-1">{member.title}</p>
                           )}
                         </div>
                       </div>
                       <button
                         onClick={() => openEditBarber(member)}
-                        className="text-[#4D463A] hover:text-[#E5C487] transition-colors flex items-center gap-1 text-xs uppercase"
+                        className="text-muted hover:text-primary transition-colors flex items-center gap-1 text-xs uppercase"
                       >
                         <span className="material-symbols-outlined text-sm">edit</span>
                         Edit
@@ -662,38 +662,38 @@ function BarbersContent() {
                     </div>
 
                     <div className="mt-6 grid grid-cols-2 gap-4">
-                      <div className="bg-[#353534]/30 rounded-xl p-3">
-                        <p className="text-[10px] text-[#4D463A] uppercase">Today&apos;s Load</p>
+                      <div className="bg-surface-container-highest/30 rounded-xl p-3">
+                        <p className="text-[10px] text-muted uppercase">Today&apos;s Load</p>
                         <div className="flex items-center gap-2 mt-1">
-                            <div className="flex-1 bg-[#353534] h-2 rounded-full overflow-hidden">
+                            <div className="flex-1 bg-surface-container-highest h-2 rounded-full overflow-hidden">
                               <div 
                                 className={`h-full rounded-full transition-all ${
-                                  queueLoad > 70 ? 'bg-red-400' :
-                                  queueLoad > 40 ? 'bg-yellow-400' :
-                                  'bg-green-400'
+                                  queueLoad > 70 ? 'bg-red-500 dark:bg-red-400' :
+                                  queueLoad > 40 ? 'bg-yellow-500 dark:bg-yellow-400' :
+                                  'bg-green-500 dark:bg-green-400'
                                 }`}
                                 style={{ width: `${queueLoad}%` }}
                               ></div>
                             </div>
-                           <span className="text-xs text-white font-bold">{member.todayBookings ?? member.today_bookings ?? 0}</span>
+                           <span className="text-xs text-foreground font-bold">{member.todayBookings ?? member.today_bookings ?? 0}</span>
                         </div>
                       </div>
-                      <div className="bg-[#353534]/30 rounded-xl p-3">
-                        <p className="text-[10px] text-[#4D463A] uppercase">Upcoming</p>
-                        <p className="text-sm text-white font-bold mt-1">{member.upcomingBookings ?? member.upcoming_bookings ?? 0} bookings</p>
+                      <div className="bg-surface-container-highest/30 rounded-xl p-3">
+                        <p className="text-[10px] text-muted uppercase">Upcoming</p>
+                        <p className="text-sm text-foreground font-bold mt-1">{member.upcomingBookings ?? member.upcoming_bookings ?? 0} bookings</p>
                       </div>
                     </div>
 
                     {/* Contact Info */}
                     <div className="mt-4 space-y-1">
                       {member.phone && (
-                        <p className="text-xs text-[#4D463A] flex items-center gap-2">
+                        <p className="text-xs text-muted flex items-center gap-2">
                           <span className="material-symbols-outlined text-sm">phone</span>
                           {member.phone}
                         </p>
                       )}
                       {member.email && (
-                        <p className="text-xs text-[#4D463A] flex items-center gap-2">
+                        <p className="text-xs text-muted flex items-center gap-2">
                           <span className="material-symbols-outlined text-sm">mail</span>
                           {member.email}
                         </p>

@@ -90,13 +90,13 @@ export default function AdminStudiosPage() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-white font-headline">Studios</h1>
-          <p className="text-gray-500 mt-1">Manage studio registrations and approvals</p>
+          <h1 className="text-2xl font-bold text-foreground font-headline">Studios</h1>
+          <p className="text-secondary-foreground mt-1">Manage studio registrations and approvals</p>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-[#111] border border-[#222] rounded-xl p-4 mb-6">
+      <div className="bg-background border border-border rounded-xl p-4 mb-6">
         <div className="flex flex-wrap gap-4 items-center">
           <div className="flex-1 min-w-[200px]">
             <input
@@ -105,7 +105,7 @@ export default function AdminStudiosPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && updateFilters()}
-              className="w-full px-4 py-2 bg-[#1a1a1a] border border-[#333] rounded-lg text-white placeholder:text-gray-600 focus:outline-none focus:border-[#E5C487]"
+              className="w-full px-4 py-2 bg-card border border-border rounded-lg text-foreground placeholder:text-secondary-foreground focus:outline-none focus:border-primary"
             />
           </div>
           
@@ -119,8 +119,8 @@ export default function AdminStudiosPage() {
                 }}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   status === s
-                    ? "bg-[#E5C487] text-[#1a1a1a]"
-                    : "bg-[#1a1a1a] text-gray-400 hover:text-white"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-card text-muted hover:text-foreground"
                 }`}
               >
                 {s ? s.charAt(0).toUpperCase() + s.slice(1) : "All"}
@@ -130,7 +130,7 @@ export default function AdminStudiosPage() {
 
           <button
             onClick={() => loadStudios()}
-            className="p-2 bg-[#1a1a1a] text-gray-400 hover:text-white rounded-lg"
+            className="p-2 bg-card text-muted hover:text-foreground rounded-lg"
           >
             <span className="material-symbols-outlined">refresh</span>
           </button>
@@ -138,42 +138,42 @@ export default function AdminStudiosPage() {
       </div>
 
       {/* Studios Table */}
-      <div className="bg-[#111] border border-[#222] rounded-xl overflow-hidden">
+      <div className="bg-background border border-border rounded-xl overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#E5C487]"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
           </div>
         ) : studios.length === 0 ? (
           <div className="text-center py-12">
-            <span className="material-symbols-outlined text-4xl text-gray-600 mb-2">store</span>
-            <p className="text-gray-500">No studios found</p>
+            <span className="material-symbols-outlined text-4xl text-secondary-foreground mb-2">store</span>
+            <p className="text-secondary-foreground">No studios found</p>
           </div>
         ) : (
           <table className="w-full">
-            <thead className="bg-[#1a1a1a] border-b border-[#222]">
+            <thead className="bg-card border-b border-border">
               <tr>
-                <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Studio</th>
-                <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</th>
-                <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Coords</th>
-                <th className="text-right px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="text-left px-6 py-4 text-xs font-medium text-secondary-foreground uppercase tracking-wider">Studio</th>
+                <th className="text-left px-6 py-4 text-xs font-medium text-secondary-foreground uppercase tracking-wider">Owner</th>
+                <th className="text-left px-6 py-4 text-xs font-medium text-secondary-foreground uppercase tracking-wider">Status</th>
+                <th className="text-left px-6 py-4 text-xs font-medium text-secondary-foreground uppercase tracking-wider">Location</th>
+                <th className="text-left px-6 py-4 text-xs font-medium text-secondary-foreground uppercase tracking-wider">Coords</th>
+                <th className="text-right px-6 py-4 text-xs font-medium text-secondary-foreground uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#222]">
+            <tbody className="divide-y divide-border">
               {studios.map((studio) => (
-                <tr key={studio.id} className="hover:bg-[#1a1a1a] transition-colors">
+                <tr key={studio.id} className="hover:bg-card transition-colors">
                   <td className="px-6 py-4">
-                    <Link href={`/admin/studios/${studio.id}`} className="hover:text-[#E5C487]">
-                      <p className="font-medium text-white">{studio.name}</p>
-                      <p className="text-sm text-gray-500">
+                    <Link href={`/admin/studios/${studio.id}`} className="hover:text-primary">
+                      <p className="font-medium text-foreground">{studio.name}</p>
+                      <p className="text-sm text-secondary-foreground">
                         {studio.barber_count} barbers • {studio.booking_count} bookings
                       </p>
                     </Link>
                   </td>
                   <td className="px-6 py-4">
-                    <p className="text-sm text-white">{studio.owner_name || "N/A"}</p>
-                    <p className="text-xs text-gray-500">{studio.owner_email || "-"}</p>
+                    <p className="text-sm text-foreground">{studio.owner_name || "N/A"}</p>
+                    <p className="text-xs text-secondary-foreground">{studio.owner_email || "-"}</p>
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[studio.approval_status] || "bg-gray-500/20 text-gray-400"}`}>
@@ -181,7 +181,7 @@ export default function AdminStudiosPage() {
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <p className="text-sm text-gray-400">{studio.city}, {studio.state}</p>
+                    <p className="text-sm text-muted">{studio.city}, {studio.state}</p>
                   </td>
                   <td className="px-6 py-4">
                     {studio.lat && studio.lng ? (
@@ -218,7 +218,7 @@ export default function AdminStudiosPage() {
                       )}
                       <Link
                         href={`/admin/studios/${studio.id}`}
-                        className="p-2 text-gray-400 hover:text-white hover:bg-[#222] rounded-lg transition-colors"
+                        className="p-2 text-muted hover:text-foreground hover:bg-surface rounded-lg transition-colors"
                         title="View Details"
                       >
                         <span className="material-symbols-outlined text-sm">visibility</span>
@@ -233,8 +233,8 @@ export default function AdminStudiosPage() {
 
         {/* Pagination */}
         {pagination && pagination.pages > 1 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t border-[#222]">
-            <p className="text-sm text-gray-500">
+          <div className="flex items-center justify-between px-6 py-4 border-t border-border">
+            <p className="text-sm text-secondary-foreground">
               Showing {((pagination.page - 1) * pagination.limit) + 1} to{" "}
               {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} studios
             </p>
@@ -246,7 +246,7 @@ export default function AdminStudiosPage() {
                   router.push(`/admin/studios?${params.toString()}`);
                 }}
                 disabled={pagination.page === 1}
-                className="px-4 py-2 bg-[#1a1a1a] text-gray-400 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:text-white"
+                className="px-4 py-2 bg-card text-muted rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:text-foreground"
               >
                 Previous
               </button>
@@ -257,7 +257,7 @@ export default function AdminStudiosPage() {
                   router.push(`/admin/studios?${params.toString()}`);
                 }}
                 disabled={pagination.page === pagination.pages}
-                className="px-4 py-2 bg-[#1a1a1a] text-gray-400 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:text-white"
+                className="px-4 py-2 bg-card text-muted rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:text-foreground"
               >
                 Next
               </button>

@@ -69,12 +69,12 @@ export default function ServicesPage() {
       <header className="relative pt-32 pb-20 bg-surface-container-low overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="max-w-3xl space-y-6">
-            <div className="inline-flex items-center space-x-3 px-4 py-2 rounded-full text-[#C8A96E]">
-              <span className="text-secondary text-xs font-label uppercase tracking-widest font-bold">Elite Grooming Catalog</span>
+            <div className="inline-flex items-center space-x-3 px-4 py-2 rounded-full text-primary">
+              <span className="text-primary text-xs font-label uppercase tracking-widest font-bold">Elite Grooming Catalog</span>
             </div>
             <h1 className="text-5xl md:text-7xl font-headline font-extrabold tracking-tighter leading-[0.9]">
               Mastery in Every <br />
-              <span className="text-[#C8A96E]">Subtle Detail.</span>
+              <span className="text-primary">Subtle Detail.</span>
             </h1>
             <p className="text-on-surface-variant text-lg md:text-xl max-w-xl font-light leading-relaxed">
               Select from our curated menu of artisanal services. Each session is a bespoke experience tailored to your unique structure and style.
@@ -88,7 +88,7 @@ export default function ServicesPage() {
       </header>
 
       {/* Services Grid */}
-      <section className="py-24 bg-[#0b0b0b]">
+      <section className="py-24 bg-background">
         <div className="max-w-7xl mx-auto px-6 space-y-10">
 
           {/* Top Featured Row */}
@@ -114,17 +114,17 @@ export default function ServicesPage() {
                       Signature
                     </span>
 
-                    <span className="text-gray-400 text-xs">
+                    <span className="text-muted text-xs">
                       60 Minutes
                     </span>
 
                   </div>
 
-                  <h3 className="text-3xl font-bold text-white">
+                  <h3 className="text-3xl font-bold text-foreground">
                     The Royal Cut
                   </h3>
 
-                  <p className="text-gray-400 max-w-md">
+                  <p className="text-muted max-w-md">
                     Our ultimate precision service including hot towel
                     treatment, straight razor finish, and styling consultation.
                   </p>
@@ -132,11 +132,11 @@ export default function ServicesPage() {
 
                 <div className="text-right space-y-3">
 
-                  <div className="text-2xl font-bold text-[#C8A96E]">
+                  <div className="text-2xl font-bold text-primary">
                     ₹1,499
                   </div>
 
-                  <Link href="/login" className="bg-[#C8A96E] text-black px-5 py-2 rounded-lg inline-block hover:bg-[#b8946e] transition-colors">
+                  <Link href="/login" className="bg-primary text-primary-foreground px-5 py-2 rounded-lg inline-block hover:bg-primary/90 transition-colors">
                     Select
                   </Link>
 
@@ -149,25 +149,25 @@ export default function ServicesPage() {
 
 
             {/* Right Glass Card */}
-            <div className="bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-3xl p-8 flex flex-col justify-between">
+            <div className="bg-background/80 backdrop-blur-xl border border-white/10 rounded-3xl p-8 flex flex-col justify-between">
 
               <div className="space-y-4">
 
-                <div className="w-12 h-12 rounded-xl bg-[#1a1a1a] flex items-center justify-center">
-                  <span className="material-symbols-outlined text-[#C8A96E]">
+                <div className="w-12 h-12 rounded-xl bg-card flex items-center justify-center">
+                  <span className="material-symbols-outlined text-primary">
                     content_cut
                   </span>
                 </div>
 
-                <h3 className="text-xl font-semibold text-white">
+                <h3 className="text-xl font-semibold text-foreground">
                   Classic Haircut
                 </h3>
 
-                <p className="text-gray-400">
+                <p className="text-muted">
                   Modern or traditional. Expertly tapered and finished with a neck shave.
                 </p>
 
-                <div className="text-xs text-gray-500 uppercase">
+                <div className="text-xs text-secondary-foreground uppercase">
                   40 min • Junior/Senior
                 </div>
 
@@ -175,11 +175,11 @@ export default function ServicesPage() {
 
               <div className="flex justify-between items-center">
 
-                <div className="text-xl font-bold text-white">
+                <div className="text-xl font-bold text-foreground">
                   ₹799
                 </div>
 
-                <Link href="/login" className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center hover:border-[#C8A96E] hover:text-[#C8A96E] transition-colors">
+                <Link href="/login" className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center hover:border-primary hover:text-primary transition-colors">
                   →
                 </Link>
 
@@ -197,24 +197,24 @@ export default function ServicesPage() {
             {services.slice(2).map((service) => (
               <div
                 key={service.id}
-                className="bg-[#111] rounded-2xl p-6 border border-white/5"
+                className="bg-background rounded-2xl p-6 border border-border"
               >
 
-                <h4 className="text-lg font-semibold text-white">
+                <h4 className="text-lg font-semibold text-foreground">
                   {service.title}
                 </h4>
 
-                <p className="text-gray-400 text-sm mt-2">
+                <p className="text-muted text-sm mt-2">
                   {service.description}
                 </p>
 
                 <div className="flex justify-between items-center mt-6">
 
-                  <div className="text-lg font-bold text-white">
+                  <div className="text-lg font-bold text-foreground">
                     {service.price}
                   </div>
 
-                  <Link href="/login" className="bg-[#C8A96E] text-black px-4 py-1 rounded-md text-sm hover:bg-[#b8946e] transition-colors">
+                  <Link href="/login" className="bg-primary text-primary-foreground px-4 py-1 rounded-md text-sm hover:bg-primary/90 transition-colors">
                     Select
                   </Link>
 

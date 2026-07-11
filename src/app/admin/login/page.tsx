@@ -32,14 +32,14 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-[#E5C487] font-headline mb-2">SnapCut Admin</h1>
-          <p className="text-gray-500">Sign in to access the admin panel</p>
+          <h1 className="text-3xl font-bold text-primary font-headline mb-2">SnapCut Admin</h1>
+          <p className="text-secondary-foreground">Sign in to access the admin panel</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-[#111] border border-[#222] rounded-xl p-8">
+        <form onSubmit={handleSubmit} className="bg-background border border-border rounded-xl p-8">
           {error && (
             <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
               {error}
@@ -48,24 +48,24 @@ export default function AdminLoginPage() {
 
           <div className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-2">Email</label>
+              <label className="block text-sm font-medium text-muted mb-2">Email</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 bg-[#1a1a1a] border border-[#333] rounded-lg text-white placeholder:text-gray-600 focus:outline-none focus:border-[#E5C487] transition-colors"
+                className="w-full px-4 py-3 bg-card border border-border rounded-lg text-foreground placeholder:text-secondary-foreground focus:outline-none focus:border-primary transition-colors"
                 placeholder="admin@example.com"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-2">Password</label>
+              <label className="block text-sm font-medium text-muted mb-2">Password</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-[#1a1a1a] border border-[#333] rounded-lg text-white placeholder:text-gray-600 focus:outline-none focus:border-[#E5C487] transition-colors"
+                className="w-full px-4 py-3 bg-card border border-border rounded-lg text-foreground placeholder:text-secondary-foreground focus:outline-none focus:border-primary transition-colors"
                 placeholder="••••••••"
                 required
               />
@@ -74,11 +74,11 @@ export default function AdminLoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-[#E5C487] text-[#1a1a1a] font-bold rounded-lg hover:bg-[#d4b377] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-3 bg-primary text-primary-foreground font-bold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-[#1a1a1a] border-t-transparent rounded-full animate-spin"></div>
+                  <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"></div>
                   Signing in...
                 </>
               ) : (
@@ -88,7 +88,7 @@ export default function AdminLoginPage() {
           </div>
         </form>
 
-        <p className="text-center text-gray-600 text-sm mt-6">
+        <p className="text-center text-secondary-foreground text-sm mt-6">
           Default credentials: admin@snapcut.com / admin123
         </p>
       </div>

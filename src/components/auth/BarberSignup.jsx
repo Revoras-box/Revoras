@@ -246,19 +246,19 @@ export default function BarberSignup() {
   const totalSteps = 7;
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white px-6 py-24">
+    <div className="min-h-screen bg-background text-foreground px-6 py-24">
       <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-24">
         {/* LEFT SIDE */}
         <div className="space-y-10">
           <div>
-            <div className="text-xs tracking-[0.35em] text-[#C8A96E] uppercase mb-6">
+            <div className="text-xs tracking-[0.35em] text-primary uppercase mb-6">
               Professional Membership
             </div>
             <h1 className="text-6xl font-bold leading-tight">
               Join the{" "}
-              <span className="text-[#C8A96E]">Elite.</span>
+              <span className="text-primary">Elite.</span>
             </h1>
-            <p className="text-gray-400 mt-6 max-w-lg text-lg leading-relaxed">
+            <p className="text-muted mt-6 max-w-lg text-lg leading-relaxed">
               The digital concierge for the modern craftsman. Manage your chair,
               clients and brand with premium tools.
             </p>
@@ -281,16 +281,16 @@ export default function BarberSignup() {
         </div>
 
         {/* RIGHT SIDE FORM */}
-        <div className="bg-[#0b0b0b] border border-white/5 rounded-3xl p-12 shadow-[0_20px_80px_rgba(0,0,0,0.8)]">
+        <div className="bg-card border border-border rounded-3xl p-12 shadow-floating">
           {/* Progress */}
           <div className="mb-10">
-            <div className="flex justify-between text-sm text-gray-400 mb-3">
+            <div className="flex justify-between text-sm text-muted mb-3">
               <span>Professional Onboarding</span>
               <span>Step {step}/7</span>
             </div>
-            <div className="w-full h-1 bg-[#1a1a1a] rounded-full overflow-hidden">
+            <div className="w-full h-1 bg-surface rounded-full overflow-hidden">
               <div
-                className="h-full bg-[#C8A96E] transition-all"
+                className="h-full bg-primary transition-all"
                 style={{ width: `${(step / totalSteps) * 100}%` }}
               />
             </div>
@@ -332,9 +332,9 @@ export default function BarberSignup() {
           {step === 2 && (
             <div className="space-y-8">
               <h2 className="text-2xl font-semibold">Verify Email</h2>
-              <p className="text-gray-400 text-sm">
+              <p className="text-muted text-sm">
                 We will send a verification code to{" "}
-                <span className="text-white">{formData.email}</span>
+                <span className="text-foreground">{formData.email}</span>
               </p>
               <button
                 onClick={handleSendEmailOtp}
@@ -406,9 +406,9 @@ export default function BarberSignup() {
                 <span className="text-sm">Email verified</span>
               </div>
               <h2 className="text-2xl font-semibold">Verify Phone</h2>
-              <p className="text-gray-400 text-sm">
+              <p className="text-muted text-sm">
                 We will send a verification code to{" "}
-                <span className="text-white">{formData.phone}</span>
+                <span className="text-foreground">{formData.phone}</span>
               </p>
               <button
                 onClick={handleSendPhoneOtp}
@@ -533,7 +533,7 @@ export default function BarberSignup() {
                     placeholder="XXXXX0000X"
                     disabled={loading}
                   />
-                  <p className="text-xs text-gray-500 mt-1">Required for verification (Format: XXXXX0000X)</p>
+                  <p className="text-xs text-secondary-foreground mt-1">Required for verification (Format: XXXXX0000X)</p>
                 </div>
               </div>
               <button onClick={next} className="primary-btn w-full" disabled={loading}>
@@ -546,9 +546,9 @@ export default function BarberSignup() {
           {step === 7 && (
             <div className="space-y-8">
               <h2 className="text-2xl font-semibold">Account Setup</h2>
-              <div className="rounded-xl border border-[#C8A96E]/30 bg-[#C8A96E]/5 px-4 py-3 text-sm">
-                <p className="text-[#C8A96E] font-semibold">No registration fee required</p>
-                <p className="text-gray-400 mt-1">
+              <div className="rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 text-sm">
+                <p className="text-primary font-semibold">No registration fee required</p>
+                <p className="text-muted mt-1">
                   Complete your details and submit your profile for approval.
                 </p>
               </div>
@@ -569,12 +569,12 @@ export default function BarberSignup() {
                   }
                   disabled={loading}
                 />
-                <label className="flex gap-3 text-sm text-gray-400 cursor-pointer">
+                <label className="flex gap-3 text-sm text-muted cursor-pointer">
                   <input
                     type="checkbox"
                     checked={formData.agreed}
                     onChange={(e) => updateField("agreed", e.target.checked)}
-                    className="w-5 h-5 accent-[#C8A96E]"
+                    className="w-5 h-5 accent-primary"
                     disabled={loading}
                   />
                   I agree to Terms and Privacy Policy
@@ -607,9 +607,9 @@ export default function BarberSignup() {
           <h2 className="text-3xl font-semibold leading-tight">
             Designed by Barbers,
             <br />
-            for <span className="text-[#C8A96E]">Professionals.</span>
+            for <span className="text-primary">Professionals.</span>
           </h2>
-          <p className="text-gray-400 max-w-sm">
+          <p className="text-muted max-w-sm">
             Join thousands of elite specialists who have streamlined their
             business with Revoras.
           </p>
@@ -626,7 +626,7 @@ export default function BarberSignup() {
           />
           <div className="absolute inset-0 bg-linear-to-t from-black via-black/30 to-transparent" />
           <div className="absolute bottom-6 left-6">
-            <div className="text-xs text-gray-300 uppercase tracking-widest">
+            <div className="text-xs text-muted uppercase tracking-widest">
               Master Barber
             </div>
             <div className="text-lg font-semibold">The Artisan's Toolset</div>
@@ -640,7 +640,7 @@ export default function BarberSignup() {
           />
           <div className="absolute inset-0 bg-linear-to-t from-black via-black/30 to-transparent" />
           <div className="absolute bottom-6 left-6">
-            <div className="text-xs text-gray-300 uppercase tracking-widest">
+            <div className="text-xs text-muted uppercase tracking-widest">
               Shop Owners
             </div>
             <div className="text-lg font-semibold">Full-Scale Oversight</div>
@@ -663,12 +663,12 @@ function LoadingSpinner() {
 function Feature({ title, desc }) {
   return (
     <div className="flex gap-5">
-      <div className="w-12 h-12 bg-[#111] rounded-xl flex items-center justify-center">
+      <div className="w-12 h-12 bg-background rounded-xl flex items-center justify-center">
         ✓
       </div>
       <div>
         <h4 className="font-semibold">{title}</h4>
-        <p className="text-gray-400 text-sm">{desc}</p>
+        <p className="text-muted text-sm">{desc}</p>
       </div>
     </div>
   );
@@ -677,7 +677,7 @@ function Feature({ title, desc }) {
 function Input({ label, type = "text", value, onChange, placeholder, disabled }) {
   return (
     <div>
-      <label className="text-xs text-gray-500 uppercase tracking-widest">
+      <label className="text-xs text-secondary-foreground uppercase tracking-widest">
         {label}
       </label>
       <input
@@ -686,7 +686,7 @@ function Input({ label, type = "text", value, onChange, placeholder, disabled })
         onChange={onChange}
         placeholder={placeholder}
         disabled={disabled}
-        className="w-full bg-transparent border-b border-[#2a2a2a] py-3 mt-2 outline-none focus:border-[#C8A96E] transition-colors disabled:opacity-50"
+        className="w-full bg-transparent border-b border-border py-3 mt-2 outline-none focus:border-primary transition-colors disabled:opacity-50"
       />
     </div>
   );
@@ -695,14 +695,14 @@ function Input({ label, type = "text", value, onChange, placeholder, disabled })
 function Select({ label, value, onChange, disabled }) {
   return (
     <div>
-      <label className="text-xs text-gray-500 uppercase tracking-widest">
+      <label className="text-xs text-secondary-foreground uppercase tracking-widest">
         {label}
       </label>
       <select
         value={value}
         onChange={onChange}
         disabled={disabled}
-        className="w-full bg-transparent border-b border-[#2a2a2a] py-3 mt-2 outline-none focus:border-[#C8A96E] disabled:opacity-50"
+        className="w-full bg-transparent border-b border-border py-3 mt-2 outline-none focus:border-primary disabled:opacity-50"
       >
         <option value="">Select Expertise</option>
         <option>Haircut</option>

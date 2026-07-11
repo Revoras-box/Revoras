@@ -190,7 +190,7 @@ export default function AdminStudioDetailPage({ params }: { params: Promise<Page
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#E5C487]"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -198,9 +198,9 @@ export default function AdminStudioDetailPage({ params }: { params: Promise<Page
   if (!studio) {
     return (
       <div className="text-center py-12">
-        <span className="material-symbols-outlined text-4xl text-gray-600 mb-2">error</span>
-        <p className="text-gray-500">Studio not found</p>
-        <Link href="/admin/studios" className="text-[#E5C487] hover:underline mt-4 inline-block">
+        <span className="material-symbols-outlined text-4xl text-secondary-foreground mb-2">error</span>
+        <p className="text-secondary-foreground">Studio not found</p>
+        <Link href="/admin/studios" className="text-primary hover:underline mt-4 inline-block">
           Back to Studios
         </Link>
       </div>
@@ -221,13 +221,13 @@ export default function AdminStudioDetailPage({ params }: { params: Promise<Page
         <div className="flex items-center gap-4">
           <Link
             href="/admin/studios"
-            className="p-2 hover:bg-[#222] rounded-lg transition-colors"
+            className="p-2 hover:bg-surface rounded-lg transition-colors"
           >
-            <span className="material-symbols-outlined text-gray-400">arrow_back</span>
+            <span className="material-symbols-outlined text-muted">arrow_back</span>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-white font-headline">{studio.name}</h1>
-            <p className="text-gray-500 mt-1">{studio.city}, {studio.state}</p>
+            <h1 className="text-2xl font-bold text-foreground font-headline">{studio.name}</h1>
+            <p className="text-secondary-foreground mt-1">{studio.city}, {studio.state}</p>
           </div>
         </div>
         
@@ -258,7 +258,7 @@ export default function AdminStudioDetailPage({ params }: { params: Promise<Page
           {studio.approval_status === "approved" && (
             <button
               onClick={handleSuspend}
-              className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+              className="px-4 py-2 bg-surface-container-high text-foreground rounded-lg hover:bg-surface-container-highest transition-colors"
             >
               Suspend
             </button>
@@ -267,15 +267,15 @@ export default function AdminStudioDetailPage({ params }: { params: Promise<Page
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-4 mb-6 border-b border-[#222]">
+      <div className="flex gap-4 mb-6 border-b border-border">
         {(["details", "team", "services"] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
               activeTab === tab
-                ? "border-[#E5C487] text-[#E5C487]"
-                : "border-transparent text-gray-500 hover:text-white"
+                ? "border-primary text-primary"
+                : "border-transparent text-secondary-foreground hover:text-foreground"
             }`}
           >
             {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -288,13 +288,13 @@ export default function AdminStudioDetailPage({ params }: { params: Promise<Page
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Info */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-[#111] border border-[#222] rounded-xl p-6">
+            <div className="bg-background border border-border rounded-xl p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-bold text-white">Studio Information</h2>
+                <h2 className="text-lg font-bold text-foreground">Studio Information</h2>
                 {!editMode ? (
                   <button
                     onClick={() => setEditMode(true)}
-                    className="text-[#E5C487] hover:underline text-sm flex items-center gap-1"
+                    className="text-primary hover:underline text-sm flex items-center gap-1"
                   >
                     <span className="material-symbols-outlined text-sm">edit</span>
                     Edit
@@ -303,14 +303,14 @@ export default function AdminStudioDetailPage({ params }: { params: Promise<Page
                   <div className="flex gap-2">
                     <button
                       onClick={() => setEditMode(false)}
-                      className="px-3 py-1 text-gray-400 hover:text-white text-sm"
+                      className="px-3 py-1 text-muted hover:text-foreground text-sm"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleSave}
                       disabled={saving}
-                      className="px-4 py-1 bg-[#E5C487] text-[#1a1a1a] rounded-lg text-sm font-medium disabled:opacity-50"
+                      className="px-4 py-1 bg-primary text-primary-foreground rounded-lg text-sm font-medium disabled:opacity-50"
                     >
                       {saving ? "Saving..." : "Save"}
                     </button>
@@ -320,123 +320,123 @@ export default function AdminStudioDetailPage({ params }: { params: Promise<Page
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
-                  <label className="block text-xs text-gray-500 mb-1">Name</label>
+                  <label className="block text-xs text-secondary-foreground mb-1">Name</label>
                   {editMode ? (
                     <input
                       type="text"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-3 py-2 bg-[#1a1a1a] border border-[#333] rounded-lg text-white"
+                      className="w-full px-3 py-2 bg-card border border-border rounded-lg text-foreground"
                     />
                   ) : (
-                    <p className="text-white">{studio.name}</p>
+                    <p className="text-foreground">{studio.name}</p>
                   )}
                 </div>
 
                 <div className="col-span-2">
-                  <label className="block text-xs text-gray-500 mb-1">Address</label>
+                  <label className="block text-xs text-secondary-foreground mb-1">Address</label>
                   {editMode ? (
                     <input
                       type="text"
                       value={formData.address}
                       onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                      className="w-full px-3 py-2 bg-[#1a1a1a] border border-[#333] rounded-lg text-white"
+                      className="w-full px-3 py-2 bg-card border border-border rounded-lg text-foreground"
                     />
                   ) : (
-                    <p className="text-white">{studio.address}</p>
+                    <p className="text-foreground">{studio.address}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">City</label>
+                  <label className="block text-xs text-secondary-foreground mb-1">City</label>
                   {editMode ? (
                     <input
                       type="text"
                       value={formData.city}
                       onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                      className="w-full px-3 py-2 bg-[#1a1a1a] border border-[#333] rounded-lg text-white"
+                      className="w-full px-3 py-2 bg-card border border-border rounded-lg text-foreground"
                     />
                   ) : (
-                    <p className="text-white">{studio.city}</p>
+                    <p className="text-foreground">{studio.city}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">State</label>
+                  <label className="block text-xs text-secondary-foreground mb-1">State</label>
                   {editMode ? (
                     <input
                       type="text"
                       value={formData.state}
                       onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                      className="w-full px-3 py-2 bg-[#1a1a1a] border border-[#333] rounded-lg text-white"
+                      className="w-full px-3 py-2 bg-card border border-border rounded-lg text-foreground"
                     />
                   ) : (
-                    <p className="text-white">{studio.state}</p>
+                    <p className="text-foreground">{studio.state}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">ZIP Code</label>
+                  <label className="block text-xs text-secondary-foreground mb-1">ZIP Code</label>
                   {editMode ? (
                     <input
                       type="text"
                       value={formData.zip_code}
                       onChange={(e) => setFormData({ ...formData, zip_code: e.target.value })}
-                      className="w-full px-3 py-2 bg-[#1a1a1a] border border-[#333] rounded-lg text-white"
+                      className="w-full px-3 py-2 bg-card border border-border rounded-lg text-foreground"
                     />
                   ) : (
-                    <p className="text-white">{studio.zip_code || "-"}</p>
+                    <p className="text-foreground">{studio.zip_code || "-"}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">Country</label>
+                  <label className="block text-xs text-secondary-foreground mb-1">Country</label>
                   {editMode ? (
                     <input
                       type="text"
                       value={formData.country}
                       onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                      className="w-full px-3 py-2 bg-[#1a1a1a] border border-[#333] rounded-lg text-white"
+                      className="w-full px-3 py-2 bg-card border border-border rounded-lg text-foreground"
                     />
                   ) : (
-                    <p className="text-white">{studio.country || "USA"}</p>
+                    <p className="text-foreground">{studio.country || "USA"}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">Phone</label>
+                  <label className="block text-xs text-secondary-foreground mb-1">Phone</label>
                   {editMode ? (
                     <input
                       type="tel"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full px-3 py-2 bg-[#1a1a1a] border border-[#333] rounded-lg text-white"
+                      className="w-full px-3 py-2 bg-card border border-border rounded-lg text-foreground"
                     />
                   ) : (
-                    <p className="text-white">{studio.phone}</p>
+                    <p className="text-foreground">{studio.phone}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">Email</label>
+                  <label className="block text-xs text-secondary-foreground mb-1">Email</label>
                   {editMode ? (
                     <input
                       type="email"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full px-3 py-2 bg-[#1a1a1a] border border-[#333] rounded-lg text-white"
+                      className="w-full px-3 py-2 bg-card border border-border rounded-lg text-foreground"
                     />
                   ) : (
-                    <p className="text-white">{studio.email}</p>
+                    <p className="text-foreground">{studio.email}</p>
                   )}
                 </div>
               </div>
             </div>
 
             {/* Coordinates */}
-            <div className="bg-[#111] border border-[#222] rounded-xl p-6">
+            <div className="bg-background border border-border rounded-xl p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-bold text-white">Location Coordinates</h2>
+                <h2 className="text-lg font-bold text-foreground">Location Coordinates</h2>
                 <button
                   onClick={handleGeocode}
                   disabled={geocoding}
@@ -464,28 +464,28 @@ export default function AdminStudioDetailPage({ params }: { params: Promise<Page
                       type="text"
                       value={formData.lat}
                       onChange={(e) => setFormData({ ...formData, lat: e.target.value })}
-                      className="w-full px-3 py-2 bg-[#1a1a1a] border border-[#333] rounded-lg text-white"
+                      className="w-full px-3 py-2 bg-card border border-border rounded-lg text-foreground"
                       placeholder="e.g., 37.7749"
                     />
                   ) : (
-                    <p className={studio.lat ? "text-white" : "text-amber-400"}>
+                    <p className={studio.lat ? "text-foreground" : "text-amber-400"}>
                       {studio.lat || "Not set"}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">Longitude</label>
+                  <label className="block text-xs text-secondary-foreground mb-1">Longitude</label>
                   {editMode ? (
                     <input
                       type="text"
                       value={formData.lng}
                       onChange={(e) => setFormData({ ...formData, lng: e.target.value })}
-                      className="w-full px-3 py-2 bg-[#1a1a1a] border border-[#333] rounded-lg text-white"
+                      className="w-full px-3 py-2 bg-card border border-border rounded-lg text-foreground"
                       placeholder="e.g., -122.4194"
                     />
                   ) : (
-                    <p className={studio.lng ? "text-white" : "text-amber-400"}>
+                    <p className={studio.lng ? "text-foreground" : "text-amber-400"}>
                       {studio.lng || "Not set"}
                     </p>
                   )}
@@ -503,18 +503,18 @@ export default function AdminStudioDetailPage({ params }: { params: Promise<Page
             </div>
 
             {/* Admin Notes */}
-            <div className="bg-[#111] border border-[#222] rounded-xl p-6">
-              <h2 className="text-lg font-bold text-white mb-4">Admin Notes</h2>
+            <div className="bg-background border border-border rounded-xl p-6">
+              <h2 className="text-lg font-bold text-foreground mb-4">Admin Notes</h2>
               {editMode ? (
                 <textarea
                   value={formData.admin_notes}
                   onChange={(e) => setFormData({ ...formData, admin_notes: e.target.value })}
                   rows={4}
-                  className="w-full px-3 py-2 bg-[#1a1a1a] border border-[#333] rounded-lg text-white resize-none"
+                  className="w-full px-3 py-2 bg-card border border-border rounded-lg text-foreground resize-none"
                   placeholder="Add internal notes about this studio..."
                 />
               ) : (
-                <p className="text-gray-400">{studio.admin_notes || "No notes"}</p>
+                <p className="text-muted">{studio.admin_notes || "No notes"}</p>
               )}
             </div>
           </div>
@@ -522,40 +522,40 @@ export default function AdminStudioDetailPage({ params }: { params: Promise<Page
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Owner Info */}
-            <div className="bg-[#111] border border-[#222] rounded-xl p-6">
-              <h2 className="text-lg font-bold text-white mb-4">Owner</h2>
+            <div className="bg-background border border-border rounded-xl p-6">
+              <h2 className="text-lg font-bold text-foreground mb-4">Owner</h2>
               {studio.owner_name ? (
                 <div className="space-y-3">
                   <div>
-                    <p className="text-xs text-gray-500">Name</p>
-                    <p className="text-white">{studio.owner_name}</p>
+                    <p className="text-xs text-secondary-foreground">Name</p>
+                    <p className="text-foreground">{studio.owner_name}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Email</p>
-                    <p className="text-white">{studio.owner_email}</p>
+                    <p className="text-xs text-secondary-foreground">Email</p>
+                    <p className="text-foreground">{studio.owner_email}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Phone</p>
-                    <p className="text-white">{studio.owner_phone}</p>
+                    <p className="text-xs text-secondary-foreground">Phone</p>
+                    <p className="text-foreground">{studio.owner_phone}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Registered</p>
-                    <p className="text-white">{studio.owner_since ? new Date(studio.owner_since).toLocaleDateString() : "Unknown"}</p>
+                    <p className="text-xs text-secondary-foreground">Registered</p>
+                    <p className="text-foreground">{studio.owner_since ? new Date(studio.owner_since).toLocaleDateString() : "Unknown"}</p>
                   </div>
                 </div>
               ) : (
-                <p className="text-gray-500">No owner information</p>
+                <p className="text-secondary-foreground">No owner information</p>
               )}
             </div>
 
             {/* Working Hours */}
-            <div className="bg-[#111] border border-[#222] rounded-xl p-6">
-              <h2 className="text-lg font-bold text-white mb-4">Working Hours</h2>
+            <div className="bg-background border border-border rounded-xl p-6">
+              <h2 className="text-lg font-bold text-foreground mb-4">Working Hours</h2>
               <div className="space-y-2">
                 {studio.workingHours.map((hours) => (
                   <div key={hours.day_of_week} className="flex justify-between text-sm">
-                    <span className="text-gray-400">{dayNames[hours.day_of_week]}</span>
-                    <span className={hours.is_closed ? "text-red-400" : "text-white"}>
+                    <span className="text-muted">{dayNames[hours.day_of_week]}</span>
+                    <span className={hours.is_closed ? "text-red-400" : "text-foreground"}>
                       {hours.is_closed ? "Closed" : `${hours.open_time?.slice(0, 5)} - ${hours.close_time?.slice(0, 5)}`}
                     </span>
                   </div>
@@ -565,20 +565,20 @@ export default function AdminStudioDetailPage({ params }: { params: Promise<Page
 
             {/* Approval Info */}
             {(studio.approved_at || studio.rejection_reason) && (
-              <div className="bg-[#111] border border-[#222] rounded-xl p-6">
-                <h2 className="text-lg font-bold text-white mb-4">Approval History</h2>
+              <div className="bg-background border border-border rounded-xl p-6">
+                <h2 className="text-lg font-bold text-foreground mb-4">Approval History</h2>
                 {studio.approved_at && (
                   <div className="mb-3">
-                    <p className="text-xs text-gray-500">Approved</p>
-                    <p className="text-white">{new Date(studio.approved_at).toLocaleString()}</p>
+                    <p className="text-xs text-secondary-foreground">Approved</p>
+                    <p className="text-foreground">{new Date(studio.approved_at).toLocaleString()}</p>
                     {studio.approved_by_name && (
-                      <p className="text-sm text-gray-400">by {studio.approved_by_name}</p>
+                      <p className="text-sm text-muted">by {studio.approved_by_name}</p>
                     )}
                   </div>
                 )}
                 {studio.rejection_reason && (
                   <div>
-                    <p className="text-xs text-gray-500">Rejection Reason</p>
+                    <p className="text-xs text-secondary-foreground">Rejection Reason</p>
                     <p className="text-red-400">{studio.rejection_reason}</p>
                   </div>
                 )}
@@ -590,25 +590,25 @@ export default function AdminStudioDetailPage({ params }: { params: Promise<Page
 
       {/* Team Tab */}
       {activeTab === "team" && (
-        <div className="bg-[#111] border border-[#222] rounded-xl p-6">
-          <h2 className="text-lg font-bold text-white mb-6">Team Members ({studio.barbers.length})</h2>
+        <div className="bg-background border border-border rounded-xl p-6">
+          <h2 className="text-lg font-bold text-foreground mb-6">Team Members ({studio.barbers.length})</h2>
           {studio.barbers.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No team members</p>
+            <p className="text-secondary-foreground text-center py-8">No team members</p>
           ) : (
             <div className="grid gap-4">
               {studio.barbers.map((barber) => (
-                <div key={barber.id} className="flex items-center justify-between p-4 bg-[#1a1a1a] rounded-lg">
+                <div key={barber.id} className="flex items-center justify-between p-4 bg-card rounded-lg">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-[#E5C487]/20 rounded-full flex items-center justify-center">
-                      <span className="material-symbols-outlined text-[#E5C487]">person</span>
+                    <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center">
+                      <span className="material-symbols-outlined text-primary">person</span>
                     </div>
                     <div>
-                      <p className="font-medium text-white">{barber.name}</p>
-                      <p className="text-sm text-gray-500">{barber.title || "Barber"}</p>
+                      <p className="font-medium text-foreground">{barber.name}</p>
+                      <p className="text-sm text-secondary-foreground">{barber.title || "Barber"}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-gray-400">{barber.phone}</p>
+                    <p className="text-sm text-muted">{barber.phone}</p>
                     <span className={`text-xs ${barber.is_active ? "text-green-400" : "text-red-400"}`}>
                       {barber.is_active ? "Active" : "Inactive"}
                     </span>
@@ -622,19 +622,19 @@ export default function AdminStudioDetailPage({ params }: { params: Promise<Page
 
       {/* Services Tab */}
       {activeTab === "services" && (
-        <div className="bg-[#111] border border-[#222] rounded-xl p-6">
-          <h2 className="text-lg font-bold text-white mb-6">Services ({studio.services.length})</h2>
+        <div className="bg-background border border-border rounded-xl p-6">
+          <h2 className="text-lg font-bold text-foreground mb-6">Services ({studio.services.length})</h2>
           {studio.services.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No services</p>
+            <p className="text-secondary-foreground text-center py-8">No services</p>
           ) : (
             <div className="grid gap-4">
               {studio.services.map((service) => (
-                <div key={service.id} className="flex items-center justify-between p-4 bg-[#1a1a1a] rounded-lg">
+                <div key={service.id} className="flex items-center justify-between p-4 bg-card rounded-lg">
                   <div>
-                    <p className="font-medium text-white">{service.name}</p>
-                    <p className="text-sm text-gray-500">{service.category} • {service.duration} min</p>
+                    <p className="font-medium text-foreground">{service.name}</p>
+                    <p className="text-sm text-secondary-foreground">{service.category} • {service.duration} min</p>
                   </div>
-                  <p className="text-lg font-bold text-[#E5C487]">${service.price}</p>
+                  <p className="text-lg font-bold text-primary">${service.price}</p>
                 </div>
               ))}
             </div>

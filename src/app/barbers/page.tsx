@@ -60,7 +60,7 @@ export default function BarbersPage() {
             </div>
             <h1 className="text-5xl md:text-7xl font-headline font-extrabold tracking-tighter leading-[0.9]">
               Master <br />
-              <span className="text-[#C8A96E]">Artisans</span>
+              <span className="text-primary-container">Artisans</span>
             </h1>
             <p className="text-on-surface-variant text-lg md:text-xl max-w-xl font-light leading-relaxed">
               Meet the architects of style. Our curated collective of master barbers combines century-old traditions with modern technical precision.
@@ -123,7 +123,7 @@ export default function BarbersPage() {
       </section>
 
       {/* Craftsmanship Section */}
-      <section className="py-24 bg-[#0b0b0b]">
+      <section className="py-24 bg-surface-container-lowest">
         <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
 
           {/* Image */}
@@ -138,7 +138,7 @@ export default function BarbersPage() {
           {/* Content */}
           <div className="space-y-6">
 
-            <div className="text-xs tracking-widest text-[#C8A96E] uppercase">
+            <div className="text-xs tracking-widest text-primary-container uppercase">
               Unrivaled Experience
             </div>
 
@@ -150,12 +150,12 @@ export default function BarbersPage() {
             <div className="space-y-6">
 
               <div className="flex gap-4">
-                <div className="w-12 h-12 rounded-xl bg-[#1a1a1a] flex items-center justify-center">
+                <div className="w-12 h-12 rounded-xl bg-surface-container-low flex items-center justify-center">
                   ✓
                 </div>
                 <div>
                   <h4>Vetted Excellence</h4>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-muted text-sm">
                     Each artisan undergoes a rigorous 50-point technical assessment
                   </p>
                 </div>
@@ -163,12 +163,12 @@ export default function BarbersPage() {
 
 
               <div className="flex gap-4">
-                <div className="w-12 h-12 rounded-xl bg-[#1a1a1a] flex items-center justify-center">
+                <div className="w-12 h-12 rounded-xl bg-surface-container-low flex items-center justify-center">
                   ✦
                 </div>
                 <div>
                   <h4>Bespoke Consultations</h4>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-muted text-sm">
                     In-depth facial structure analysis and aesthetic alignment.
                   </p>
                 </div>

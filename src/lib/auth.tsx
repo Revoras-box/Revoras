@@ -18,6 +18,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<{ token?: string; user?: User; error?: string }>;
   logout: () => void;
   updateUser: (updates: Partial<User>) => void;
+  setSession: (user: User, token: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -76,6 +77,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     });
   }, []);
 
+  const setSession = useCallback((user: User, token: string) => {
+    setUser(user);
+    localStorage.setItem("user", JSON.stringify(user));
+    localStorage.setItem("token", token);
+  }, []);
+
   const value: AuthContextType = {
     user,
     loading,
@@ -83,6 +90,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     login,
     logout,
     updateUser,
+    setSession,
   };
 
   return (

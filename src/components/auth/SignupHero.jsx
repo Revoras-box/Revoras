@@ -2,10 +2,12 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 
 export default function SignupHero() {
     const router = useRouter();
+    const { setSession } = useAuth();
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [devOtp, setDevOtp] = useState(null);
@@ -131,8 +133,7 @@ export default function SignupHero() {
             if (result.error) {
                 toast.error(result.error);
             } else if (result.token) {
-                localStorage.setItem("userToken", result.token);
-                localStorage.setItem("user", JSON.stringify(result.user));
+                setSession(result.user, result.token);
                 toast.success("Account created successfully!");
                 router.push("/");
             }
@@ -145,25 +146,25 @@ export default function SignupHero() {
     };
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white flex items-center justify-center px-6">
+        <div className="min-h-screen bg-background text-foreground flex items-center justify-center px-6">
 
             <div className="w-full max-w-7xl grid lg:grid-cols-2 gap-16 items-center">
 
                 {/* Left Section */}
                 <div className="space-y-8">
 
-                    <div className="text-xs tracking-[0.35em] text-[#C8A96E] uppercase">
+                    <div className="text-xs tracking-[0.35em] text-primary uppercase">
                         Join The Elite
                     </div>
 
                     <h1 className="text-5xl md:text-6xl font-bold leading-tight">
                         Elevate your <br />
-                        <span className="text-[#C8A96E]">
+                        <span className="text-primary">
                             Grooming.
                         </span>
                     </h1>
 
-                    <p className="text-gray-400 max-w-lg leading-relaxed">
+                    <p className="text-muted max-w-lg leading-relaxed">
                         Access the world's most exclusive barber collective.
                         Secure your spot in the live queue and experience
                         the digital concierge for the modern gentleman.
@@ -173,26 +174,26 @@ export default function SignupHero() {
                     {/* Feature Cards */}
                     <div className="flex gap-6">
 
-                        <div className="bg-[#0f0f0f] border border-white/5 rounded-xl p-6 w-40">
+                        <div className="bg-card border border-border rounded-xl p-6 w-40">
 
-                            <div className="w-10 h-10 bg-[#C8A96E]/20 rounded-lg flex items-center justify-center mb-3">
+                            <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center mb-3">
                                 ⏱
                             </div>
 
-                            <div className="text-xs uppercase text-gray-400">
+                            <div className="text-xs uppercase text-muted">
                                 Priority Booking
                             </div>
 
                         </div>
 
 
-                        <div className="bg-[#0f0f0f] border border-white/5 rounded-xl p-6 w-40">
+                        <div className="bg-card border border-border rounded-xl p-6 w-40">
 
-                            <div className="w-10 h-10 bg-[#C8A96E]/20 rounded-lg flex items-center justify-center mb-3">
+                            <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center mb-3">
                                 ✓
                             </div>
 
-                            <div className="text-xs uppercase text-gray-400">
+                            <div className="text-xs uppercase text-muted">
                                 Elite Access
                             </div>
 
@@ -205,7 +206,7 @@ export default function SignupHero() {
 
 
                 {/* Right Signup Form */}
-                <div className="bg-[#0b0b0b] border border-white/5 rounded-2xl p-10 backdrop-blur-xl">
+                <div className="bg-card border border-border rounded-2xl p-10 backdrop-blur-xl">
 
                     <div className="space-y-6">
 
@@ -216,7 +217,7 @@ export default function SignupHero() {
                                 {step === 3 && "Complete Registration"}
                             </h2>
 
-                            <p className="text-gray-400 text-sm mt-2">
+                            <p className="text-muted text-sm mt-2">
                                 {step === 1 && "Enter your details to join the Revoras community."}
                                 {step === 2 && `Enter the code sent to ${form.email}`}
                                 {step === 3 && "Set your password to complete registration."}
@@ -227,21 +228,21 @@ export default function SignupHero() {
                         {step === 1 && (
                             <div className="space-y-6">
                                 <div>
-                                    <label className="text-xs text-gray-500 uppercase">
+                                    <label className="text-xs text-secondary-foreground uppercase">
                                         Full Name
                                     </label>
 
                                     <input
                                         value={form.name}
                                         onChange={(e) => updateField("name", e.target.value)}
-                                        className="w-full bg-transparent border-b border-gray-700 py-3 outline-none focus:border-[#C8A96E]"
+                                        className="w-full bg-transparent border-b border-border py-3 outline-none focus:border-primary"
                                         placeholder="Johnathan Sterling"
                                         disabled={loading}
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="text-xs text-gray-500 uppercase">
+                                    <label className="text-xs text-secondary-foreground uppercase">
                                         Email Address
                                     </label>
 
@@ -249,28 +250,28 @@ export default function SignupHero() {
                                         type="email"
                                         value={form.email}
                                         onChange={(e) => updateField("email", e.target.value)}
-                                        className="w-full bg-transparent border-b border-gray-700 py-3 outline-none focus:border-[#C8A96E]"
+                                        className="w-full bg-transparent border-b border-border py-3 outline-none focus:border-primary"
                                         placeholder="example@email.com"
                                         disabled={loading}
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="text-xs text-gray-500 uppercase">
+                                    <label className="text-xs text-secondary-foreground uppercase">
                                         Phone Number
                                     </label>
 
                                     <input
                                         value={form.phone}
                                         onChange={(e) => updateField("phone", e.target.value)}
-                                        className="w-full bg-transparent border-b border-gray-700 py-3 outline-none focus:border-[#C8A96E]"
+                                        className="w-full bg-transparent border-b border-border py-3 outline-none focus:border-primary"
                                         placeholder="+91 9876543210"
                                         disabled={loading}
                                     />
                                 </div>
 
                                 <button 
-                                    className="w-full bg-[#C8A96E] text-black py-4 rounded-full font-semibold mt-4 disabled:opacity-50 flex items-center justify-center gap-2" 
+                                    className="w-full bg-primary text-primary-foreground py-4 rounded-full font-semibold mt-4 disabled:opacity-50 flex items-center justify-center gap-2" 
                                     onClick={handleSendEmailOtp}
                                     disabled={loading || !form.name || !form.email || !form.phone}
                                 >
@@ -284,9 +285,9 @@ export default function SignupHero() {
                                     )}
                                 </button>
 
-                                <div className="text-center text-sm text-gray-400">
+                                <div className="text-center text-sm text-muted">
                                     Already a member?{" "}
-                                    <span className="text-[#C8A96E] cursor-pointer" onClick={() => router.push("/login")}>
+                                    <span className="text-primary cursor-pointer" onClick={() => router.push("/login")}>
                                         Member Login
                                     </span>
                                 </div>
@@ -303,21 +304,21 @@ export default function SignupHero() {
                                 )}
 
                                 <div>
-                                    <label className="text-xs text-gray-500 uppercase">
+                                    <label className="text-xs text-secondary-foreground uppercase">
                                         6-Digit Code
                                     </label>
 
                                     <input
                                         value={otp}
                                         onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                                        className="w-full bg-transparent border-b border-gray-700 py-3 outline-none focus:border-[#C8A96E] text-center text-2xl tracking-[0.5em]"
+                                        className="w-full bg-transparent border-b border-border py-3 outline-none focus:border-primary text-center text-2xl tracking-[0.5em]"
                                         placeholder="000000"
                                         disabled={loading}
                                     />
                                 </div>
 
                                 <button 
-                                    className="w-full bg-[#C8A96E] text-black py-4 rounded-full font-semibold mt-4 disabled:opacity-50 flex items-center justify-center gap-2" 
+                                    className="w-full bg-primary text-primary-foreground py-4 rounded-full font-semibold mt-4 disabled:opacity-50 flex items-center justify-center gap-2" 
                                     onClick={handleVerifyEmail}
                                     disabled={loading || otp.length !== 6}
                                 >
@@ -332,7 +333,7 @@ export default function SignupHero() {
                                 </button>
 
                                 <button 
-                                    className="w-full border border-gray-700 py-3 rounded-full text-gray-400 mt-2 disabled:opacity-50"
+                                    className="w-full border border-border py-3 rounded-full text-muted mt-2 disabled:opacity-50"
                                     onClick={() => {
                                         setStep(1);
                                         setOtp("");
@@ -354,7 +355,7 @@ export default function SignupHero() {
                                 </div>
 
                                 <div>
-                                    <label className="text-xs text-gray-500 uppercase">
+                                    <label className="text-xs text-secondary-foreground uppercase">
                                         Password
                                     </label>
 
@@ -362,14 +363,14 @@ export default function SignupHero() {
                                         type="password"
                                         value={form.password}
                                         onChange={(e) => updateField("password", e.target.value)}
-                                        className="w-full bg-transparent border-b border-gray-700 py-3 outline-none focus:border-[#C8A96E]"
+                                        className="w-full bg-transparent border-b border-border py-3 outline-none focus:border-primary"
                                         placeholder="Min 6 characters"
                                         disabled={loading}
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="text-xs text-gray-500 uppercase">
+                                    <label className="text-xs text-secondary-foreground uppercase">
                                         Confirm Password
                                     </label>
 
@@ -377,18 +378,18 @@ export default function SignupHero() {
                                         type="password"
                                         value={form.confirmPassword}
                                         onChange={(e) => updateField("confirmPassword", e.target.value)}
-                                        className="w-full bg-transparent border-b border-gray-700 py-3 outline-none focus:border-[#C8A96E]"
+                                        className="w-full bg-transparent border-b border-border py-3 outline-none focus:border-primary"
                                         placeholder="Confirm password"
                                         disabled={loading}
                                     />
                                 </div>
 
-                                <div className="flex items-start gap-2 text-sm text-gray-400">
+                                <div className="flex items-start gap-2 text-sm text-muted">
                                     <input 
                                         type="checkbox" 
                                         checked={form.agreed}
                                         onChange={(e) => updateField("agreed", e.target.checked)}
-                                        className="mt-1 accent-[#C8A96E]"
+                                        className="mt-1 accent-primary"
                                         disabled={loading}
                                     />
 
@@ -399,7 +400,7 @@ export default function SignupHero() {
                                 </div>
 
                                 <button 
-                                    className="w-full bg-[#C8A96E] text-black py-4 rounded-full font-semibold mt-4 disabled:opacity-50 flex items-center justify-center gap-2" 
+                                    className="w-full bg-primary text-primary-foreground py-4 rounded-full font-semibold mt-4 disabled:opacity-50 flex items-center justify-center gap-2" 
                                     onClick={handleSignup}
                                     disabled={loading}
                                 >
@@ -413,9 +414,9 @@ export default function SignupHero() {
                                     )}
                                 </button>
 
-                                <div className="text-center text-sm text-gray-400">
+                                <div className="text-center text-sm text-muted">
                                     Already a member?{" "}
-                                    <span className="text-[#C8A96E] cursor-pointer" onClick={() => router.push("/login")}>
+                                    <span className="text-primary cursor-pointer" onClick={() => router.push("/login")}>
                                         Member Login
                                     </span>
                                 </div>

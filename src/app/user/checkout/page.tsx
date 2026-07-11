@@ -285,13 +285,13 @@ function CheckoutPageContent() {
   if (invalidContext) {
     return (
       <main className="pt-32 pb-24 px-6 md:px-12 max-w-4xl mx-auto min-h-screen">
-        <div className="bg-[#1a1a1a] border border-[#4D463A]/20 rounded-3xl p-10 text-center">
-          <span className="material-symbols-outlined text-6xl text-[#E5C487]">error</span>
-          <h1 className="font-headline text-3xl font-bold text-white mt-4 mb-3">Checkout details are incomplete</h1>
-          <p className="text-gray-400 mb-8">Please return to booking and select studio, barber, services, date and time.</p>
+        <div className="bg-surface border border-border/20 rounded-3xl p-10 text-center">
+          <span className="material-symbols-outlined text-6xl text-primary">error</span>
+          <h1 className="font-headline text-3xl font-bold text-foreground mt-4 mb-3">Checkout details are incomplete</h1>
+          <p className="text-muted mb-8">Please return to booking and select studio, barber, services, date and time.</p>
           <Link
             href={backToBookHref}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#E5C487] to-[#C8A96E] text-[#402d00] font-headline font-bold"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-primary-fixed-dim to-primary-container text-primary-foreground font-headline font-bold"
           >
             Back to Booking
             <span className="material-symbols-outlined">arrow_back</span>
@@ -304,16 +304,16 @@ function CheckoutPageContent() {
   return (
     <main className="pt-32 pb-24 px-6 md:px-12 max-w-7xl mx-auto min-h-screen">
       <div className="mb-12">
-        <h1 className="font-headline text-5xl font-extrabold tracking-tighter text-[#E5C487] mb-2">Secure Checkout</h1>
-        <p className="font-label text-xs tracking-widest text-gray-400 uppercase">Finalize your premium experience</p>
+        <h1 className="font-headline text-5xl font-extrabold tracking-tighter text-primary mb-2">Secure Checkout</h1>
+        <p className="font-label text-xs tracking-widest text-muted uppercase">Finalize your premium experience</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
         {/* Payment Form */}
         <div className="lg:col-span-7 space-y-8">
-          <div className="bg-[#1a1a1a] p-8 rounded-xl relative overflow-hidden">
+          <div className="bg-surface p-8 rounded-xl relative overflow-hidden">
             <div className="absolute top-0 right-0 p-4">
-              <span className="material-symbols-outlined text-[#E5C487]/20 scale-150">shield_lock</span>
+              <span className="material-symbols-outlined text-primary/20 scale-150">shield_lock</span>
             </div>
             <h2 className="font-headline text-xl font-bold mb-8 flex items-center gap-3">
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
@@ -329,75 +329,75 @@ function CheckoutPageContent() {
                   onClick={() => setSelectedPayment(method.id)}
                   className={`group cursor-pointer p-5 rounded-xl border flex items-center justify-between transition-all ${
                     selectedPayment === method.id
-                      ? "border-[#E5C487] bg-[#E5C487]/5"
-                      : "border-[#4D463A]/30 bg-[#1e1e1e] hover:border-[#E5C487]/50"
+                      ? "border-primary bg-primary/5"
+                      : "border-border/30 bg-card hover:border-primary/50"
                   }`}
                 >
                   <div className="flex items-center gap-4">
                     <div
                       className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                        selectedPayment === method.id ? "bg-[#E5C487]/20" : "bg-[#2a2a2a]"
+                        selectedPayment === method.id ? "bg-primary/20" : "bg-surface"
                       }`}
                     >
                       <span
                         className={`material-symbols-outlined ${
-                          selectedPayment === method.id ? "text-[#E5C487]" : "text-gray-400"
+                          selectedPayment === method.id ? "text-primary" : "text-muted"
                         }`}
                       >
                         {method.icon}
                       </span>
                     </div>
                     <div>
-                      <p className={`font-bold ${selectedPayment === method.id ? "text-[#E5C487]" : "text-white"}`}>
+                      <p className={`font-bold ${selectedPayment === method.id ? "text-primary" : "text-foreground"}`}>
                         {method.name}
                       </p>
-                      <p className="text-xs text-gray-400 font-label">{method.description}</p>
+                      <p className="text-xs text-muted font-label">{method.description}</p>
                     </div>
                   </div>
                   <div
                     className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                      selectedPayment === method.id ? "border-[#E5C487]" : "border-[#4D463A]/50"
+                      selectedPayment === method.id ? "border-primary" : "border-border/50"
                     }`}
                   >
-                    {selectedPayment === method.id && <div className="w-3 h-3 rounded-full bg-[#E5C487]"></div>}
+                    {selectedPayment === method.id && <div className="w-3 h-3 rounded-full bg-primary"></div>}
                   </div>
                 </div>
               ))}
             </div>
 
             {/* Verification Form */}
-            <div className="mt-12 pt-12 border-t border-[#4D463A]/30 space-y-6">
+            <div className="mt-12 pt-12 border-t border-border/30 space-y-6">
               <h3 className="font-headline text-lg font-bold">Quick Verification</h3>
               <div className="grid grid-cols-2 gap-6">
                 <div className="col-span-2">
-                  <label className="font-label text-[10px] tracking-widest uppercase text-gray-400 mb-1 block">Full Name</label>
+                  <label className="font-label text-[10px] tracking-widest uppercase text-muted mb-1 block">Full Name</label>
                   <input
                     name="fullName"
                     value={formData.fullName}
                     onChange={handleInputChange}
-                    className="w-full bg-transparent border-b border-[#4D463A]/50 focus:border-[#E5C487] focus:ring-0 px-0 py-2 font-headline tracking-wide outline-none transition-colors text-white"
+                    className="w-full bg-transparent border-b border-border/50 focus:border-primary focus:ring-0 px-0 py-2 font-headline tracking-wide outline-none transition-colors text-foreground"
                     placeholder="ALEXANDER VANCE"
                     type="text"
                   />
                 </div>
                 <div>
-                  <label className="font-label text-[10px] tracking-widest uppercase text-gray-400 mb-1 block">Mobile Number</label>
+                  <label className="font-label text-[10px] tracking-widest uppercase text-muted mb-1 block">Mobile Number</label>
                   <input
                     name="mobile"
                     value={formData.mobile}
                     onChange={handleInputChange}
-                    className="w-full bg-transparent border-b border-[#4D463A]/50 focus:border-[#E5C487] focus:ring-0 px-0 py-2 font-headline tracking-wide outline-none transition-colors text-white"
+                    className="w-full bg-transparent border-b border-border/50 focus:border-primary focus:ring-0 px-0 py-2 font-headline tracking-wide outline-none transition-colors text-foreground"
                     placeholder="+1 (555) 000-0000"
                     type="text"
                   />
                 </div>
                 <div>
-                  <label className="font-label text-[10px] tracking-widest uppercase text-gray-400 mb-1 block">Promo Code</label>
+                  <label className="font-label text-[10px] tracking-widest uppercase text-muted mb-1 block">Promo Code</label>
                   <input
                     name="promoCode"
                     value={formData.promoCode}
                     onChange={handleInputChange}
-                    className="w-full bg-transparent border-b border-[#4D463A]/50 focus:border-[#E5C487] focus:ring-0 px-0 py-2 font-headline tracking-wide outline-none transition-colors text-white"
+                    className="w-full bg-transparent border-b border-border/50 focus:border-primary focus:ring-0 px-0 py-2 font-headline tracking-wide outline-none transition-colors text-foreground"
                     placeholder="Optional"
                     type="text"
                   />
@@ -425,7 +425,7 @@ function CheckoutPageContent() {
 
         {/* Order Summary */}
         <div className="lg:col-span-5 sticky top-32">
-          <div className="bg-[#1e1e1e] rounded-xl overflow-hidden shadow-2xl">
+          <div className="bg-card rounded-xl overflow-hidden shadow-2xl">
             {/* Header Image */}
             <div className="h-32 relative">
               <img
@@ -433,16 +433,16 @@ function CheckoutPageContent() {
                 src={studio?.image_url || STUDIO_PLACEHOLDER}
                 alt="Studio"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#1e1e1e] to-transparent"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-card to-transparent"></div>
               <div className="absolute bottom-4 left-6 flex items-center gap-4">
-                <div className="w-16 h-16 rounded-xl bg-[#0e0e0e] border border-[#E5C487]/30 flex items-center justify-center p-2">
-                  <span className="font-headline font-black text-[#E5C487] text-2xl tracking-tighter">
+                <div className="w-16 h-16 rounded-xl bg-background border border-primary/30 flex items-center justify-center p-2">
+                  <span className="font-headline font-black text-primary text-2xl tracking-tighter">
                     {(studio?.name || "SC").slice(0, 2).toUpperCase()}
                   </span>
                 </div>
                 <div>
                   <h3 className="font-headline font-bold text-lg">{studio?.name || "Loading..."}</h3>
-                  <p className="text-xs text-gray-400 font-label">
+                  <p className="text-xs text-muted font-label">
                     {[studio?.city, studio?.state].filter(Boolean).join(", ") || "Location unavailable"}
                   </p>
                 </div>
@@ -455,51 +455,51 @@ function CheckoutPageContent() {
                   <h4 className="font-headline font-bold">
                     {selectedServiceDetails.map((service) => service.name).join(", ") || "Selected Services"}
                   </h4>
-                  <p className="text-sm text-gray-400">Booking created directly via backend API</p>
+                  <p className="text-sm text-muted">Booking created directly via backend API</p>
                 </div>
-                <span className="font-headline font-bold text-[#E5C487]">${subtotal}</span>
+                <span className="font-headline font-bold text-primary">${subtotal}</span>
               </div>
 
               {/* Booking Details */}
-              <div className="bg-[#1a1a1a]/50 p-4 rounded-lg space-y-3">
+              <div className="bg-surface/50 p-4 rounded-lg space-y-3">
                 <div className="flex items-center gap-3 text-sm">
-                  <span className="material-symbols-outlined text-[#E5C487] text-lg">event</span>
-                  <span className="text-gray-400 font-medium">{formatDisplayDate(bookingDate)}</span>
+                  <span className="material-symbols-outlined text-primary text-lg">event</span>
+                  <span className="text-muted font-medium">{formatDisplayDate(bookingDate)}</span>
                 </div>
                 <div className="flex items-center gap-3 text-sm">
-                  <span className="material-symbols-outlined text-[#E5C487] text-lg">schedule</span>
-                  <span className="text-gray-400 font-medium">
+                  <span className="material-symbols-outlined text-primary text-lg">schedule</span>
+                  <span className="text-muted font-medium">
                     {bookingTime ? `${formatDisplayTime(bookingTime)} (${totalDuration} Mins)` : "--"}
                   </span>
                 </div>
                 <div className="flex items-center gap-3 text-sm">
-                  <span className="material-symbols-outlined text-[#E5C487] text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  <span className="material-symbols-outlined text-primary text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>
                     person
                   </span>
-                  <span className="text-gray-400 font-medium">
+                  <span className="text-muted font-medium">
                     {selectedBarber ? `${selectedBarber.title || "Barber"}: ${selectedBarber.name}` : "Loading barber..."}
                   </span>
                 </div>
               </div>
 
               {/* Price Breakdown */}
-              <div className="space-y-3 pt-6 border-t border-[#4D463A]/30">
+              <div className="space-y-3 pt-6 border-t border-border/30">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Service Subtotal</span>
+                  <span className="text-muted">Service Subtotal</span>
                   <span className="font-medium">${subtotal}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Payment Method</span>
+                  <span className="text-muted">Payment Method</span>
                   <span className="font-medium capitalize">{selectedPayment}</span>
                 </div>
               </div>
 
               {/* Total */}
-              <div className="pt-6 border-t border-[#4D463A]/30">
+              <div className="pt-6 border-t border-border/30">
                 <div className="flex justify-between items-end mb-8">
                   <div>
-                    <p className="font-label text-[10px] tracking-widest uppercase text-gray-400">Total Amount Due</p>
-                    <p className="font-headline text-3xl font-black text-[#E5C487]">${subtotal}</p>
+                    <p className="font-label text-[10px] tracking-widest uppercase text-muted">Total Amount Due</p>
+                    <p className="font-headline text-3xl font-black text-primary">${subtotal}</p>
                   </div>
                   <div className="bg-green-900/20 px-3 py-1 rounded-full flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
@@ -510,12 +510,12 @@ function CheckoutPageContent() {
                 <button
                   onClick={handlePayAndConfirm}
                   disabled={submitting || loadingSummary || selectedServiceDetails.length === 0 || !selectedBarber}
-                  className="w-full bg-gradient-to-r from-[#E5C487] to-[#C8A96E] text-[#402d00] font-headline font-bold py-4 rounded-xl shadow-lg shadow-[#E5C487]/20 active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+                  className="w-full bg-gradient-to-r from-primary-fixed-dim to-primary-container text-primary-foreground font-headline font-bold py-4 rounded-xl shadow-lg shadow-primary/20 active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
                 >
                   {submitting ? "PROCESSING..." : "PAY & CONFIRM BOOKING"}
-                  <span className="material-symbols-outlined text-[#402d00]">arrow_forward</span>
+                  <span className="material-symbols-outlined text-primary-foreground">arrow_forward</span>
                 </button>
-                <p className="text-[10px] text-center text-gray-400 font-label mt-4 tracking-tight">
+                <p className="text-[10px] text-center text-muted font-label mt-4 tracking-tight">
                   By clicking, you agree to our 24h Cancellation Policy.
                 </p>
               </div>
@@ -524,8 +524,8 @@ function CheckoutPageContent() {
 
           {/* Queue Position */}
           <div className="mt-6 flex justify-end">
-            <div className="bg-[#1e1e1e]/50 backdrop-blur-sm border border-[#4D463A]/20 px-4 py-2 rounded-full flex items-center gap-3">
-              <span className="font-label text-[10px] tracking-widest text-gray-400 uppercase">Checkout Status</span>
+            <div className="bg-card/50 backdrop-blur-sm border border-border/20 px-4 py-2 rounded-full flex items-center gap-3">
+              <span className="font-label text-[10px] tracking-widest text-muted uppercase">Checkout Status</span>
               <div className="bg-green-900/30 text-green-400 text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-tighter">
                 {loadingSummary ? "Loading..." : "Ready"}
               </div>
@@ -539,8 +539,8 @@ function CheckoutPageContent() {
 
 function CheckoutPageFallback() {
   return (
-    <main className="min-h-screen bg-[#1A1A1A] text-white flex items-center justify-center">
-      <p className="text-sm text-gray-300">Loading checkout...</p>
+    <main className="min-h-screen bg-background text-foreground flex items-center justify-center">
+      <p className="text-sm text-foreground">Loading checkout...</p>
     </main>
   );
 }

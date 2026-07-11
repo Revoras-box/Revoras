@@ -1,33 +1,254 @@
 @import "tailwindcss";
 
+/* ------------------------------------------------------------------ */
+/*  Dark mode is driven by a `.dark` class on <html> (set by the       */
+/*  ThemeProvider / pre-paint script), NOT the prefers-color-scheme    */
+/*  media query. This custom variant makes `dark:` utilities respond   */
+/*  to that class so the toggle controls them.                         */
+/* ------------------------------------------------------------------ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ------------------------------------------------------------------ */
+/*  Runtime theme tokens.                                              */
+/*  :root  = Light theme (premium, clean — Apple/Stripe/Linear feel)   */
+/*  .dark  = Dark theme  (existing Revoras palette, preserved exactly) */
+/*  The Revoras gold accent is shared by both themes (brand identity). */
+/* ------------------------------------------------------------------ */
 :root {
-  --surface: #131313;
-  --on-surface: #e5e2e1;
+  /* Surfaces & backgrounds — warm off-whites so white cards lift off the
+     page and the gold accent feels luxury rather than clinical. */
+  --background: #F8F7F4;
+  --surface: #FFFFFF;
+  --card: #FFFFFF;
+  --surface-container-lowest: #FFFFFF;
+  --surface-container-low: #F6F4F0;
+  --surface-container: #F1EEE8;
+  --surface-container-high: #EBE7E0;
+  --surface-container-highest: #E4DFD7;
+  --surface-variant: #E7E2DA;
+  --surface-dim: #E5E0D8;
+  --surface-bright: #FFFFFF;
+
+  /* Text — warm near-neutral so it sits naturally on the warm surfaces */
+  --foreground: #1A1815;
+  --on-surface: #26231F;
+  --on-background: #26231F;
+  --on-surface-variant: #57534E;
+  --secondary-foreground: #57534E;
+  --muted: #78716C;
+
+  /* Lines */
+  --border: #E8E3DB;
+  --outline: #A8A29A;
+  --outline-variant: #E6E1D9;
+
+  /* Primary — Revoras gold (shared brand accent) */
+  --primary: #C9A45C;
+  --primary-foreground: #402D00;
+  --primary-container: #C8A96E;
+  --on-primary: #402D00;
+  --on-primary-container: #533D0C;
+  --primary-fixed-dim: #E5C487;
+
+  /* Secondary — success / positive accent (green) */
+  --secondary: #16A34A;
+  --on-secondary: #FFFFFF;
+  --secondary-container: #DCFCE7;
+  --on-secondary-container: #14532D;
+  --secondary-fixed: #86EFAC;
+  --secondary-fixed-dim: #4ADE80;
+
+  /* Tertiary — informational accent (indigo) */
+  --tertiary: #4F46E5;
+  --tertiary-container: #E0E7FF;
+
+  /* Error / destructive */
+  --error: #DC2626;
+  --on-error: #FFFFFF;
+  --error-container: #FEE2E2;
+  --on-error-container: #7F1D1D;
+
+  /* Inverse (tooltips, snackbars) */
+  --inverse-surface: #1F2937;
+  --inverse-on-surface: #F9FAFB;
+
+  /* Elevation — soft, cool-tinted shadows for a premium light UI */
+  --elevation-sm: 0 1px 2px 0 rgba(16, 24, 40, 0.05);
+  --elevation-md: 0 6px 16px -4px rgba(16, 24, 40, 0.08), 0 2px 6px -2px rgba(16, 24, 40, 0.04);
+  --elevation-lg: 0 14px 32px -8px rgba(16, 24, 40, 0.10), 0 4px 10px -4px rgba(16, 24, 40, 0.05);
+  --elevation-xl: 0 28px 60px -16px rgba(16, 24, 40, 0.14), 0 8px 20px -8px rgba(16, 24, 40, 0.06);
 }
 
-/* Base Layer */
+.dark {
+  /* Surfaces & backgrounds — existing Revoras dark palette */
+  --background: #0E0E0F;
+  --surface: #171717;
+  --card: #1D1D1D;
+  --surface-container-lowest: #0E0E0E;
+  --surface-container-low: #1C1B1B;
+  --surface-container: #201F1F;
+  --surface-container-high: #2A2A2A;
+  --surface-container-highest: #353534;
+  --surface-variant: #353534;
+  --surface-dim: #131313;
+  --surface-bright: #3A3939;
+
+  /* Text */
+  --foreground: #FFFFFF;
+  --on-surface: #E5E2E1;
+  --on-background: #E5E2E1;
+  --on-surface-variant: #D0C5B5;
+  --secondary-foreground: #B5B5B5;
+  --muted: #8A8A8A;
+
+  /* Lines */
+  --border: rgba(201, 164, 92, 0.18);
+  --outline: #998F81;
+  --outline-variant: #4D463A;
+
+  /* Primary — Revoras gold */
+  --primary: #C9A45C;
+  --primary-foreground: #402D00;
+  --primary-container: #C8A96E;
+  --on-primary: #402D00;
+  --on-primary-container: #533D0C;
+  --primary-fixed-dim: #E5C487;
+
+  /* Secondary — success / positive accent (green) */
+  --secondary: #8AD7A4;
+  --on-secondary: #00391E;
+  --secondary-container: #015D35;
+  --on-secondary-container: #86D3A0;
+  --secondary-fixed: #A5F4BF;
+  --secondary-fixed-dim: #8AD7A4;
+
+  /* Tertiary — informational accent */
+  --tertiary: #BAC7F2;
+  --tertiary-container: #9FACD5;
+
+  /* Error / destructive */
+  --error: #FFB4AB;
+  --on-error: #690005;
+  --error-container: #93000A;
+  --on-error-container: #FFDAD6;
+
+  /* Inverse */
+  --inverse-surface: #E5E2E1;
+  --inverse-on-surface: #313030;
+
+  /* Elevation — deep shadows preserving the existing Revoras dark look */
+  --elevation-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+  --elevation-md: 0 8px 24px -4px rgba(0, 0, 0, 0.5);
+  --elevation-lg: 0 20px 40px -8px rgba(0, 0, 0, 0.45);
+  --elevation-xl: 0 24px 70px -12px rgba(0, 0, 0, 0.75);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Expose the runtime tokens to Tailwind as utilities.                */
+/*  `inline` makes the generated utilities reference var(--token)      */
+/*  directly, so a `.dark` override live-switches every utility.       */
+/* ------------------------------------------------------------------ */
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-card: var(--card);
+  --color-surface-container-lowest: var(--surface-container-lowest);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-surface-container-highest: var(--surface-container-highest);
+  --color-surface-variant: var(--surface-variant);
+  --color-surface-dim: var(--surface-dim);
+  --color-surface-bright: var(--surface-bright);
+
+  --color-foreground: var(--foreground);
+  --color-on-surface: var(--on-surface);
+  --color-on-background: var(--on-background);
+  --color-on-surface-variant: var(--on-surface-variant);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+
+  --color-border: var(--border);
+  --color-outline: var(--outline);
+  --color-outline-variant: var(--outline-variant);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-container: var(--primary-container);
+  --color-on-primary: var(--on-primary);
+  --color-on-primary-container: var(--on-primary-container);
+  --color-primary-fixed-dim: var(--primary-fixed-dim);
+
+  --color-secondary: var(--secondary);
+  --color-on-secondary: var(--on-secondary);
+  --color-secondary-container: var(--secondary-container);
+  --color-on-secondary-container: var(--on-secondary-container);
+  --color-secondary-fixed: var(--secondary-fixed);
+  --color-secondary-fixed-dim: var(--secondary-fixed-dim);
+
+  --color-tertiary: var(--tertiary);
+  --color-tertiary-container: var(--tertiary-container);
+
+  --color-error: var(--error);
+  --color-on-error: var(--on-error);
+  --color-error-container: var(--error-container);
+  --color-on-error-container: var(--on-error-container);
+
+  --color-inverse-surface: var(--inverse-surface);
+  --color-inverse-on-surface: var(--inverse-on-surface);
+
+  /* Fonts (loaded via <link> in layout) */
+  --font-headline: "Epilogue", sans-serif;
+  --font-body: "Manrope", sans-serif;
+  --font-label: "Space Grotesk", sans-serif;
+  --font-syne: "Syne", sans-serif;
+
+  /* Radius scale */
+  --radius: 0.25rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1.5rem;
+}
+
 @layer base {
   body {
-    background-color: var(--surface);
-    color: var(--on-surface);
+    background-color: var(--background);
+    color: var(--foreground);
   }
 }
 
-/* Utilities */
+/* ------------------------------------------------------------------ */
+/*  Smooth, GPU-friendly theme transition.                             */
+/*  Only color-ish properties animate; layout properties never do,     */
+/*  so switching themes causes no reflow / layout shift.               */
+/*  Gated on `.theme-ready` so the first paint (initial theme) is      */
+/*  instant and never animates a flash.                                */
+/* ------------------------------------------------------------------ */
+@layer base {
+  .theme-ready *,
+  .theme-ready *::before,
+  .theme-ready *::after {
+    transition-property: background-color, border-color, color, fill, stroke,
+      box-shadow, text-decoration-color, outline-color;
+    transition-duration: 250ms;
+    transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+
 @layer utilities {
   .material-symbols-outlined {
-    font-variation-settings: 
-      'FILL' 0, 
-      'wght' 400, 
-      'GRAD' 0, 
+    font-variation-settings:
+      'FILL' 0,
+      'wght' 400,
+      'GRAD' 0,
       'opsz' 24;
   }
-  
+
   .bg-grain {
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
     opacity: 0.03;
   }
-  
+
   .barber-stripe {
     background: repeating-linear-gradient(
       45deg,
@@ -46,8 +267,10 @@
     font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
   }
 
+  /* Theme-aware frosted nav. In dark it reads near-black; in light,
+     a translucent white. Uses the surface token so it live-switches. */
   .glass-nav {
-    background: rgba(19, 19, 19, 0.6);
+    background: color-mix(in srgb, var(--surface) 65%, transparent);
     backdrop-filter: blur(24px);
   }
 
@@ -55,5 +278,42 @@
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
     opacity: 0.03;
     pointer-events: none;
+  }
+
+  .animate-dropdown {
+    animation: dropdown-enter 150ms ease-out forwards;
+    transform-origin: top right;
+  }
+
+  /* Theme-aware elevation. Soft & cool in light, deep in dark — both
+     switch live via the runtime --elevation-* vars. */
+  .shadow-soft {
+    box-shadow: var(--elevation-md);
+  }
+  .shadow-elevated {
+    box-shadow: var(--elevation-lg);
+  }
+  .shadow-floating {
+    box-shadow: var(--elevation-xl);
+  }
+}
+
+@keyframes dropdown-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0ms !important;
+    transition-duration: 0ms !important;
   }
 }

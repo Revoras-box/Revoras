@@ -206,6 +206,28 @@ export interface ApiError {
 }
 
 // ==========================================
+// Barber Types (public profile)
+// ==========================================
+
+export interface BarberProfile {
+  id: string;
+  name: string;
+  title: string | null;
+  bio: string | null;
+  phone: string | null;
+  email: string | null;
+  rating: number | null;
+  review_count?: number;
+  cuts_completed?: number;
+  experience_years?: number;
+  image_url: string | null;
+  portfolio?: string[];
+  studio_id?: number;
+  studio_name?: string;
+  is_active: boolean;
+}
+
+// ==========================================
 // Map Types
 // ==========================================
 

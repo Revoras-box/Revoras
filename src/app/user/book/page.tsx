@@ -231,7 +231,7 @@ function BookPageContent() {
     loading: availabilityLoading,
     error: availabilityError,
     refetch: refetchAvailability,
-  } = useAvailability(studioId, selectedBarberId, selectedDate);
+  } = useAvailability(studioId, selectedBarberId, selectedDate, selectedDurationTotal);
 
   const availableTimes = useMemo(() => {
     const seen = new Set<string>();
@@ -297,13 +297,13 @@ function BookPageContent() {
   if (!studioId) {
     return (
       <main className="pt-32 pb-20 px-6 md:px-12 max-w-4xl mx-auto min-h-screen">
-        <div className="bg-[#1a1a1a] border border-[#4D463A]/20 rounded-3xl p-10 text-center">
-          <span className="material-symbols-outlined text-6xl text-[#E5C487]">storefront</span>
-          <h1 className="text-3xl font-headline font-bold text-white mt-4 mb-3">Choose a studio to book</h1>
-          <p className="text-gray-400 mb-8">Start from studio discovery, pick services, then continue to live availability.</p>
+        <div className="bg-surface border border-border/20 rounded-3xl p-10 text-center">
+          <span className="material-symbols-outlined text-6xl text-primary">storefront</span>
+          <h1 className="text-3xl font-headline font-bold text-foreground mt-4 mb-3">Choose a studio to book</h1>
+          <p className="text-muted mb-8">Start from studio discovery, pick services, then continue to live availability.</p>
           <Link
             href="/user/discover"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-linear-to-r from-[#E5C487] to-[#C8A96E] text-[#402d00] font-headline font-bold"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-linear-to-r from-primary-fixed-dim to-primary-container text-primary-foreground font-headline font-bold"
           >
             Go to Discover
             <span className="material-symbols-outlined">arrow_forward</span>
@@ -319,19 +319,19 @@ function BookPageContent() {
         <div className="lg:col-span-8 space-y-16">
           <section>
             <div className="flex items-center gap-4 mb-8">
-              <span className="font-label text-[#E5C487] bg-[#E5C487]/10 px-3 py-1 rounded text-sm tracking-widest">
+              <span className="font-label text-primary bg-primary/10 px-3 py-1 rounded text-sm tracking-widest">
                 STEP 01
               </span>
-              <h2 className="text-3xl font-headline font-bold text-white tracking-tight">Select Services</h2>
+              <h2 className="text-3xl font-headline font-bold text-foreground tracking-tight">Select Services</h2>
             </div>
             {servicesLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[1, 2].map((item) => (
-                  <div key={item} className="h-28 rounded-2xl bg-[#1a1a1a] animate-pulse" />
+                  <div key={item} className="h-28 rounded-2xl bg-surface animate-pulse" />
                 ))}
               </div>
             ) : services.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-[#4D463A]/30 p-8 text-center text-gray-400">
+              <div className="rounded-2xl border border-dashed border-border/30 p-8 text-center text-muted">
                 No services available for this studio.
               </div>
             ) : (
@@ -344,16 +344,16 @@ function BookPageContent() {
                       onClick={() => toggleService(String(service.id))}
                       className={`text-left p-5 rounded-2xl border transition-all ${
                         selected
-                          ? "border-[#E5C487]/50 bg-[#E5C487]/5"
-                          : "border-[#4D463A]/20 bg-[#1a1a1a] hover:border-[#E5C487]/40"
+                          ? "border-primary/50 bg-primary/5"
+                          : "border-border/20 bg-surface hover:border-primary/40"
                       }`}
                     >
                       <div className="flex justify-between gap-4">
                         <div>
-                          <p className={`font-headline font-bold ${selected ? "text-[#E5C487]" : "text-white"}`}>{service.name}</p>
-                          <p className="text-xs text-gray-400 mt-1">{service.duration} mins</p>
+                          <p className={`font-headline font-bold ${selected ? "text-primary" : "text-foreground"}`}>{service.name}</p>
+                          <p className="text-xs text-muted mt-1">{service.duration} mins</p>
                         </div>
-                        <p className="font-headline font-black text-[#E5C487]">${service.price}</p>
+                        <p className="font-headline font-black text-primary">${service.price}</p>
                       </div>
                     </button>
                   );
@@ -364,15 +364,15 @@ function BookPageContent() {
 
           <section>
             <div className="flex items-center gap-4 mb-8">
-              <span className="font-label text-[#E5C487] bg-[#E5C487]/10 px-3 py-1 rounded text-sm tracking-widest">
+              <span className="font-label text-primary bg-primary/10 px-3 py-1 rounded text-sm tracking-widest">
                 STEP 02
               </span>
-              <h2 className="text-3xl font-headline font-bold text-white tracking-tight">Select Professional</h2>
+              <h2 className="text-3xl font-headline font-bold text-foreground tracking-tight">Select Professional</h2>
             </div>
             {barbersLoading ? (
               <div className="flex gap-6">
                 {[1, 2, 3].map((item) => (
-                  <div key={item} className="w-24 h-36 rounded-2xl bg-[#1a1a1a] animate-pulse" />
+                  <div key={item} className="w-24 h-36 rounded-2xl bg-surface animate-pulse" />
                 ))}
               </div>
             ) : (
@@ -389,16 +389,16 @@ function BookPageContent() {
                       <img
                         alt={barber.name}
                         className={`w-24 h-32 object-cover rounded-tl-3xl rounded-br-3xl border-2 transition-all duration-500 ${
-                          selectedBarber === barber.id ? "border-[#E5C487]" : "border-[#4D463A]/50"
+                          selectedBarber === barber.id ? "border-primary" : "border-border/50"
                         }`}
                         src={barber.image_url || BARBER_PLACEHOLDER}
                       />
                       <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-tl-3xl rounded-br-3xl" />
                     </div>
-                    <p className={`font-headline font-bold ${selectedBarber === barber.id ? "text-[#E5C487]" : "text-white"}`}>
+                    <p className={`font-headline font-bold ${selectedBarber === barber.id ? "text-primary" : "text-foreground"}`}>
                       {barber.name}
                     </p>
-                    <p className="font-label text-[10px] text-gray-400 uppercase tracking-widest">{barber.title || "Barber"}</p>
+                    <p className="font-label text-[10px] text-muted uppercase tracking-widest">{barber.title || "Barber"}</p>
                   </button>
                 ))}
               </div>
@@ -407,10 +407,10 @@ function BookPageContent() {
 
           <section>
             <div className="flex items-center gap-4 mb-8">
-              <span className="font-label text-[#E5C487] bg-[#E5C487]/10 px-3 py-1 rounded text-sm tracking-widest">
+              <span className="font-label text-primary bg-primary/10 px-3 py-1 rounded text-sm tracking-widest">
                 STEP 03
               </span>
-              <h2 className="text-3xl font-headline font-bold text-white tracking-tight">Select Date</h2>
+              <h2 className="text-3xl font-headline font-bold text-foreground tracking-tight">Select Date</h2>
             </div>
             <div className="flex gap-4 overflow-x-auto pb-4">
               {dateOptions.map((d) => (
@@ -419,15 +419,15 @@ function BookPageContent() {
                   onClick={() => setSelectedDate(d.iso)}
                   className={`shrink-0 w-20 py-6 rounded-2xl flex flex-col items-center justify-center transition-all ${
                     selectedDate === d.iso
-                      ? "bg-linear-to-b from-[#E5C487] to-[#C8A96E] text-[#402d00] shadow-xl transform scale-105"
-                      : "bg-[#1a1a1a] border border-[#4D463A]/20 text-white hover:border-[#E5C487]/50"
+                      ? "bg-linear-to-b from-primary-fixed-dim to-primary-container text-primary-foreground shadow-xl transform scale-105"
+                      : "bg-surface border border-border/20 text-foreground hover:border-primary/50"
                   }`}
                 >
-                  <span className={`font-label text-xs uppercase ${selectedDate === d.iso ? "font-bold" : "text-gray-400"}`}>
+                  <span className={`font-label text-xs uppercase ${selectedDate === d.iso ? "font-bold" : "text-muted"}`}>
                     {d.month}
                   </span>
                   <span className="font-headline text-3xl font-bold">{d.date}</span>
-                  <span className={`font-label text-[10px] tracking-tighter ${selectedDate === d.iso ? "" : "text-gray-400"}`}>
+                  <span className={`font-label text-[10px] tracking-tighter ${selectedDate === d.iso ? "" : "text-muted"}`}>
                     {d.day}
                   </span>
                 </button>
@@ -437,19 +437,19 @@ function BookPageContent() {
 
           <section>
             <div className="flex items-center gap-4 mb-8">
-              <span className="font-label text-[#E5C487] bg-[#E5C487]/10 px-3 py-1 rounded text-sm tracking-widest">
+              <span className="font-label text-primary bg-primary/10 px-3 py-1 rounded text-sm tracking-widest">
                 STEP 04
               </span>
-              <h2 className="text-3xl font-headline font-bold text-white tracking-tight">Pick Time</h2>
+              <h2 className="text-3xl font-headline font-bold text-foreground tracking-tight">Pick Time</h2>
             </div>
             {!selectedBarberId ? (
-              <div className="rounded-2xl border border-dashed border-[#4D463A]/30 p-8 text-center text-gray-400">
+              <div className="rounded-2xl border border-dashed border-border/30 p-8 text-center text-muted">
                 Please select a professional to view available slots.
               </div>
             ) : availabilityLoading ? (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {[1, 2, 3, 4, 5, 6].map((item) => (
-                  <div key={item} className="h-16 rounded-xl bg-[#1a1a1a] animate-pulse" />
+                  <div key={item} className="h-16 rounded-xl bg-surface animate-pulse" />
                 ))}
               </div>
             ) : availabilityError ? (
@@ -457,13 +457,13 @@ function BookPageContent() {
                 <p className="text-red-300 mb-4">{availabilityError}</p>
                 <button
                   onClick={() => refetchAvailability()}
-                  className="px-4 py-2 rounded-lg bg-[#E5C487] text-[#402d00] font-bold text-sm"
+                  className="px-4 py-2 rounded-lg bg-primary text-primary-foreground font-bold text-sm"
                 >
                   Retry Availability
                 </button>
               </div>
             ) : availableTimes.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-[#4D463A]/30 p-8 text-center text-gray-400">
+              <div className="rounded-2xl border border-dashed border-border/30 p-8 text-center text-muted">
                 No slots available for this date. Pick another day.
               </div>
             ) : (
@@ -474,8 +474,8 @@ function BookPageContent() {
                     onClick={() => setSelectedTime(time)}
                     className={`py-4 px-6 rounded-xl border font-headline font-bold transition-all ${
                       selectedTime === time
-                        ? "border-[#E5C487]/60 bg-[#E5C487]/5 text-[#E5C487]"
-                        : "border-[#4D463A]/30 bg-[#1a1a1a] text-gray-400 hover:border-[#E5C487]/40"
+                        ? "border-primary/60 bg-primary/5 text-primary"
+                        : "border-border/30 bg-surface text-muted hover:border-primary/40"
                     }`}
                   >
                     {formatDisplayTime(time)}
@@ -487,35 +487,35 @@ function BookPageContent() {
         </div>
 
         <aside className="lg:col-span-4">
-          <div className="sticky top-32 bg-[#1a1a1a] p-8 rounded-3xl border border-[#4D463A]/20 shadow-2xl space-y-8">
+          <div className="sticky top-32 bg-surface p-8 rounded-3xl border border-border/20 shadow-2xl space-y-8">
             <div>
-              <h3 className="font-headline text-xl font-bold text-white mb-1">Reservation Summary</h3>
-              <p className="font-label text-[10px] text-gray-400 tracking-widest uppercase">Live booking via backend APIs</p>
+              <h3 className="font-headline text-xl font-bold text-foreground mb-1">Reservation Summary</h3>
+              <p className="font-label text-[10px] text-muted tracking-widest uppercase">Live booking via backend APIs</p>
             </div>
 
             {studioLoading ? (
-              <div className="h-24 rounded-2xl bg-[#2a2a2a] animate-pulse" />
+              <div className="h-24 rounded-2xl bg-surface animate-pulse" />
             ) : studioError || !studio ? (
               <div className="rounded-2xl border border-red-500/30 bg-red-900/10 p-4">
                 <p className="text-sm text-red-300 mb-3">{studioError || "Unable to load studio details."}</p>
                 <button
                   onClick={() => refetchStudio()}
-                  className="px-3 py-2 rounded-lg bg-[#E5C487] text-[#402d00] text-xs font-bold"
+                  className="px-3 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-bold"
                 >
                   Retry
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-4 p-4 bg-[#2a2a2a] rounded-2xl">
+              <div className="flex items-center gap-4 p-4 bg-surface rounded-2xl">
                 <img
                   alt={studio.name}
-                  className="w-14 h-14 rounded-xl object-cover border border-[#E5C487]/30"
+                  className="w-14 h-14 rounded-xl object-cover border border-primary/30"
                   src={studio.image_url || STUDIO_PLACEHOLDER}
                 />
                 <div>
-                  <p className="text-[10px] font-label text-gray-400 tracking-widest uppercase">Studio</p>
-                  <p className="font-headline font-bold text-white">{studio.name}</p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-[10px] font-label text-muted tracking-widest uppercase">Studio</p>
+                  <p className="font-headline font-bold text-foreground">{studio.name}</p>
+                  <p className="text-xs text-secondary-foreground">
                     {[studio.city, studio.state].filter(Boolean).join(", ") || "Location unavailable"}
                   </p>
                 </div>
@@ -524,30 +524,30 @@ function BookPageContent() {
 
             <div className="space-y-4">
               {selectedBarberData && (
-                <div className="flex items-center gap-4 p-4 bg-[#2a2a2a] rounded-2xl">
+                <div className="flex items-center gap-4 p-4 bg-surface rounded-2xl">
                   <img
                     alt={selectedBarberData.name}
-                    className="w-12 h-12 rounded-full object-cover border border-[#E5C487]/30"
+                    className="w-12 h-12 rounded-full object-cover border border-primary/30"
                     src={selectedBarberData.image_url || BARBER_PLACEHOLDER}
                   />
                   <div>
-                    <p className="text-[10px] font-label text-gray-400 tracking-widest uppercase">Professional</p>
-                    <p className="font-headline font-bold text-white">
+                    <p className="text-[10px] font-label text-muted tracking-widest uppercase">Professional</p>
+                    <p className="font-headline font-bold text-foreground">
                       {selectedBarberData.name} {selectedBarberData.title ? `(${selectedBarberData.title})` : ""}
                     </p>
                   </div>
                 </div>
               )}
 
-              <div className="bg-[#2a2a2a] rounded-2xl p-4 space-y-3">
-                <p className="text-[10px] font-label text-gray-400 tracking-widest uppercase">Services</p>
+              <div className="bg-surface rounded-2xl p-4 space-y-3">
+                <p className="text-[10px] font-label text-muted tracking-widest uppercase">Services</p>
                 {selectedServiceDetails.length === 0 ? (
-                  <p className="text-sm text-gray-500">Select at least one service.</p>
+                  <p className="text-sm text-secondary-foreground">Select at least one service.</p>
                 ) : (
                   selectedServiceDetails.map((service) => (
                     <div key={service.id} className="flex justify-between items-center text-sm">
-                      <span className="text-gray-300">{service.name}</span>
-                      <span className="text-[#E5C487] font-bold">${service.price}</span>
+                      <span className="text-foreground">{service.name}</span>
+                      <span className="text-primary font-bold">${service.price}</span>
                     </div>
                   ))
                 )}
@@ -556,60 +556,60 @@ function BookPageContent() {
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-3">
-                    <span className="material-symbols-outlined text-[#E5C487] text-xl">calendar_today</span>
-                    <span className="text-sm font-medium text-gray-400">Date</span>
+                    <span className="material-symbols-outlined text-primary text-xl">calendar_today</span>
+                    <span className="text-sm font-medium text-muted">Date</span>
                   </div>
-                  <span className="font-headline font-bold text-white">
+                  <span className="font-headline font-bold text-foreground">
                     {selectedDateData ? `${selectedDateData.day}, ${selectedDateData.month} ${selectedDateData.date}` : selectedDate}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-3">
-                    <span className="material-symbols-outlined text-[#E5C487] text-xl">schedule</span>
-                    <span className="text-sm font-medium text-gray-400">Time</span>
+                    <span className="material-symbols-outlined text-primary text-xl">schedule</span>
+                    <span className="text-sm font-medium text-muted">Time</span>
                   </div>
-                  <span className="font-headline font-bold text-white">{selectedTime ? formatDisplayTime(selectedTime) : "--"}</span>
+                  <span className="font-headline font-bold text-foreground">{selectedTime ? formatDisplayTime(selectedTime) : "--"}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-3">
-                    <span className="material-symbols-outlined text-[#E5C487] text-xl">hourglass_bottom</span>
-                    <span className="text-sm font-medium text-gray-400">Duration</span>
+                    <span className="material-symbols-outlined text-primary text-xl">hourglass_bottom</span>
+                    <span className="text-sm font-medium text-muted">Duration</span>
                   </div>
-                  <span className="font-headline font-bold text-white">{selectedDurationTotal} mins</span>
+                  <span className="font-headline font-bold text-foreground">{selectedDurationTotal} mins</span>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="block text-[10px] font-label text-gray-400 tracking-widest uppercase">Notes (Optional)</label>
+                <label className="block text-[10px] font-label text-muted tracking-widest uppercase">Notes (Optional)</label>
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={3}
                   maxLength={250}
-                  className="w-full rounded-xl bg-[#2a2a2a] border border-[#4D463A]/30 px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-[#E5C487]/40"
+                  className="w-full rounded-xl bg-surface border border-border/30 px-4 py-3 text-sm text-foreground placeholder:text-secondary-foreground focus:outline-none focus:border-primary/40"
                   placeholder="Any preference for your appointment?"
                 />
               </div>
             </div>
 
-            <div className="pt-6 border-t border-[#4D463A]/30">
+            <div className="pt-6 border-t border-border/30">
               <div className="flex justify-between items-end mb-8">
-                <p className="font-headline font-bold text-white">Total Price</p>
+                <p className="font-headline font-bold text-foreground">Total Price</p>
                 <div className="text-right">
-                  <p className="text-3xl font-headline font-black text-[#E5C487]">${selectedServiceTotal}</p>
-                  <p className="text-[10px] font-label text-gray-400 tracking-widest">SERVICE TOTAL</p>
+                  <p className="text-3xl font-headline font-black text-primary">${selectedServiceTotal}</p>
+                  <p className="text-[10px] font-label text-muted tracking-widest">SERVICE TOTAL</p>
                 </div>
               </div>
 
               <button
                 onClick={handleContinueToCheckout}
                 disabled={selectedServiceDetails.length === 0 || !selectedTime || !studio || !selectedBarberId}
-                className="w-full bg-linear-to-r from-[#E5C487] to-[#C8A96E] text-[#402d00] font-headline font-black py-5 rounded-2xl shadow-lg shadow-[#E5C487]/20 hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-linear-to-r from-primary-fixed-dim to-primary-container text-primary-foreground font-headline font-black py-5 rounded-2xl shadow-lg shadow-primary/20 hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 CONTINUE TO CHECKOUT
                 <span className="material-symbols-outlined">arrow_forward</span>
               </button>
-              <p className="text-[10px] text-center mt-6 text-gray-400 font-label leading-relaxed">
+              <p className="text-[10px] text-center mt-6 text-muted font-label leading-relaxed">
                 REAL-TIME AVAILABILITY. <br /> FINAL BOOKING IS CREATED AT CHECKOUT.
               </p>
             </div>
@@ -622,8 +622,8 @@ function BookPageContent() {
 
 function BookPageFallback() {
   return (
-    <main className="min-h-screen bg-[#1A1A1A] text-white flex items-center justify-center">
-      <p className="text-sm text-gray-300">Loading booking page...</p>
+    <main className="min-h-screen bg-background text-foreground flex items-center justify-center">
+      <p className="text-sm text-foreground">Loading booking page...</p>
     </main>
   );
 }

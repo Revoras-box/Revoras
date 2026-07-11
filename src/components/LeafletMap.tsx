@@ -181,14 +181,14 @@ export default function LeafletMap({
   const createPopupContent = useCallback((studio: Studio) => {
     return `
       <div style="
-        background: #1a1a1a;
+        background: var(--card);
         border-radius: 12px;
         padding: 12px;
         min-width: 180px;
         font-family: system-ui, -apple-system, sans-serif;
       ">
         <h3 style="
-          color: #E5C487;
+          color: var(--primary);
           font-size: 14px;
           font-weight: 700;
           margin: 0 0 8px 0;
@@ -197,8 +197,8 @@ export default function LeafletMap({
           text-overflow: ellipsis;
         ">${studio.name}</h3>
         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-          <span style="color: #E5C487;">★</span>
-          <span style="color: white; font-size: 12px;">${studio.rating || "New"}</span>
+          <span style="color: var(--primary);">★</span>
+          <span style="color: var(--foreground); font-size: 12px;">${studio.rating || "New"}</span>
           ${studio.distance_km !== undefined ? `
             <span style="color: #6b7280;">•</span>
             <span style="color: #9ca3af; font-size: 12px;">${studio.distance_km < 1 ? `${Math.round(studio.distance_km * 1000)}m` : `${studio.distance_km}km`}</span>
@@ -215,8 +215,8 @@ export default function LeafletMap({
             width: 100%;
             margin-top: 10px;
             padding: 8px;
-            background: #E5C487;
-            color: #1a1a1a;
+            background: var(--primary);
+            color: var(--card);
             border: none;
             border-radius: 8px;
             font-size: 12px;
@@ -346,23 +346,23 @@ export default function LeafletMap({
       <div className="absolute bottom-12 right-12 flex flex-col gap-3 z-[1000]">
         <button
           onClick={handleCenterOnUser}
-          className="w-12 h-12 bg-[#1a1a1a]/90 backdrop-blur-xl border border-[#4D463A]/30 rounded-xl flex items-center justify-center hover:bg-[#E5C487] hover:text-[#402d00] transition-all text-white"
+          className="w-12 h-12 bg-card/90 backdrop-blur-xl border border-border/30 rounded-xl flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-all text-foreground"
           title="Center on my location"
         >
           <span className={`material-symbols-outlined ${userLocation ? "icon-filled" : ""}`}>
             my_location
           </span>
         </button>
-        <div className="flex flex-col bg-[#1a1a1a]/90 backdrop-blur-xl border border-[#4D463A]/30 rounded-xl divide-y divide-[#4D463A]/20">
+        <div className="flex flex-col bg-card/90 backdrop-blur-xl border border-border/30 rounded-xl divide-y divide-border/20">
           <button 
             onClick={handleZoomIn}
-            className="w-12 h-12 flex items-center justify-center hover:bg-[#E5C487]/20 transition-all text-white"
+            className="w-12 h-12 flex items-center justify-center hover:bg-primary/20 transition-all text-foreground"
           >
             <span className="material-symbols-outlined">add</span>
           </button>
           <button 
             onClick={handleZoomOut}
-            className="w-12 h-12 flex items-center justify-center hover:bg-[#E5C487]/20 transition-all text-white"
+            className="w-12 h-12 flex items-center justify-center hover:bg-primary/20 transition-all text-foreground"
           >
             <span className="material-symbols-outlined">remove</span>
           </button>
@@ -381,7 +381,7 @@ export default function LeafletMap({
           margin: 0;
         }
         .custom-popup .leaflet-popup-tip {
-          background: #1a1a1a;
+          background: var(--card);
         }
         .custom-studio-marker,
         .custom-user-marker {
@@ -389,7 +389,7 @@ export default function LeafletMap({
           border: none;
         }
         .leaflet-container {
-          background: #0a0a0a;
+          background: var(--background);
           font-family: inherit;
         }
         .leaflet-control-attribution {

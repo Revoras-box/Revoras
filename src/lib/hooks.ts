@@ -72,6 +72,10 @@ export function useStudioBarbers<T = unknown>(id: string) {
   return useApi<T>(() => api.getStudioBarbers(id) as Promise<T>, [id]);
 }
 
+export function useBarber<T = unknown>(id: string) {
+  return useApi<T>(() => api.getBarber(id) as Promise<T>, [id]);
+}
+
 // Booking hooks
 export function useBookings(params: Record<string, string | undefined> = {}) {
   return useApi(() => api.getBookings(params), [JSON.stringify(params)]);
@@ -88,7 +92,7 @@ interface AvailabilityResult {
   refetch: () => Promise<void>;
 }
 
-export function useAvailability(studioId: string, barberId: string | null, date: string): AvailabilityResult {
+export function useAvailability(studioId: string, barberId: string | null, date: string, duration?: number): AvailabilityResult {
   const [slots, setSlots] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -101,7 +105,7 @@ export function useAvailability(studioId: string, barberId: string | null, date:
     }
     setLoading(true);
     try {
-      const result = await api.getAvailability(studioId, barberId, date);
+      const result = await api.getAvailability(studioId, barberId, date, duration);
       if (result.error) {
         setError(result.error);
       } else {
@@ -112,7 +116,7 @@ export function useAvailability(studioId: string, barberId: string | null, date:
     } finally {
       setLoading(false);
     }
-  }, [studioId, barberId, date]);
+  }, [studioId, barberId, date, duration]);
 
   useEffect(() => {
     fetchSlots();

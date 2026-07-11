@@ -11,8 +11,8 @@ import type { MapStudiosResponse } from "@/lib/types";
 const LeafletMap = dynamic(() => import("@/components/LeafletMap"), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full bg-[#0e0e0e] flex items-center justify-center">
-      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#E5C487]"></div>
+    <div className="w-full h-full bg-background flex items-center justify-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
     </div>
   ),
 });
@@ -124,10 +124,10 @@ export default function DiscoverPage() {
   return (
     <main className="relative h-screen w-full pt-20 overflow-hidden flex">
       {/* Sidebar */}
-      <aside className="w-[420px] h-full bg-[#1a1a1a] z-20 flex flex-col shadow-2xl">
+      <aside className="w-[420px] h-full bg-surface z-20 flex flex-col shadow-2xl">
         <div className="p-8 pb-4">
-          <h1 className="text-3xl font-black font-headline tracking-tighter mb-2 text-white">Curated Studios</h1>
-          <p className="text-sm font-label uppercase tracking-widest text-gray-500">
+          <h1 className="text-3xl font-black font-headline tracking-tighter mb-2 text-foreground">Curated Studios</h1>
+          <p className="text-sm font-label uppercase tracking-widest text-secondary-foreground">
             {userLocation ? (
               <>
                 <span className="inline-flex items-center gap-1">
@@ -147,28 +147,28 @@ export default function DiscoverPage() {
           {loading || locationLoading ? (
             <div className="space-y-4">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="animate-pulse bg-[#2a2a2a] rounded-xl h-32"></div>
+                <div key={i} className="animate-pulse bg-surface rounded-xl h-32"></div>
               ))}
             </div>
           ) : error ? (
-            <div className="text-center py-8 text-gray-400">
+            <div className="text-center py-8 text-muted">
               <span className="material-symbols-outlined text-4xl mb-2">error</span>
               <p>Failed to load studios</p>
               <button 
                 onClick={() => refetch()} 
-                className="mt-4 px-4 py-2 bg-[#E5C487] text-[#1a1a1a] rounded-lg text-sm font-medium"
+                className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium"
               >
                 Try Again
               </button>
             </div>
           ) : studios.length === 0 ? (
-            <div className="text-center py-8 text-gray-400">
+            <div className="text-center py-8 text-muted">
               <span className="material-symbols-outlined text-4xl mb-2">search_off</span>
               <p>No studios found</p>
               {searchQuery && (
                 <button 
                   onClick={() => setSearchQuery("")}
-                  className="mt-2 text-[#E5C487] text-sm"
+                  className="mt-2 text-primary text-sm"
                 >
                   Clear search
                 </button>
@@ -186,10 +186,10 @@ export default function DiscoverPage() {
                   href={`/user/studio/${studio.id}`}
                   className={`block rounded-xl p-5 transition-all cursor-pointer group ${
                     isSelected || isHovered
-                      ? "bg-[#2a2a2a] border-l-4 border-[#E5C487] scale-[1.02]"
+                      ? "bg-surface border-l-4 border-primary scale-[1.02]"
                       : index === 0
-                      ? "bg-[#2a2a2a] border-l-4 border-[#E5C487]/50"
-                      : "bg-[#1e1e1e] hover:bg-[#2a2a2a] border border-[#4D463A]/10"
+                      ? "bg-surface border-l-4 border-primary/50"
+                      : "bg-card hover:bg-surface border border-border/10"
                   }`}
                   onMouseEnter={() => setHoveredStudio(studio.id)}
                   onMouseLeave={() => setHoveredStudio(null)}
@@ -206,34 +206,34 @@ export default function DiscoverPage() {
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-start gap-2">
-                        <h3 className="font-headline font-bold text-lg leading-tight group-hover:text-[#E5C487] transition-colors truncate">
+                        <h3 className="font-headline font-bold text-lg leading-tight group-hover:text-primary transition-colors truncate">
                           {studio.name}
                         </h3>
                         <span
                           className={`text-[10px] font-bold px-2 py-0.5 rounded-full font-label tracking-tighter whitespace-nowrap flex-shrink-0 ${
                             status.isOpen
                               ? "bg-green-900/30 text-green-400"
-                              : "bg-[#2a2a2a] text-gray-400"
+                              : "bg-surface text-muted"
                           }`}
                         >
                           {status.text}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-400 font-medium mt-1 truncate">
+                      <p className="text-sm text-muted font-medium mt-1 truncate">
                         {studio.city}, {studio.state}
                       </p>
                       <div className="flex items-center gap-4 mt-3 flex-wrap">
                         <div className="flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[#E5C487] text-sm icon-filled">
+                          <span className="material-symbols-outlined text-primary text-sm icon-filled">
                             star
                           </span>
                           <span className="text-xs font-label font-bold">{studio.rating || "New"}</span>
                         </div>
                         {studio.review_count > 0 && (
-                          <span className="text-xs text-gray-500">({studio.review_count} reviews)</span>
+                          <span className="text-xs text-secondary-foreground">({studio.review_count} reviews)</span>
                         )}
                         {studio.distance_km !== undefined && (
-                          <span className="text-xs text-[#E5C487] font-medium flex items-center gap-1">
+                          <span className="text-xs text-primary font-medium flex items-center gap-1">
                             <span className="material-symbols-outlined text-sm">directions_walk</span>
                             {studio.distance_km < 1 
                               ? `${Math.round(studio.distance_km * 1000)}m` 
@@ -249,7 +249,7 @@ export default function DiscoverPage() {
                       {studio.amenities.slice(0, 3).map((tag: string) => (
                         <span
                           key={tag}
-                          className="px-3 py-1 bg-[#1a1a1a] text-[10px] font-label text-gray-400 rounded-full border border-[#4D463A]/20"
+                          className="px-3 py-1 bg-surface text-[10px] font-label text-muted rounded-full border border-border/20"
                         >
                           {tag}
                         </span>
@@ -259,20 +259,26 @@ export default function DiscoverPage() {
                   
                   {/* Quick action */}
                   <div className="mt-4 flex gap-2">
-                    <Link
-                      href={`/user/studio/${studio.id}`}
-                      className="flex-1 py-2 bg-[#E5C487] text-[#1a1a1a] rounded-lg text-xs font-bold text-center hover:bg-[#d4b377] transition-colors"
-                      onClick={(e) => e.stopPropagation()}
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        router.push(`/user/studio/${studio.id}`);
+                      }}
+                      className="flex-1 py-2 bg-primary text-primary-foreground rounded-lg text-xs font-bold text-center hover:bg-primary transition-colors"
                     >
                       View Studio
-                    </Link>
-                    <Link
-                      href={`/user/studio/${studio.id}?book=true`}
-                      className="flex-1 py-2 bg-transparent border border-[#E5C487] text-[#E5C487] rounded-lg text-xs font-bold text-center hover:bg-[#E5C487]/10 transition-colors"
-                      onClick={(e) => e.stopPropagation()}
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        router.push(`/user/studio/${studio.id}?book=true`);
+                      }}
+                      className="flex-1 py-2 bg-transparent border border-primary text-primary rounded-lg text-xs font-bold text-center hover:bg-primary/10 transition-colors"
                     >
                       Book Now
-                    </Link>
+                    </button>
                   </div>
                 </Link>
               );
@@ -282,7 +288,7 @@ export default function DiscoverPage() {
       </aside>
 
       {/* Map Area */}
-      <div className="flex-1 relative bg-[#0e0e0e]">
+      <div className="flex-1 relative bg-background">
         {/* Leaflet Map */}
         <LeafletMap
           studios={studios}
@@ -296,11 +302,11 @@ export default function DiscoverPage() {
 
         {/* Search & Filters */}
         <div className="absolute top-8 left-1/2 -translate-x-1/2 w-[600px] z-[1001] space-y-4">
-          <div className="bg-[#1a1a1a]/80 backdrop-blur-xl rounded-2xl p-2 shadow-2xl flex items-center gap-4 border border-[#4D463A]/20">
+          <div className="bg-surface/80 backdrop-blur-xl rounded-2xl p-2 shadow-2xl flex items-center gap-4 border border-border/20">
             <div className="flex-1 flex items-center px-4 gap-3">
-              <span className="material-symbols-outlined text-gray-500">search</span>
+              <span className="material-symbols-outlined text-secondary-foreground">search</span>
               <input
-                className="bg-transparent border-none focus:ring-0 focus:outline-none w-full text-white font-body placeholder:text-gray-500"
+                className="bg-transparent border-none focus:ring-0 focus:outline-none w-full text-foreground font-body placeholder:text-secondary-foreground"
                 placeholder="Search studios, barbers, or styles..."
                 type="text"
                 value={searchQuery}
@@ -309,14 +315,14 @@ export default function DiscoverPage() {
               {searchQuery && (
                 <button 
                   onClick={() => setSearchQuery("")}
-                  className="text-gray-500 hover:text-white"
+                  className="text-secondary-foreground hover:text-foreground"
                 >
                   <span className="material-symbols-outlined text-sm">close</span>
                 </button>
               )}
             </div>
-            <div className="h-8 w-[1px] bg-[#4D463A]/30"></div>
-            <button className="flex items-center gap-2 px-4 py-2 hover:bg-[#2a2a2a] rounded-xl transition-colors text-white">
+            <div className="h-8 w-[1px] bg-border"></div>
+            <button className="flex items-center gap-2 px-4 py-2 hover:bg-surface rounded-xl transition-colors text-foreground">
               <span className="material-symbols-outlined text-sm">tune</span>
               <span className="text-xs font-label uppercase tracking-widest">Filters</span>
             </button>
@@ -329,8 +335,8 @@ export default function DiscoverPage() {
                 onClick={() => setActiveFilter(filter)}
                 className={`px-5 py-1.5 rounded-full text-xs font-label uppercase tracking-widest font-medium transition-colors flex items-center gap-2 ${
                   activeFilter === filter
-                    ? "bg-[#E5C487] text-[#402d00] font-bold shadow-lg shadow-[#E5C487]/20"
-                    : "bg-[#1a1a1a]/80 backdrop-blur-xl text-white border border-[#4D463A]/30 hover:bg-[#E5C487]/10"
+                    ? "bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/20"
+                    : "bg-surface/80 backdrop-blur-xl text-foreground border border-border/30 hover:bg-primary/10"
                 }`}
               >
                 {filter === "Near Me" && (
@@ -371,9 +377,9 @@ export default function DiscoverPage() {
         )}
 
         {/* Studios count badge */}
-        <div className="absolute bottom-12 left-12 z-[1000] bg-[#1a1a1a]/90 backdrop-blur-xl border border-[#4D463A]/30 rounded-xl px-4 py-3">
-          <div className="text-xs text-gray-400 font-label uppercase tracking-widest">Studios nearby</div>
-          <div className="text-2xl font-headline font-bold text-[#E5C487]">{studios.length}</div>
+        <div className="absolute bottom-12 left-12 z-[1000] bg-surface/90 backdrop-blur-xl border border-border/30 rounded-xl px-4 py-3">
+          <div className="text-xs text-muted font-label uppercase tracking-widest">Studios nearby</div>
+          <div className="text-2xl font-headline font-bold text-primary">{studios.length}</div>
         </div>
       </div>
     </main>

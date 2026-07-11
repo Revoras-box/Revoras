@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import BarberSidebar from "@/components/barber/BarberSidebar";
 import { BarberAuthProvider, useBarberAuth } from "@/lib/barber-auth";
 import { api } from "@/lib/api";
+import { formatINR } from "@/lib/format";
 
 // Types
 interface Service {
@@ -162,24 +163,24 @@ function WalkInContent() {
 
   if (authLoading || !isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#0E0E0E] flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-[#E5C487]/30 border-t-[#E5C487] rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-surface-container-lowest flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-primary-fixed-dim/30 border-t-primary rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0E0E0E] text-white">
+    <div className="min-h-screen bg-surface-container-lowest text-foreground">
       <BarberSidebar />
-      <main className="ml-72 flex-1 min-h-screen flex flex-col">
-        <header className="h-20 px-10 flex justify-between items-center bg-[#1C1B1B]/60 backdrop-blur-xl z-40 sticky top-0">
+      <main className="lg:ml-72 flex-1 min-h-screen flex flex-col">
+        <header className="h-20 pl-16 pr-6 lg:px-10 flex justify-between items-center bg-surface-container-low/60 backdrop-blur-xl z-40 sticky top-0">
           <div className="flex items-center gap-8">
-            <h2 className="font-headline font-black text-2xl tracking-tight text-white">Walk-In Booking</h2>
+            <h2 className="font-headline font-black text-2xl tracking-tight text-foreground">Walk-In Booking</h2>
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 px-4 py-2 bg-green-500/10 rounded-xl border border-green-500/20">
-              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-              <span className="text-xs text-green-400 uppercase tracking-widest">Queue Open</span>
+              <span className="w-2 h-2 rounded-full bg-green-500 dark:bg-green-400 animate-pulse"></span>
+              <span className="text-xs text-green-600 dark:text-green-400 uppercase tracking-widest">Queue Open</span>
             </div>
           </div>
         </header>
@@ -187,50 +188,50 @@ function WalkInContent() {
         {/* Success/Error Messages */}
         {success && (
           <div className="mx-8 mt-4 p-4 bg-green-500/20 border border-green-500/30 rounded-xl flex items-center gap-3">
-            <span className="material-symbols-outlined text-green-400">check_circle</span>
-            <span className="text-green-400">{success}</span>
+            <span className="material-symbols-outlined text-green-600 dark:text-green-400">check_circle</span>
+            <span className="text-green-600 dark:text-green-400">{success}</span>
           </div>
         )}
         {error && (
           <div className="mx-8 mt-4 p-4 bg-red-500/20 border border-red-500/30 rounded-xl flex items-center gap-3">
-            <span className="material-symbols-outlined text-red-400">error</span>
-            <span className="text-red-400">{error}</span>
-            <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-300">
+            <span className="material-symbols-outlined text-red-600 dark:text-red-400">error</span>
+            <span className="text-red-600 dark:text-red-400">{error}</span>
+            <button onClick={() => setError(null)} className="ml-auto text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300">
               <span className="material-symbols-outlined">close</span>
             </button>
           </div>
         )}
 
-        <div className="p-8 flex-1 overflow-y-auto bg-[#0E0E0E]">
+        <div className="p-8 flex-1 overflow-y-auto bg-surface-container-lowest">
           {loading ? (
             <div className="flex items-center justify-center py-20">
-              <div className="w-10 h-10 border-4 border-[#E5C487]/30 border-t-[#E5C487] rounded-full animate-spin"></div>
+              <div className="w-10 h-10 border-4 border-primary-fixed-dim/30 border-t-primary rounded-full animate-spin"></div>
             </div>
           ) : (
             <div className="grid grid-cols-12 gap-8">
               {/* Walk-In Form */}
               <div className="col-span-8 space-y-6">
                 {/* Customer Info */}
-                <div className="bg-[#1C1B1B] rounded-3xl p-6 border border-[#4D463A]/10">
-                  <h3 className="font-headline font-black text-lg text-white mb-6">Customer Information</h3>
+                <div className="bg-surface-container-low rounded-3xl p-6 border border-outline-variant/10">
+                  <h3 className="font-headline font-black text-lg text-foreground mb-6">Customer Information</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-xs text-[#4D463A] uppercase tracking-widest mb-2 block">Phone Number</label>
+                      <label className="text-xs text-muted uppercase tracking-widest mb-2 block">Phone Number</label>
                       <input
                         type="tel"
                         value={customerPhone}
                         onChange={(e) => setCustomerPhone(e.target.value)}
-                        className="w-full bg-[#353534]/50 border border-[#4D463A]/20 rounded-xl px-4 py-3 text-white placeholder-[#4D463A] focus:border-[#E5C487] focus:outline-none"
+                        className="w-full bg-surface-container-highest/50 border border-outline-variant/20 rounded-xl px-4 py-3 text-foreground placeholder-muted focus:border-primary focus:outline-none"
                         placeholder="+1 234 567 8900"
                       />
                     </div>
                     <div>
-                      <label className="text-xs text-[#4D463A] uppercase tracking-widest mb-2 block">Name (Optional)</label>
+                      <label className="text-xs text-muted uppercase tracking-widest mb-2 block">Name (Optional)</label>
                       <input
                         type="text"
                         value={customerName}
                         onChange={(e) => setCustomerName(e.target.value)}
-                        className="w-full bg-[#353534]/50 border border-[#4D463A]/20 rounded-xl px-4 py-3 text-white placeholder-[#4D463A] focus:border-[#E5C487] focus:outline-none"
+                        className="w-full bg-surface-container-highest/50 border border-outline-variant/20 rounded-xl px-4 py-3 text-foreground placeholder-muted focus:border-primary focus:outline-none"
                         placeholder="John Doe"
                       />
                     </div>
@@ -238,12 +239,12 @@ function WalkInContent() {
                 </div>
 
                 {/* Select Barber */}
-                <div className="bg-[#1C1B1B] rounded-3xl p-6 border border-[#4D463A]/10">
-                  <h3 className="font-headline font-black text-lg text-white mb-6">
-                    Select Barber <span className="text-sm text-[#4D463A] font-normal">(Optional - defaults to you)</span>
+                <div className="bg-surface-container-low rounded-3xl p-6 border border-outline-variant/10">
+                  <h3 className="font-headline font-black text-lg text-foreground mb-6">
+                    Select Barber <span className="text-sm text-muted font-normal">(Optional - defaults to you)</span>
                   </h3>
                   {team.length === 0 ? (
-                    <p className="text-[#4D463A]">No team members available. You will be assigned.</p>
+                    <p className="text-muted">No team members available. You will be assigned.</p>
                   ) : (
                     <div className="grid grid-cols-3 gap-4">
                       {team.map((member) => {
@@ -255,31 +256,31 @@ function WalkInContent() {
                             disabled={!isAvailable}
                             className={`p-4 rounded-2xl transition-all text-left ${
                               selectedBarber === member.id
-                                ? 'bg-[#E5C487]/20 border-2 border-[#E5C487]'
+                                ? 'bg-primary-fixed-dim/20 border-2 border-primary-fixed-dim'
                                 : isAvailable
-                                ? 'bg-[#353534]/30 border border-[#4D463A]/20 hover:border-[#E5C487]/50'
-                                : 'bg-[#353534]/10 border border-[#4D463A]/10 opacity-50 cursor-not-allowed'
+                                ? 'bg-surface-container-highest/30 border border-outline-variant/20 hover:border-primary-fixed-dim/50'
+                                : 'bg-surface-container-highest/10 border border-outline-variant/10 opacity-50 cursor-not-allowed'
                             }`}
                           >
                             <div className="flex items-center gap-3">
                               <div className="relative">
-                                <div className="w-12 h-12 rounded-xl overflow-hidden border border-[#E5C487]/30 bg-[#353534] flex items-center justify-center">
+                                <div className="w-12 h-12 rounded-xl overflow-hidden border border-primary-fixed-dim/30 bg-surface-container-highest flex items-center justify-center">
                                   {member.image_url ? (
                                     <img src={member.image_url} alt={member.name} className="w-full h-full object-cover" />
                                   ) : (
-                                    <span className="material-symbols-outlined text-[#4D463A]">person</span>
+                                    <span className="material-symbols-outlined text-muted">person</span>
                                   )}
                                 </div>
-                                <span className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-[#1C1B1B] ${
-                                  isAvailable ? 'bg-green-400' : 'bg-yellow-400'
+                                <span className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-surface-container-low ${
+                                  isAvailable ? 'bg-green-500 dark:bg-green-400' : 'bg-yellow-500 dark:bg-yellow-400'
                                 }`}></span>
                               </div>
                               <div>
-                                <p className="text-sm font-bold text-white">
+                                <p className="text-sm font-bold text-foreground">
                                   {member.name}
-                                  {member.id === barber?.id && <span className="text-[#E5C487] ml-1">(You)</span>}
+                                  {member.id === barber?.id && <span className="text-primary ml-1">(You)</span>}
                                 </p>
-                                <p className={`text-[10px] uppercase ${isAvailable ? 'text-green-400' : 'text-yellow-400'}`}>
+                                <p className={`text-[10px] uppercase ${isAvailable ? 'text-green-600 dark:text-green-400' : 'text-yellow-700 dark:text-yellow-400'}`}>
                                   {member.today_bookings} bookings today
                                 </p>
                               </div>
@@ -292,14 +293,14 @@ function WalkInContent() {
                 </div>
 
                 {/* Select Services */}
-                <div className="bg-[#1C1B1B] rounded-3xl p-6 border border-[#4D463A]/10">
-                  <h3 className="font-headline font-black text-lg text-white mb-6">
-                    Select Services <span className="text-red-400">*</span>
+                <div className="bg-surface-container-low rounded-3xl p-6 border border-outline-variant/10">
+                  <h3 className="font-headline font-black text-lg text-foreground mb-6">
+                    Select Services <span className="text-red-600 dark:text-red-400">*</span>
                   </h3>
                   {services.length === 0 ? (
                     <div className="text-center py-8">
-                      <span className="material-symbols-outlined text-4xl text-[#4D463A] mb-2">content_cut</span>
-                      <p className="text-[#4D463A]">No services available. Add services first.</p>
+                      <span className="material-symbols-outlined text-4xl text-muted mb-2">content_cut</span>
+                      <p className="text-muted">No services available. Add services first.</p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 gap-3">
@@ -309,16 +310,16 @@ function WalkInContent() {
                           onClick={() => toggleService(service.id)}
                           className={`p-4 rounded-xl transition-all text-left flex justify-between items-center ${
                             selectedServices.includes(service.id)
-                              ? 'bg-[#E5C487]/20 border border-[#E5C487]'
-                              : 'bg-[#353534]/30 border border-[#4D463A]/20 hover:border-[#E5C487]/50'
+                              ? 'bg-primary-fixed-dim/20 border border-primary-fixed-dim'
+                              : 'bg-surface-container-highest/30 border border-outline-variant/20 hover:border-primary-fixed-dim/50'
                           }`}
                         >
                           <div>
-                            <p className="text-sm font-bold text-white">{service.name}</p>
-                            <p className="text-[10px] text-[#4D463A]">{service.duration} min</p>
+                            <p className="text-sm font-bold text-foreground">{service.name}</p>
+                            <p className="text-[10px] text-muted">{service.duration} min</p>
                           </div>
-                          <span className="text-lg font-headline font-black text-[#E5C487]">
-                            ${parseFloat(String(service.price)).toFixed(2)}
+                          <span className="text-lg font-headline font-black text-primary">
+                            {formatINR(service.price)}
                           </span>
                         </button>
                       ))}
@@ -327,12 +328,12 @@ function WalkInContent() {
                 </div>
 
                 {/* Notes */}
-                <div className="bg-[#1C1B1B] rounded-3xl p-6 border border-[#4D463A]/10">
-                  <h3 className="font-headline font-black text-lg text-white mb-4">Special Notes</h3>
+                <div className="bg-surface-container-low rounded-3xl p-6 border border-outline-variant/10">
+                  <h3 className="font-headline font-black text-lg text-foreground mb-4">Special Notes</h3>
                   <textarea
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    className="w-full bg-[#353534]/50 border border-[#4D463A]/20 rounded-xl px-4 py-3 text-white placeholder-[#4D463A] focus:border-[#E5C487] focus:outline-none resize-none h-24"
+                    className="w-full bg-surface-container-highest/50 border border-outline-variant/20 rounded-xl px-4 py-3 text-foreground placeholder-muted focus:border-primary focus:outline-none resize-none h-24"
                     placeholder="Any special requests or notes..."
                   />
                 </div>
@@ -341,8 +342,8 @@ function WalkInContent() {
               {/* Summary Sidebar */}
               <div className="col-span-4 space-y-6">
                 {/* Booking Summary */}
-                <div className="bg-[#1C1B1B] rounded-3xl p-6 border border-[#4D463A]/10 sticky top-28">
-                  <h3 className="font-headline font-black text-lg text-white mb-6">Booking Summary</h3>
+                <div className="bg-surface-container-low rounded-3xl p-6 border border-outline-variant/10 sticky top-28">
+                  <h3 className="font-headline font-black text-lg text-foreground mb-6">Booking Summary</h3>
                   
                   {selectedServices.length > 0 ? (
                     <div className="space-y-4">
@@ -350,34 +351,34 @@ function WalkInContent() {
                         const service = services.find(s => s.id === id);
                         return service ? (
                           <div key={id} className="flex justify-between items-center">
-                            <span className="text-sm text-white">{service.name}</span>
-                            <span className="text-sm text-[#E5C487]">${parseFloat(String(service.price)).toFixed(2)}</span>
+                            <span className="text-sm text-foreground">{service.name}</span>
+                            <span className="text-sm text-primary">{formatINR(service.price)}</span>
                           </div>
                         ) : null;
                       })}
-                      <div className="border-t border-[#4D463A]/20 pt-4">
+                      <div className="border-t border-outline-variant/20 pt-4">
                         <div className="flex justify-between items-center mb-2">
-                          <span className="text-xs text-[#4D463A] uppercase">Duration</span>
-                          <span className="text-sm text-white">{totalDuration} min</span>
+                          <span className="text-xs text-muted uppercase">Duration</span>
+                          <span className="text-sm text-foreground">{totalDuration} min</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-lg font-bold text-white">Total</span>
-                          <span className="text-2xl font-headline font-black text-[#E5C487]">${totalPrice.toFixed(2)}</span>
+                          <span className="text-lg font-bold text-foreground">Total</span>
+                          <span className="text-2xl font-headline font-black text-primary">{formatINR(totalPrice)}</span>
                         </div>
                       </div>
                     </div>
                   ) : (
-                    <p className="text-[#4D463A] text-sm">Select services to see summary</p>
+                    <p className="text-muted text-sm">Select services to see summary</p>
                   )}
 
                   <button
                     onClick={handleSubmit}
                     disabled={selectedServices.length === 0 || submitting}
-                    className="w-full mt-6 py-4 bg-gradient-to-r from-[#E5C487] to-[#C8A96E] text-[#402d00] font-headline font-bold rounded-xl active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="w-full mt-6 py-4 bg-gradient-to-r from-primary-fixed-dim to-primary-container text-primary-foreground font-headline font-bold rounded-xl active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {submitting ? (
                       <>
-                        <div className="w-5 h-5 border-2 border-[#402d00]/30 border-t-[#402d00] rounded-full animate-spin"></div>
+                        <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin"></div>
                         Creating...
                       </>
                     ) : (
@@ -390,26 +391,26 @@ function WalkInContent() {
                 </div>
 
                 {/* Recent Walk-Ins */}
-                <div className="bg-[#1C1B1B] rounded-3xl p-6 border border-[#4D463A]/10">
-                  <h3 className="font-headline font-black text-lg text-white mb-4">Recent Walk-Ins</h3>
+                <div className="bg-surface-container-low rounded-3xl p-6 border border-outline-variant/10">
+                  <h3 className="font-headline font-black text-lg text-foreground mb-4">Recent Walk-Ins</h3>
                   {recentBookings.length === 0 ? (
-                    <p className="text-[#4D463A] text-sm">No walk-ins today yet</p>
+                    <p className="text-muted text-sm">No walk-ins today yet</p>
                   ) : (
                     <div className="space-y-3">
                       {recentBookings.slice(0, 5).map((booking) => (
-                        <div key={booking.id} className="flex items-center justify-between p-3 bg-[#353534]/30 rounded-xl">
+                        <div key={booking.id} className="flex items-center justify-between p-3 bg-surface-container-highest/30 rounded-xl">
                           <div>
-                            <p className="text-sm font-bold text-white">{booking.customer_name}</p>
-                            <p className="text-[10px] text-[#4D463A]">
+                            <p className="text-sm font-bold text-foreground">{booking.customer_name}</p>
+                            <p className="text-[10px] text-muted">
                               {booking.services?.map(s => s.name).join(', ') || 'Service'}
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="text-xs text-[#4D463A]">{formatTime(booking.appointment_time)}</p>
+                            <p className="text-xs text-muted">{formatTime(booking.appointment_time)}</p>
                             <span className={`text-[10px] uppercase ${
-                              booking.status === 'confirmed' ? 'text-green-400' : 
-                              booking.status === 'pending' ? 'text-yellow-400' :
-                              booking.status === 'completed' ? 'text-[#4D463A]' : 'text-[#4D463A]'
+                              booking.status === 'confirmed' ? 'text-green-600 dark:text-green-400' :
+                              booking.status === 'pending' ? 'text-yellow-700 dark:text-yellow-400' :
+                              booking.status === 'completed' ? 'text-muted' : 'text-muted'
                             }`}>
                               {booking.status}
                             </span>

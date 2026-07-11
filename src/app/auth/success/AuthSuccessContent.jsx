@@ -2,10 +2,12 @@
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import { useAuth } from "@/lib/auth";
 
 export default function AuthSuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { setSession } = useAuth();
 
   useEffect(() => {
     const token = searchParams.get("token");
@@ -15,8 +17,7 @@ export default function AuthSuccessContent() {
     if (token && userData) {
       try {
         const user = JSON.parse(decodeURIComponent(userData));
-        localStorage.setItem("userToken", token);
-        localStorage.setItem("user", JSON.stringify(user));
+        setSession(user, token);
         toast.success(`Welcome, ${user.name || "User"}!`);
         router.push(redirect);
       } catch (e) {
@@ -26,13 +27,13 @@ export default function AuthSuccessContent() {
     } else {
       router.push("/login");
     }
-  }, [searchParams, router]);
+  }, [searchParams, router, setSession]);
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white flex items-center justify-center">
+    <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
       <div className="text-center space-y-4">
-        <div className="w-16 h-16 border-4 border-[#C8A96E] border-t-transparent rounded-full animate-spin mx-auto"></div>
-        <p className="text-gray-400">Processing your login...</p>
+        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+        <p className="text-muted">Processing your login...</p>
       </div>
     </div>
   );

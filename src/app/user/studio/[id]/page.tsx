@@ -220,10 +220,10 @@ export default function StudioDetailPage({ params }: StudioDetailPageProps) {
     return (
       <main className="pt-24 px-12">
         <div className="max-w-7xl mx-auto space-y-8 animate-pulse">
-          <div className="h-80 rounded-3xl bg-[#1a1a1a]"></div>
+          <div className="h-80 rounded-3xl bg-surface"></div>
           <div className="grid grid-cols-12 gap-8">
-            <div className="col-span-12 lg:col-span-8 h-80 rounded-3xl bg-[#1a1a1a]"></div>
-            <div className="col-span-12 lg:col-span-4 h-80 rounded-3xl bg-[#1a1a1a]"></div>
+            <div className="col-span-12 lg:col-span-8 h-80 rounded-3xl bg-surface"></div>
+            <div className="col-span-12 lg:col-span-4 h-80 rounded-3xl bg-surface"></div>
           </div>
         </div>
       </main>
@@ -233,13 +233,13 @@ export default function StudioDetailPage({ params }: StudioDetailPageProps) {
   if (studioError || !studio) {
     return (
       <main className="pt-28 px-12">
-        <div className="max-w-3xl mx-auto bg-[#1a1a1a] border border-[#4D463A]/20 rounded-3xl p-10 text-center">
+        <div className="max-w-3xl mx-auto bg-surface border border-border/20 rounded-3xl p-10 text-center">
           <span className="material-symbols-outlined text-5xl text-red-400">error</span>
           <h1 className="text-3xl font-headline font-bold mt-4 mb-2">Failed to load studio</h1>
-          <p className="text-gray-400 mb-6">{studioError || "This studio may not exist."}</p>
+          <p className="text-muted mb-6">{studioError || "This studio may not exist."}</p>
           <button
             onClick={() => refetchStudio()}
-            className="px-6 py-3 rounded-xl bg-[#E5C487] text-[#402d00] font-headline font-bold"
+            className="px-6 py-3 rounded-xl bg-primary text-primary-foreground font-headline font-bold"
           >
             Try Again
           </button>
@@ -262,34 +262,34 @@ export default function StudioDetailPage({ params }: StudioDetailPageProps) {
     <main className="pt-20">
       <section className="relative h-[614px] w-full overflow-hidden">
         <img className="w-full h-full object-cover brightness-50" src={image} alt={studio.name} />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0e0e0e] via-transparent to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent"></div>
         <div className="absolute bottom-0 left-0 w-full px-12 pb-12 flex flex-col md:flex-row justify-between items-end gap-8">
           <div className="max-w-3xl">
             <div className="flex items-center gap-3 mb-4">
               <span className={`px-3 py-1 rounded-full text-xs font-label tracking-widest flex items-center gap-2 ${
-                studio.is_open ? "bg-green-900/30 text-green-400" : "bg-[#2a2a2a] text-gray-300"
+                studio.is_open ? "bg-green-900/30 text-green-400" : "bg-surface text-foreground"
               }`}>
                 <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
                 {statusText}
               </span>
-              <div className="flex items-center gap-1 text-[#E5C487]">
+              <div className="flex items-center gap-1 text-primary">
                 <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
                 <span className="font-bold">{studio.rating ?? "New"}</span>
-                <span className="text-gray-400 text-sm font-normal ml-1">({reviewCount} reviews)</span>
+                <span className="text-muted text-sm font-normal ml-1">({reviewCount} reviews)</span>
               </div>
             </div>
-            <h1 className="text-6xl md:text-8xl font-black font-headline tracking-tighter text-white mb-4">{studio.name}</h1>
-            <p className="font-label text-[#E5C487] uppercase tracking-[0.2em] flex items-center gap-4">
+            <h1 className="text-6xl md:text-8xl font-black font-headline tracking-tighter text-foreground mb-4">{studio.name}</h1>
+            <p className="font-label text-primary uppercase tracking-[0.2em] flex items-center gap-4">
               <span>{location.split(",")[0]}</span>
               <span className="w-1.5 h-1.5 rounded-full bg-gray-500"></span>
               <span>Est. {established}</span>
             </p>
           </div>
           <div className="flex gap-4 mb-2">
-            <button className="p-4 rounded-full border border-[#4D463A]/50 backdrop-blur-md hover:bg-[#2a2a2a] transition-all" aria-label="Share studio">
+            <button className="p-4 rounded-full border border-border/50 backdrop-blur-md hover:bg-surface transition-all" aria-label="Share studio">
               <span className="material-symbols-outlined">share</span>
             </button>
-            <button className="p-4 rounded-full border border-[#4D463A]/50 backdrop-blur-md hover:bg-[#2a2a2a] transition-all" aria-label="Add to favorites">
+            <button className="p-4 rounded-full border border-border/50 backdrop-blur-md hover:bg-surface transition-all" aria-label="Add to favorites">
               <span className="material-symbols-outlined">favorite</span>
             </button>
           </div>
@@ -298,15 +298,15 @@ export default function StudioDetailPage({ params }: StudioDetailPageProps) {
 
       <section className="max-w-7xl mx-auto px-12 py-16 grid grid-cols-12 gap-12">
         <div className="col-span-12 lg:col-span-8">
-          <div className="flex gap-10 border-b border-[#4D463A]/30 mb-12 overflow-x-auto whitespace-nowrap">
+          <div className="flex gap-10 border-b border-border/30 mb-12 overflow-x-auto whitespace-nowrap">
             {["Services", "Barbers", "Reviews", "Gallery"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`pb-6 border-b-2 font-headline font-bold transition-colors ${
                   activeTab === tab
-                    ? "border-[#E5C487] text-[#E5C487]"
-                    : "border-transparent text-gray-400 hover:text-white"
+                    ? "border-primary text-primary"
+                    : "border-transparent text-muted hover:text-foreground"
                 }`}
               >
                 {tab}
@@ -316,15 +316,15 @@ export default function StudioDetailPage({ params }: StudioDetailPageProps) {
 
           <div className="space-y-12">
             <div>
-              <h3 className="text-2xl font-headline font-bold mb-6 text-[#E5C487]">Signature Experiences</h3>
+              <h3 className="text-2xl font-headline font-bold mb-6 text-primary">Signature Experiences</h3>
               {servicesLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {[1, 2].map((item) => (
-                    <div key={item} className="h-48 rounded-2xl bg-[#1a1a1a] animate-pulse"></div>
+                    <div key={item} className="h-48 rounded-2xl bg-surface animate-pulse"></div>
                   ))}
                 </div>
               ) : services.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-[#4D463A]/30 p-8 text-center text-gray-400">
+                <div className="rounded-2xl border border-dashed border-border/30 p-8 text-center text-muted">
                   No services available yet.
                 </div>
               ) : (
@@ -335,10 +335,10 @@ export default function StudioDetailPage({ params }: StudioDetailPageProps) {
                     return (
                       <div
                         key={service.id}
-                        className={`bg-[#1a1a1a] p-6 rounded-2xl border transition-all group cursor-pointer ${
+                        className={`bg-surface p-6 rounded-2xl border transition-all group cursor-pointer ${
                           selected
-                            ? "border-[#E5C487]/50 bg-[#E5C487]/5"
-                            : "border-[#4D463A]/10 hover:border-[#E5C487]/30"
+                            ? "border-primary/50 bg-primary/5"
+                            : "border-border/10 hover:border-primary/30"
                         }`}
                         onClick={() => toggleService(serviceIdStr)}
                         role="button"
@@ -351,13 +351,13 @@ export default function StudioDetailPage({ params }: StudioDetailPageProps) {
                         }}
                       >
                         <div className="flex justify-between items-start mb-4">
-                          <h4 className="text-xl font-headline font-bold text-white">{service.name}</h4>
-                          <span className="text-[#E5C487] font-label font-bold text-lg">£{service.price}</span>
+                          <h4 className="text-xl font-headline font-bold text-foreground">{service.name}</h4>
+                          <span className="text-primary font-label font-bold text-lg">£{service.price}</span>
                         </div>
-                        <p className="text-gray-400 text-sm mb-6 leading-relaxed">{service.description || "Premium studio service."}</p>
+                        <p className="text-muted text-sm mb-6 leading-relaxed">{service.description || "Premium studio service."}</p>
                         <div className="flex justify-between items-center">
-                          <span className="text-xs font-label text-gray-500 uppercase tracking-widest">{service.duration} MINS</span>
-                          <button className="text-[#E5C487] text-sm font-bold flex items-center gap-2 group-hover:gap-3 transition-all">
+                          <span className="text-xs font-label text-secondary-foreground uppercase tracking-widest">{service.duration} MINS</span>
+                          <button className="text-primary text-sm font-bold flex items-center gap-2 group-hover:gap-3 transition-all">
                             {getServiceActionText(service.id)}
                             <span className="material-symbols-outlined text-sm">
                               {getServiceIcon(service.id)}
@@ -373,15 +373,15 @@ export default function StudioDetailPage({ params }: StudioDetailPageProps) {
 
             <div>
               <div className="flex justify-between items-end mb-8">
-                <h3 className="text-2xl font-headline font-bold text-[#E5C487]">Elite Artisans</h3>
-                <Link href="/user/discover" className="text-sm font-label text-gray-400 hover:underline underline-offset-4">
+                <h3 className="text-2xl font-headline font-bold text-primary">Elite Artisans</h3>
+                <Link href="/user/discover" className="text-sm font-label text-muted hover:underline underline-offset-4">
                   VIEW ALL
                 </Link>
               </div>
               {barbersLoading ? (
-                <div className="h-32 rounded-2xl bg-[#1a1a1a] animate-pulse"></div>
+                <div className="h-32 rounded-2xl bg-surface animate-pulse"></div>
               ) : barbers.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-[#4D463A]/30 p-8 text-center text-gray-400">
+                <div className="rounded-2xl border border-dashed border-border/30 p-8 text-center text-muted">
                   No barbers listed yet.
                 </div>
               ) : (
@@ -392,7 +392,7 @@ export default function StudioDetailPage({ params }: StudioDetailPageProps) {
                       href={`/user/barber/${barber.id}`} 
                       className="flex flex-col items-center gap-4 group cursor-pointer"
                     >
-                      <div className="w-24 h-32 rounded-tl-3xl rounded-br-3xl overflow-hidden border-2 border-transparent group-hover:border-[#E5C487] transition-all">
+                      <div className="w-24 h-32 rounded-tl-3xl rounded-br-3xl overflow-hidden border-2 border-transparent group-hover:border-primary transition-all">
                         <img
                           className="w-full h-full object-cover scale-110 group-hover:scale-100 transition-transform duration-500"
                           src={barber.image_url || BARBER_PLACEHOLDER}
@@ -400,7 +400,7 @@ export default function StudioDetailPage({ params }: StudioDetailPageProps) {
                         />
                       </div>
                       <div className="text-center">
-                        <p className="font-headline font-bold text-white">{barber.name}</p>
+                        <p className="font-headline font-bold text-foreground">{barber.name}</p>
                         <p className="text-[10px] font-label text-green-400 uppercase tracking-widest">{barber.title || "Barber"}</p>
                       </div>
                     </Link>
@@ -414,7 +414,7 @@ export default function StudioDetailPage({ params }: StudioDetailPageProps) {
                 <h3 className="text-xl font-headline font-bold mb-6 flex items-center gap-3">
                   <span className="material-symbols-outlined">location_on</span> The Studio
                 </h3>
-                <div className="aspect-video rounded-3xl overflow-hidden bg-[#1a1a1a] mb-4">
+                <div className="aspect-video rounded-3xl overflow-hidden bg-surface mb-4">
                   <iframe
                     title="Studio location map"
                     className="w-full h-full border-0 grayscale brightness-75 hover:grayscale-0 transition-all duration-700"
@@ -424,7 +424,7 @@ export default function StudioDetailPage({ params }: StudioDetailPageProps) {
                     allowFullScreen
                   />
                 </div>
-                <p className="text-gray-400 font-body">{location}</p>
+                <p className="text-muted font-body">{location}</p>
               </div>
               <div>
                 <h3 className="text-xl font-headline font-bold mb-6 flex items-center gap-3">
@@ -432,9 +432,9 @@ export default function StudioDetailPage({ params }: StudioDetailPageProps) {
                 </h3>
                 <ul className="space-y-4 font-label text-sm uppercase tracking-widest">
                   {workingHours.map((item) => (
-                    <li key={item.days} className={`flex justify-between pb-2 border-b border-[#4D463A]/20 ${item.closed ? "text-[#E5C487]" : ""}`}>
-                      <span className={item.closed ? "" : "text-gray-400"}>{item.days}</span>
-                      <span className={item.closed ? "" : "text-white"}>{item.hours}</span>
+                    <li key={item.days} className={`flex justify-between pb-2 border-b border-border/20 ${item.closed ? "text-primary" : ""}`}>
+                      <span className={item.closed ? "" : "text-muted"}>{item.days}</span>
+                      <span className={item.closed ? "" : "text-foreground"}>{item.hours}</span>
                     </li>
                   ))}
                 </ul>
@@ -444,53 +444,53 @@ export default function StudioDetailPage({ params }: StudioDetailPageProps) {
         </div>
 
         <aside className="col-span-12 lg:col-span-4">
-          <div className="sticky top-32 bg-[#1e1e1e] rounded-[2rem] p-8 shadow-[0_40px_80px_rgba(0,0,0,0.5)] border border-[#4D463A]/10">
-            <h3 className="text-2xl font-headline font-bold mb-8 text-white">Your Reservation</h3>
+          <div className="sticky top-32 bg-card rounded-[2rem] p-8 shadow-floating border border-border/10">
+            <h3 className="text-2xl font-headline font-bold mb-8 text-foreground">Your Reservation</h3>
             <div className="space-y-6 mb-8">
               {selectedServiceDetails.length > 0 ? (
                 selectedServiceDetails.map((service) => (
-                  <div key={service.id} className="flex items-start gap-4 p-4 rounded-2xl bg-[#2a2a2a]/50 border border-[#E5C487]/20">
-                    <div className="p-2 bg-[#E5C487]/10 rounded-lg">
-                      <span className="material-symbols-outlined text-[#E5C487]">content_cut</span>
+                  <div key={service.id} className="flex items-start gap-4 p-4 rounded-2xl bg-surface/50 border border-primary/20">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <span className="material-symbols-outlined text-primary">content_cut</span>
                     </div>
                     <div className="flex-1">
                       <div className="flex justify-between items-start">
-                        <p className="font-headline font-bold text-white text-sm">{service.name}</p>
+                        <p className="font-headline font-bold text-foreground text-sm">{service.name}</p>
                         <button 
                           onClick={() => toggleService(String(service.id))} 
-                          className="text-gray-400 hover:text-red-400 transition-colors"
+                          className="text-muted hover:text-red-400 transition-colors"
                           aria-label={`Remove ${service.name}`}
                         >
                           <span className="material-symbols-outlined text-base">close</span>
                         </button>
                       </div>
-                      <p className="text-xs font-label text-gray-500 uppercase tracking-wider mt-1">
+                      <p className="text-xs font-label text-secondary-foreground uppercase tracking-wider mt-1">
                         {service.duration} • £{service.price}
                       </p>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="border-2 border-dashed border-[#4D463A]/30 rounded-2xl p-6 flex flex-col items-center justify-center text-center gap-3">
-                  <span className="material-symbols-outlined text-gray-500">add_circle</span>
-                  <p className="text-xs font-label text-gray-500 uppercase tracking-widest">Select services above</p>
+                <div className="border-2 border-dashed border-border/30 rounded-2xl p-6 flex flex-col items-center justify-center text-center gap-3">
+                  <span className="material-symbols-outlined text-secondary-foreground">add_circle</span>
+                  <p className="text-xs font-label text-secondary-foreground uppercase tracking-widest">Select services above</p>
                 </div>
               )}
             </div>
 
             {selectedServices.length > 0 && (
-              <div className="space-y-4 pt-6 border-t border-[#4D463A]/30 mb-8">
+              <div className="space-y-4 pt-6 border-t border-border/30 mb-8">
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-400 font-label uppercase tracking-widest">Subtotal</span>
-                  <span className="text-white font-bold">£{subtotal}</span>
+                  <span className="text-muted font-label uppercase tracking-widest">Subtotal</span>
+                  <span className="text-foreground font-bold">£{subtotal}</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-400 font-label uppercase tracking-widest">Booking Fee</span>
-                  <span className="text-white font-bold">£{BOOKING_FEE}</span>
+                  <span className="text-muted font-label uppercase tracking-widest">Booking Fee</span>
+                  <span className="text-foreground font-bold">£{BOOKING_FEE}</span>
                 </div>
-                <div className="flex justify-between items-center pt-4 border-t border-[#4D463A]/20">
-                  <span className="text-[#E5C487] font-headline font-bold">Total Estimate</span>
-                  <span className="text-2xl font-headline font-black text-[#E5C487] tracking-tighter">£{total}</span>
+                <div className="flex justify-between items-center pt-4 border-t border-border/20">
+                  <span className="text-primary font-headline font-bold">Total Estimate</span>
+                  <span className="text-2xl font-headline font-black text-primary tracking-tighter">£{total}</span>
                 </div>
               </div>
             )}
@@ -499,8 +499,8 @@ export default function StudioDetailPage({ params }: StudioDetailPageProps) {
               href={selectedServices.length > 0 ? bookHref : "#"}
               className={`w-full py-5 rounded-2xl font-headline font-black text-lg tracking-tighter shadow-xl flex items-center justify-center gap-3 transition-all ${
                 selectedServices.length > 0
-                  ? "bg-gradient-to-r from-[#E5C487] to-[#C8A96E] text-[#402d00] hover:brightness-110 active:scale-[0.98]"
-                  : "bg-[#2a2a2a] text-gray-500 cursor-not-allowed"
+                  ? "bg-gradient-to-r from-primary-fixed-dim to-primary-container text-primary-foreground hover:brightness-110 active:scale-[0.98]"
+                  : "bg-surface text-secondary-foreground cursor-not-allowed"
               }`}
               aria-disabled={selectedServices.length === 0}
               onClick={(e) => {
@@ -509,7 +509,7 @@ export default function StudioDetailPage({ params }: StudioDetailPageProps) {
             >
               BOOK A SLOT <span className="material-symbols-outlined font-bold">arrow_forward</span>
             </Link>
-            <p className="text-[10px] text-center text-gray-500 uppercase font-label tracking-widest mt-6">
+            <p className="text-[10px] text-center text-secondary-foreground uppercase font-label tracking-widest mt-6">
               Cancellation policy applies. Secure checkout powered by Revoras.
             </p>
           </div>

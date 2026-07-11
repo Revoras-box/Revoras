@@ -2,28 +2,28 @@ import Link from "next/link";
 
 export default function SplashHero() {
   return (
-    <main className="relative min-h-screen flex flex-col items-center justify-center pt-24 overflow-hidden bg-[#0b0b0b]">
+    <main className="relative min-h-screen flex flex-col items-center justify-center pt-24 overflow-hidden bg-background">
 
       {/* Barber Stripe Background */}
-      <div className="absolute inset-0 opacity-20 bg-[repeating-linear-gradient(45deg,#111,#111_20px,#0b0b0b_20px,#0b0b0b_40px)]" />
+      <div className="absolute inset-0 opacity-0 dark:opacity-20 bg-[repeating-linear-gradient(45deg,#111,#111_20px,#0b0b0b_20px,#0b0b0b_40px)]" />
 
       {/* Glow */}
-      <div className="absolute w-175 h-175 bg-[#C8A96E]/10 blur-[120px] rounded-full" />
+      <div className="absolute w-175 h-175 bg-primary/10 blur-[120px] rounded-full" />
 
       {/* Hero */}
       <div className="relative z-10 text-center">
 
         <div className="flex justify-center mb-6">
-          <span className="material-symbols-outlined text-[#C8A96E] text-7xl">
+          <span className="material-symbols-outlined text-primary text-7xl">
             content_cut
           </span>
         </div>
 
-        <h1 className="text-7xl md:text-9xl font-bold text-[#C8A96E] tracking-tight">
+        <h1 className="text-7xl md:text-9xl font-bold text-primary tracking-tight">
           Revoras 
         </h1>
 
-        <p className="mt-4 text-[#6f6f6f] tracking-[0.35em] uppercase text-sm md:text-base">
+        <p className="mt-4 text-secondary-foreground tracking-[0.35em] uppercase text-sm md:text-base">
           Revive Your Aura.
         </p>
       </div>
@@ -32,7 +32,7 @@ export default function SplashHero() {
       <div className="relative z-10 grid md:grid-cols-2 gap-8 w-full max-w-6xl mt-16 px-6 pb-20">
 
         {/* Customer */}
-        <Link href="/login" className="group relative overflow-hidden rounded-2xl border border-white/10 bg-[#111]/80 backdrop-blur-xl p-8 transition-all duration-500 hover:border-[#C8A96E]/40 block">
+        <Link href="/login" className="group relative overflow-hidden rounded-2xl border border-border/10 bg-background/80 backdrop-blur-xl p-8 transition-all duration-500 hover:border-primary/40 block">
 
           {/* Right Image */}
           <div
@@ -50,8 +50,8 @@ export default function SplashHero() {
 
           <div className="relative z-10 flex flex-col gap-6">
 
-            <div className="w-12 h-12 rounded-lg bg-[#C8A96E]/20 flex items-center justify-center">
-              <span className="material-symbols-outlined text-[#C8A96E]">
+            <div className="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center">
+              <span className="material-symbols-outlined text-primary">
                 person
               </span>
             </div>
@@ -61,12 +61,12 @@ export default function SplashHero() {
                 Customer
               </h2>
 
-              <p className="text-[#8a8a8a] mt-2 max-w-xs">
+              <p className="text-muted mt-2 max-w-xs">
                 Book a walk-in or queue up at your local favorite studio.
               </p>
             </div>
 
-            <span className="flex items-center gap-2 text-[#C8A96E] text-sm uppercase tracking-widest mt-4">
+            <span className="flex items-center gap-2 text-primary text-sm uppercase tracking-widest mt-4">
               Get Started
               <span className="material-symbols-outlined group-hover:translate-x-2 transition">
                 arrow_forward
@@ -78,7 +78,7 @@ export default function SplashHero() {
 
 
         {/* Shop Owner */}
-        <Link href="/login-barber" className="group relative overflow-hidden rounded-2xl border border-white/10 bg-[#111]/80 backdrop-blur-xl p-8 transition-all duration-500 hover:border-[#C8A96E]/40 block">
+        <Link href="/login-barber" className="group relative overflow-hidden rounded-2xl border border-border/10 bg-background/80 backdrop-blur-xl p-8 transition-all duration-500 hover:border-primary/40 block">
 
           {/* Right Image */}
           <div
@@ -96,8 +96,8 @@ export default function SplashHero() {
 
           <div className="relative z-10 flex flex-col gap-6">
 
-            <div className="w-12 h-12 rounded-lg bg-[#C8A96E]/20 flex items-center justify-center">
-              <span className="material-symbols-outlined text-[#C8A96E]">
+            <div className="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center">
+              <span className="material-symbols-outlined text-primary">
                 storefront
               </span>
             </div>
@@ -107,12 +107,12 @@ export default function SplashHero() {
                 Shop Owner
               </h2>
 
-              <p className="text-[#8a8a8a] mt-2 max-w-xs">
+              <p className="text-muted mt-2 max-w-xs">
                 Manage your queue, staff schedules, and digital shop experience.
               </p>
             </div>
 
-            <span className="flex items-center gap-2 text-[#C8A96E] text-sm uppercase tracking-widest mt-4">
+            <span className="flex items-center gap-2 text-primary text-sm uppercase tracking-widest mt-4">
               Merchant Portal
               <span className="material-symbols-outlined group-hover:translate-x-2 transition">
                 arrow_forward

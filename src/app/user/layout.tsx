@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function UserLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[#0E0E0E] text-white">
+    <div className="min-h-screen bg-background text-foreground">
       <UserNavbar />
       <main>{children}</main>
       <UserFooter />

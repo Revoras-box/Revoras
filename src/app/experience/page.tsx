@@ -18,7 +18,7 @@ export default function ExperiencePage() {
       <Navbar />
 
       {/* Hero Section */}
-      <header className="relative min-h-screen flex items-center overflow-hidden bg-black">
+      <header className="relative min-h-screen flex items-center overflow-hidden bg-background">
 
         {/* Background Image */}
         <div className="absolute inset-0">
@@ -58,7 +58,7 @@ export default function ExperiencePage() {
               Skip the wait.
               <br />
 
-              <span className="bg-linear-to-r from-[#E7D2A0] to-[#C8A96E] text-transparent bg-clip-text">
+              <span className="bg-linear-to-r from-primary-fixed-dim to-primary-container text-transparent bg-clip-text">
                 Walk in fresh.
               </span>
 
@@ -66,7 +66,7 @@ export default function ExperiencePage() {
 
 
             {/* Description */}
-            <p className="text-gray-400 text-lg leading-relaxed max-w-lg">
+            <p className="text-muted text-lg leading-relaxed max-w-lg">
               The digital concierge for elite grooming. Secure your
               spot in the city's most exclusive chairs without lifting a
               finger.
@@ -76,11 +76,11 @@ export default function ExperiencePage() {
             {/* Buttons */}
             <div className="flex items-center gap-8">
 
-              <Link href="/login" className="bg-[#C8A96E] text-black px-8 py-4 rounded-xl font-semibold hover:opacity-90 transition inline-block">
+              <Link href="/login" className="bg-primary text-primary-foreground px-8 py-4 rounded-xl font-semibold hover:opacity-90 transition inline-block">
                 BOOK NOW
               </Link>
 
-              <Link href="/services" className="flex items-center gap-2 text-[#C8A96E] uppercase tracking-widest text-sm font-semibold hover:translate-x-1 transition">
+              <Link href="/services" className="flex items-center gap-2 text-primary uppercase tracking-widest text-sm font-semibold hover:translate-x-1 transition">
                 EXPLORE SERVICES
                 <span className="material-symbols-outlined">
                   arrow_forward
@@ -100,15 +100,15 @@ export default function ExperiencePage() {
           <div className="relative w-75 rounded-2xl overflow-hidden">
 
             {/* Background Glass */}
-            <div className="absolute inset-0 bg-[#1b1b1b]/70 backdrop-blur-xl rounded-2xl" />
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-xl rounded-2xl" />
 
             {/* Gold Left Border Glow */}
-            <div className="absolute left-0 top-0 h-full w-0.75 bg-linear-to-b from-[#E7D2A0] to-[#C8A96E]" />
+            <div className="absolute left-0 top-0 h-full w-0.75 bg-linear-to-b from-primary-fixed-dim to-primary-container" />
 
             {/* Content */}
             <div className="relative p-7">
 
-              <div className="text-xs tracking-widest uppercase text-[#C8A96E] mb-3">
+              <div className="text-xs tracking-widest uppercase text-primary mb-3">
                 Current Queue
               </div>
 
@@ -117,12 +117,12 @@ export default function ExperiencePage() {
                   04
                 </span>
 
-                <span className="text-gray-400 mb-2">
+                <span className="text-muted mb-2">
                   Mins
                 </span>
               </div>
 
-              <p className="text-sm text-gray-400 leading-relaxed">
+              <p className="text-sm text-muted leading-relaxed">
                 Average wait time at Revoras Partner shops
               </p>
 
@@ -135,7 +135,7 @@ export default function ExperiencePage() {
       </header>
 
       {/* Experience Section */}
-      <section className="relative py-32 overflow-hidden bg-[#0b0b0b]">
+      <section className="relative py-32 overflow-hidden bg-background">
 
         {/* Background Texture Image */}
         <div
@@ -156,7 +156,7 @@ export default function ExperiencePage() {
         {/* Right Scissors Image */}
         <div className="absolute right-0 top-1/2 -translate-y-1/2 opacity-[0.05] pointer-events-none">
 
-          <span className="material-symbols-outlined text-[420px] text-[#C8A96E]">
+          <span className="material-symbols-outlined text-[420px] text-primary">
             content_cut
           </span>
 
@@ -169,7 +169,7 @@ export default function ExperiencePage() {
           {/* Header */}
           <div className="mb-20">
 
-            <div className="text-[#C8A96E] uppercase tracking-[0.4em] text-xs mb-4 font-semibold">
+            <div className="text-primary uppercase tracking-[0.4em] text-xs mb-4 font-semibold">
               THE EXPERIENCE
             </div>
 
@@ -187,17 +187,17 @@ export default function ExperiencePage() {
             {/* Luxury */}
             <div className="space-y-6">
 
-              <div className="w-14 h-14 rounded-xl bg-[#1a1a1a] flex items-center justify-center">
-                <span className="material-symbols-outlined text-[#C8A96E]">
+              <div className="w-14 h-14 rounded-xl bg-card flex items-center justify-center">
+                <span className="material-symbols-outlined text-primary">
                   hotel_class
                 </span>
               </div>
 
-              <h3 className="text-xl font-semibold text-white">
+              <h3 className="text-xl font-semibold text-foreground">
                 Luxury Service
               </h3>
 
-              <p className="text-gray-400 leading-relaxed">
+              <p className="text-muted leading-relaxed">
                 Curated amenities from hot towels to premium beverages.
                 Every visit is designed to be a sanctuary for the modern gentleman.
               </p>
@@ -209,17 +209,17 @@ export default function ExperiencePage() {
             {/* Expert */}
             <div className="space-y-6">
 
-              <div className="w-14 h-14 rounded-xl bg-[#1a1a1a] flex items-center justify-center">
-                <span className="material-symbols-outlined text-[#C8A96E]">
+              <div className="w-14 h-14 rounded-xl bg-card flex items-center justify-center">
+                <span className="material-symbols-outlined text-primary">
                   content_cut
                 </span>
               </div>
 
-              <h3 className="text-xl font-semibold text-white">
+              <h3 className="text-xl font-semibold text-foreground">
                 Expert Barbers
               </h3>
 
-              <p className="text-gray-400 leading-relaxed">
+              <p className="text-muted leading-relaxed">
                 Our platform only features master-level artisans who
                 understand the nuances of classic and contemporary styling.
               </p>
@@ -231,17 +231,17 @@ export default function ExperiencePage() {
             {/* No Queue */}
             <div className="space-y-6">
 
-              <div className="w-14 h-14 rounded-xl bg-[#1a1a1a] flex items-center justify-center">
-                <span className="material-symbols-outlined text-[#C8A96E]">
+              <div className="w-14 h-14 rounded-xl bg-card flex items-center justify-center">
+                <span className="material-symbols-outlined text-primary">
                   schedule
                 </span>
               </div>
 
-              <h3 className="text-xl font-semibold text-white">
+              <h3 className="text-xl font-semibold text-foreground">
                 No Queues
               </h3>
 
-              <p className="text-gray-400 leading-relaxed">
+              <p className="text-muted leading-relaxed">
                 Real-time dynamic booking ensures you spend zero
                 time in the waiting area. Your time is our most respected asset.
               </p>
@@ -329,9 +329,9 @@ export default function ExperiencePage() {
 
             <div className="md:col-span-4 group relative overflow-hidden rounded-4xl h-75 premium-gradient">
               <div className="w-full h-full bg-linear-to-br from-primary-container to-primary flex flex-col items-center justify-center text-on-primary p-8 text-center space-y-4">
-                <span className="material-symbols-outlined text-5xl! text-[#594312]">add_location</span>
-                <h4 className="text-xl font-headline font-bold text-[#402D00]">Want to list your shop?</h4>
-                <p className="text-sm opacity-80 font-light text-[#402D00]">Join the most exclusive digital network of premium barbers.</p>
+                <span className="material-symbols-outlined text-5xl! text-primary-foreground">add_location</span>
+                <h4 className="text-xl font-headline font-bold text-primary-foreground">Want to list your shop?</h4>
+                <p className="text-sm opacity-80 font-light text-primary-foreground">Join the most exclusive digital network of premium barbers.</p>
                 <div className="bg-black rounded-md">
 
                   <Link href="/login-barber" className="bg-surface text-on-surface px-6 py-2 rounded-lg text-xs font-bold uppercase tracking-widest inline-block">Apply Now</Link>

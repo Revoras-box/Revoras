@@ -1,5 +1,14 @@
 import type { Config } from "tailwindcss";
 
+/**
+ * NOTE: This project uses Tailwind CSS v4, which is configured CSS-first in
+ * `src/app/globals.css` via `@theme inline` + runtime CSS variables. That is
+ * the single source of truth for theme tokens and light/dark switching.
+ *
+ * This file is kept only for tooling/back-compat. Every color references the
+ * same runtime CSS variable as globals.css, so it can never reintroduce stale
+ * fixed values even if a future `@config` directive loads it.
+ */
 const config: Config = {
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -10,66 +19,66 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        "secondary-fixed-dim": "#8ad7a4",
-        "secondary-fixed": "#a5f4bf",
-        "inverse-primary": "#735b28",
-        "on-background": "#e5e2e1",
-        "inverse-surface": "#e5e2e1",
-        "tertiary": "#bac7f2",
-        "on-error": "#690005",
-        "error": "#ffb4ab",
-        "surface-container-highest": "#353534",
-        "on-tertiary-container": "#334063",
-        "on-secondary-container": "#86d3a0",
-        "tertiary-container": "#9facd5",
-        "surface-dim": "#131313",
-        "primary-fixed": "#ffdea3",
-        "surface-tint": "#e3c285",
-        "surface-container-low": "#1c1b1b",
-        "on-tertiary": "#222f51",
-        "surface-bright": "#3a3939",
-        "secondary": "#8ad7a4",
-        "secondary-container": "#015d35",
-        "on-primary-fixed-variant": "#594312",
-        "outline": "#998f81",
-        "on-secondary": "#00391e",
-        "on-secondary-fixed-variant": "#00522e",
-        "surface": "#131313",
-        "on-tertiary-fixed": "#0b1a3b",
-        "inverse-on-surface": "#313030",
-        "tertiary-fixed": "#dae2ff",
-        "on-error-container": "#ffdad6",
-        "outline-variant": "#4d463a",
-        "surface-container-high": "#2a2a2a",
-        "surface-container": "#201f1f",
-        "primary-container": "#c8a96e",
-        "tertiary-fixed-dim": "#b8c5f0",
-        "on-primary": "#402d00",
-        "on-primary-container": "#533d0c",
-        "surface-variant": "#353534",
-        "surface-container-lowest": "#0e0e0e",
-        "on-surface": "#e5e2e1",
-        "primary-fixed-dim": "#e3c285",
-        "on-primary-fixed": "#261900",
-        "on-secondary-fixed": "#00210f",
-        "error-container": "#93000a",
-        "background": "#131313",
-        "primary": "#e5c487",
-        "on-surface-variant": "#d0c5b5",
-        "on-tertiary-fixed-variant": "#394669"
+        background: "var(--background)",
+        surface: "var(--surface)",
+        card: "var(--card)",
+        "surface-container-lowest": "var(--surface-container-lowest)",
+        "surface-container-low": "var(--surface-container-low)",
+        "surface-container": "var(--surface-container)",
+        "surface-container-high": "var(--surface-container-high)",
+        "surface-container-highest": "var(--surface-container-highest)",
+        "surface-variant": "var(--surface-variant)",
+        "surface-dim": "var(--surface-dim)",
+        "surface-bright": "var(--surface-bright)",
+
+        foreground: "var(--foreground)",
+        "on-surface": "var(--on-surface)",
+        "on-background": "var(--on-background)",
+        "on-surface-variant": "var(--on-surface-variant)",
+        "secondary-foreground": "var(--secondary-foreground)",
+        muted: "var(--muted)",
+
+        border: "var(--border)",
+        outline: "var(--outline)",
+        "outline-variant": "var(--outline-variant)",
+
+        primary: "var(--primary)",
+        "primary-foreground": "var(--primary-foreground)",
+        "primary-container": "var(--primary-container)",
+        "on-primary": "var(--on-primary)",
+        "on-primary-container": "var(--on-primary-container)",
+        "primary-fixed-dim": "var(--primary-fixed-dim)",
+
+        secondary: "var(--secondary)",
+        "on-secondary": "var(--on-secondary)",
+        "secondary-container": "var(--secondary-container)",
+        "on-secondary-container": "var(--on-secondary-container)",
+        "secondary-fixed": "var(--secondary-fixed)",
+        "secondary-fixed-dim": "var(--secondary-fixed-dim)",
+
+        tertiary: "var(--tertiary)",
+        "tertiary-container": "var(--tertiary-container)",
+
+        error: "var(--error)",
+        "on-error": "var(--on-error)",
+        "error-container": "var(--error-container)",
+        "on-error-container": "var(--on-error-container)",
+
+        "inverse-surface": "var(--inverse-surface)",
+        "inverse-on-surface": "var(--inverse-on-surface)",
       },
       fontFamily: {
-        "headline": ["Epilogue", "sans-serif"],
-        "body": ["Manrope", "sans-serif"],
-        "label": ["Space Grotesk", "sans-serif"],
-        "syne": ["Syne", "sans-serif"]
+        headline: ["Epilogue", "sans-serif"],
+        body: ["Manrope", "sans-serif"],
+        label: ["Space Grotesk", "sans-serif"],
+        syne: ["Syne", "sans-serif"],
       },
       borderRadius: {
-        "DEFAULT": "0.25rem", 
-        "lg": "0.5rem", 
-        "xl": "0.75rem", 
-        "2xl": "1.5rem", 
-        "full": "9999px"
+        DEFAULT: "0.25rem",
+        lg: "0.5rem",
+        xl: "0.75rem",
+        "2xl": "1.5rem",
+        full: "9999px",
       },
     },
   },

@@ -102,28 +102,28 @@ function ReviewPageContent() {
     return (
       <main className="relative z-10 flex flex-col items-center justify-center px-6 pt-24 pb-20 max-w-7xl mx-auto min-h-screen">
         <div className="text-center">
-          <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-[#E5C487]/10 mb-8 border border-[#E5C487]/30">
-            <span className="material-symbols-outlined text-[#E5C487] text-6xl icon-filled">
+          <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-primary/10 mb-8 border border-primary/30">
+            <span className="material-symbols-outlined text-primary text-6xl icon-filled">
               favorite
             </span>
           </div>
-          <h1 className="font-headline text-5xl md:text-6xl font-black tracking-tighter text-[#E5C487] mb-4">
+          <h1 className="font-headline text-5xl md:text-6xl font-black tracking-tighter text-primary mb-4">
             Thank You!
           </h1>
-          <p className="text-gray-400 text-lg mb-8 max-w-md">
+          <p className="text-muted text-lg mb-8 max-w-md">
             Your feedback helps {booking?.barber_name || "our barbers"} and our community of artisans continue to deliver exceptional experiences.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/user/bookings"
-              className="px-8 py-4 bg-gradient-to-r from-[#E5C487] to-[#C8A96E] text-[#402d00] font-bold rounded-xl flex items-center justify-center gap-2"
+              className="px-8 py-4 bg-gradient-to-r from-primary-fixed-dim to-primary-container text-primary-foreground font-bold rounded-xl flex items-center justify-center gap-2"
             >
               <span className="material-symbols-outlined">arrow_back</span>
               Back to Bookings
             </Link>
             <Link
               href="/user/book"
-              className="px-8 py-4 bg-[#1e1e1e] border border-[#4D463A]/30 text-white font-bold rounded-xl flex items-center justify-center gap-2 hover:border-[#E5C487]/40 transition-colors"
+              className="px-8 py-4 bg-card border border-border/30 text-foreground font-bold rounded-xl flex items-center justify-center gap-2 hover:border-primary/40 transition-colors"
             >
               <span className="material-symbols-outlined">calendar_add_on</span>
               Book Again
@@ -137,15 +137,15 @@ function ReviewPageContent() {
   return (
     <main className="relative z-10 flex flex-col px-6 pt-20 pb-20 max-w-4xl mx-auto min-h-screen">
       <div className="text-center mb-12">
-        <p className="font-label text-[10px] uppercase tracking-widest text-[#E5C487]/60 mb-2">Share Your Experience</p>
+        <p className="font-label text-[10px] uppercase tracking-widest text-primary/60 mb-2">Share Your Experience</p>
         <h1 className="font-headline text-5xl md:text-6xl font-black tracking-tighter mb-4">Leave a Review</h1>
-        <p className="text-gray-400">Your feedback helps others discover exceptional service</p>
+        <p className="text-muted">Your feedback helps others discover exceptional service</p>
       </div>
 
       {loading ? (
-        <div className="bg-[#1a1a1a] rounded-3xl p-8 mb-10 border border-[#4D463A]/20 animate-pulse h-28"></div>
+        <div className="bg-surface rounded-3xl p-8 mb-10 border border-border/20 animate-pulse h-28"></div>
       ) : booking ? (
-        <div className="bg-[#1a1a1a] rounded-3xl p-8 mb-10 border border-[#4D463A]/20">
+        <div className="bg-surface rounded-3xl p-8 mb-10 border border-border/20">
           <div className="flex items-center gap-6">
             {booking.barber_image && (
               <img
@@ -155,30 +155,30 @@ function ReviewPageContent() {
               />
             )}
             <div className="flex-1">
-              <h3 className="font-headline text-2xl font-bold text-white mb-1">
+              <h3 className="font-headline text-2xl font-bold text-foreground mb-1">
                 {booking.services?.map((s) => s.name).join(", ") || "Your Appointment"}
               </h3>
               {booking.barber_name && (
-                <p className="text-gray-400">
-                  with <span className="text-[#E5C487] font-semibold">{booking.barber_name}</span>
+                <p className="text-muted">
+                  with <span className="text-primary font-semibold">{booking.barber_name}</span>
                 </p>
               )}
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-secondary-foreground mt-1">
                 {booking.studio_name} • {new Date(booking.booking_date).toLocaleDateString()}
               </p>
             </div>
           </div>
         </div>
       ) : (
-        <div className="bg-[#1a1a1a] rounded-3xl p-8 mb-10 border border-[#4D463A]/20 text-center">
-          <p className="text-gray-400">Share your general feedback about Revoras</p>
+        <div className="bg-surface rounded-3xl p-8 mb-10 border border-border/20 text-center">
+          <p className="text-muted">Share your general feedback about Revoras</p>
         </div>
       )}
 
-      <div className="bg-[#1a1a1a] rounded-3xl p-10 mb-8 border border-[#4D463A]/20">
+      <div className="bg-surface rounded-3xl p-10 mb-8 border border-border/20">
         <div className="text-center mb-10">
           <h2 className="font-headline text-2xl font-bold mb-3">How was your experience?</h2>
-          <p className="text-gray-400 text-sm">Tap a star to rate</p>
+          <p className="text-muted text-sm">Tap a star to rate</p>
         </div>
 
         <div className="flex justify-center gap-4 mb-10">
@@ -192,7 +192,7 @@ function ReviewPageContent() {
             >
               <span
                 className={`material-symbols-outlined text-5xl transition-colors icon-filled ${
-                  star <= (hoverRating || rating) ? "text-[#E5C487]" : "text-gray-600"
+                  star <= (hoverRating || rating) ? "text-primary" : "text-secondary-foreground"
                 }`}
               >
                 star
@@ -206,12 +206,12 @@ function ReviewPageContent() {
           {rating === 2 && <span className="text-orange-400">Fair</span>}
           {rating === 3 && <span className="text-yellow-400">Good</span>}
           {rating === 4 && <span className="text-lime-400">Very Good</span>}
-          {rating === 5 && <span className="text-[#E5C487]">Exceptional</span>}
-          {rating === 0 && <span className="text-gray-500">Select a rating</span>}
+          {rating === 5 && <span className="text-primary">Exceptional</span>}
+          {rating === 0 && <span className="text-secondary-foreground">Select a rating</span>}
         </p>
 
         <div className="mb-10">
-          <p className="font-label text-[10px] uppercase tracking-widest text-gray-500 mb-4 text-center">
+          <p className="font-label text-[10px] uppercase tracking-widest text-secondary-foreground mb-4 text-center">
             Quick Feedback (Optional)
           </p>
           <div className="flex flex-wrap justify-center gap-3">
@@ -221,8 +221,8 @@ function ReviewPageContent() {
                 onClick={() => toggleTag(tag)}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                   selectedTags.includes(tag)
-                    ? "bg-[#E5C487] text-[#402d00]"
-                    : "bg-[#2a2a2a] text-gray-300 hover:bg-[#3a3a3a]"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-surface text-foreground hover:bg-surface"
                 }`}
               >
                 {selectedTags.includes(tag) && (
@@ -235,7 +235,7 @@ function ReviewPageContent() {
         </div>
 
         <div className="mb-6">
-          <label className="block font-label text-[10px] uppercase tracking-widest text-gray-500 mb-3">
+          <label className="block font-label text-[10px] uppercase tracking-widest text-secondary-foreground mb-3">
             Title (Optional)
           </label>
           <input
@@ -244,12 +244,12 @@ function ReviewPageContent() {
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Summarize your experience in a few words"
             maxLength={100}
-            className="w-full bg-[#2a2a2a] border border-[#4D463A]/30 rounded-xl p-4 text-white placeholder-gray-500 focus:outline-none focus:border-[#E5C487]/50 transition-colors"
+            className="w-full bg-surface border border-border/30 rounded-xl p-4 text-foreground placeholder-gray-500 focus:outline-none focus:border-primary/50 transition-colors"
           />
         </div>
 
         <div>
-          <label className="block font-label text-[10px] uppercase tracking-widest text-gray-500 mb-3">
+          <label className="block font-label text-[10px] uppercase tracking-widest text-secondary-foreground mb-3">
             Share More Details (Optional)
           </label>
           <textarea
@@ -257,18 +257,18 @@ function ReviewPageContent() {
             onChange={(e) => setReview(e.target.value.slice(0, 500))}
             placeholder="Tell others about your experience..."
             rows={4}
-            className="w-full bg-[#2a2a2a] border border-[#4D463A]/30 rounded-2xl p-5 text-white placeholder-gray-500 resize-none focus:outline-none focus:border-[#E5C487]/50 transition-colors"
+            className="w-full bg-surface border border-border/30 rounded-2xl p-5 text-foreground placeholder-gray-500 resize-none focus:outline-none focus:border-primary/50 transition-colors"
           />
-          <p className="text-right text-xs text-gray-500 mt-2">{review.length}/500</p>
+          <p className="text-right text-xs text-secondary-foreground mt-2">{review.length}/500</p>
         </div>
       </div>
 
-      <div className="bg-[#1a1a1a] rounded-3xl p-8 mb-10 border border-[#4D463A]/20">
+      <div className="bg-surface rounded-3xl p-8 mb-10 border border-border/20">
         <div className="text-center">
-          <span className="material-symbols-outlined text-4xl text-gray-500 mb-4 block">add_photo_alternate</span>
-          <p className="font-semibold text-white mb-2">Add Photos</p>
-          <p className="text-sm text-gray-400 mb-4">Show off your fresh look</p>
-          <label className="inline-flex items-center gap-2 px-6 py-3 bg-[#2a2a2a] text-white rounded-xl cursor-pointer hover:bg-[#3a3a3a] transition-colors">
+          <span className="material-symbols-outlined text-4xl text-secondary-foreground mb-4 block">add_photo_alternate</span>
+          <p className="font-semibold text-foreground mb-2">Add Photos</p>
+          <p className="text-sm text-muted mb-4">Show off your fresh look</p>
+          <label className="inline-flex items-center gap-2 px-6 py-3 bg-surface text-foreground rounded-xl cursor-pointer hover:bg-surface transition-colors">
             <span className="material-symbols-outlined">upload</span>
             Choose Files
             <input type="file" accept="image/*" multiple className="hidden" />
@@ -281,8 +281,8 @@ function ReviewPageContent() {
         disabled={rating === 0 || submitting}
         className={`w-full py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 transition-all ${
           rating > 0 && !submitting
-            ? "bg-gradient-to-r from-[#E5C487] to-[#C8A96E] text-[#402d00] hover:shadow-[0_10px_30px_rgba(229,196,135,0.3)] active:scale-[0.98]"
-            : "bg-gray-800 text-gray-500 cursor-not-allowed"
+            ? "bg-gradient-to-r from-primary-fixed-dim to-primary-container text-primary-foreground hover:shadow-[0_10px_30px_rgba(229,196,135,0.3)] active:scale-[0.98]"
+            : "bg-surface-container-high text-secondary-foreground cursor-not-allowed"
         }`}
       >
         {submitting ? (
@@ -300,7 +300,7 @@ function ReviewPageContent() {
 
       <Link
         href="/user/bookings"
-        className="text-center text-gray-500 text-sm mt-6 hover:text-gray-300 transition-colors block"
+        className="text-center text-secondary-foreground text-sm mt-6 hover:text-foreground transition-colors block"
       >
         Maybe later
       </Link>
@@ -311,8 +311,8 @@ function ReviewPageContent() {
 function ReviewPageLoading() {
   return (
     <main className="relative z-10 flex flex-col items-center justify-center px-6 pt-24 pb-20 max-w-7xl mx-auto min-h-screen">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#E5C487]"></div>
-      <p className="text-gray-400 mt-4">Loading...</p>
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-fixed-dim"></div>
+      <p className="text-muted mt-4">Loading...</p>
     </main>
   );
 }

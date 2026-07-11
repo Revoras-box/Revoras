@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import BarberSidebar from "@/components/barber/BarberSidebar";
 import { BarberAuthProvider, useBarberAuth } from "@/lib/barber-auth";
 import { api } from "@/lib/api";
+import { formatINR } from "@/lib/format";
 
 // Types
 interface Transaction {
@@ -106,56 +107,54 @@ function PaymentsContent() {
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
-  };
+  const formatCurrency = (amount: number) => formatINR(amount);
 
   if (authLoading || !isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#0E0E0E] flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-[#E5C487]/30 border-t-[#E5C487] rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-surface-container-lowest flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-primary-fixed-dim/30 border-t-primary rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0E0E0E] text-white">
+    <div className="min-h-screen bg-surface-container-lowest text-foreground">
       <BarberSidebar />
-      <main className="ml-72 flex-1 min-h-screen flex flex-col">
-        <header className="h-20 px-10 flex justify-between items-center bg-[#1C1B1B]/60 backdrop-blur-xl z-40 sticky top-0">
+      <main className="lg:ml-72 flex-1 min-h-screen flex flex-col">
+        <header className="h-20 pl-16 pr-6 lg:px-10 flex justify-between items-center bg-surface-container-low/60 backdrop-blur-xl z-40 sticky top-0">
           <div className="flex items-center gap-8">
-            <h2 className="font-headline font-black text-2xl tracking-tight text-white">Revenue Hub</h2>
+            <h2 className="font-headline font-black text-2xl tracking-tight text-foreground">Revenue Hub</h2>
           </div>
-          <button className="px-6 py-3 bg-gradient-to-r from-[#E5C487] to-[#C8A96E] text-[#402d00] font-headline font-bold rounded-xl active:scale-95 transition-all flex items-center gap-2">
+          <button className="px-6 py-3 bg-gradient-to-r from-primary-fixed-dim to-primary-container text-primary-foreground font-headline font-bold rounded-xl active:scale-95 transition-all flex items-center gap-2">
             <span className="material-symbols-outlined text-sm">download</span>
             Export Report
           </button>
         </header>
 
-        <div className="p-8 space-y-8 flex-1 overflow-y-auto bg-[#0E0E0E]">
+        <div className="p-8 space-y-8 flex-1 overflow-y-auto bg-surface-container-lowest">
           {/* Balance Cards */}
           <div className="grid grid-cols-3 gap-6">
-            <div className="bg-gradient-to-br from-[#E5C487]/20 to-[#1C1B1B] rounded-3xl p-6 border border-[#E5C487]/20">
-              <p className="text-xs text-[#E5C487] uppercase tracking-widest mb-2">Collected Revenue</p>
-              <p className="text-4xl font-headline font-black text-white">
+            <div className="bg-gradient-to-br from-primary-fixed-dim/20 to-surface-container-low rounded-3xl p-6 border border-primary-fixed-dim/20">
+              <p className="text-xs text-primary uppercase tracking-widest mb-2">Collected Revenue</p>
+              <p className="text-4xl font-headline font-black text-foreground">
                 {loading ? '...' : formatCurrency(summary.availableBalance)}
               </p>
-              <p className="text-xs text-[#4D463A] mt-4">From paid bookings</p>
+              <p className="text-xs text-muted mt-4">From paid bookings</p>
             </div>
-            <div className="bg-[#1C1B1B] rounded-3xl p-6 border border-[#4D463A]/10">
-              <p className="text-xs text-[#4D463A] uppercase tracking-widest mb-2">Pending Payments</p>
-              <p className="text-4xl font-headline font-black text-yellow-400">
+            <div className="bg-surface-container-low rounded-3xl p-6 border border-outline-variant/10">
+              <p className="text-xs text-muted uppercase tracking-widest mb-2">Pending Payments</p>
+              <p className="text-4xl font-headline font-black text-yellow-700 dark:text-yellow-400">
                 {loading ? '...' : formatCurrency(summary.pendingClearance)}
               </p>
-              <p className="text-xs text-[#4D463A] mt-4">Awaiting collection</p>
+              <p className="text-xs text-muted mt-4">Awaiting collection</p>
             </div>
-            <div className="bg-[#1C1B1B] rounded-3xl p-6 border border-[#4D463A]/10">
-              <p className="text-xs text-[#4D463A] uppercase tracking-widest mb-2">This Month</p>
-              <p className="text-4xl font-headline font-black text-green-400">
+            <div className="bg-surface-container-low rounded-3xl p-6 border border-outline-variant/10">
+              <p className="text-xs text-muted uppercase tracking-widest mb-2">This Month</p>
+              <p className="text-4xl font-headline font-black text-green-600 dark:text-green-400">
                 {loading ? '...' : formatCurrency(summary.thisMonth)}
               </p>
               {summary.monthChange !== 0 && (
-                <p className={`text-xs mt-4 flex items-center ${summary.monthChange > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                <p className={`text-xs mt-4 flex items-center ${summary.monthChange > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                   <span className="material-symbols-outlined text-sm mr-1">
                     {summary.monthChange > 0 ? 'trending_up' : 'trending_down'}
                   </span>
@@ -166,9 +165,9 @@ function PaymentsContent() {
           </div>
 
           {/* Transactions */}
-          <div className="bg-[#1C1B1B] rounded-3xl p-6 border border-[#4D463A]/10">
+          <div className="bg-surface-container-low rounded-3xl p-6 border border-outline-variant/10">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="font-headline font-black text-lg text-white">Transaction History</h3>
+              <h3 className="font-headline font-black text-lg text-foreground">Transaction History</h3>
               <div className="flex gap-2">
                 {["all", "paid", "pending", "refunded"].map((f) => (
                   <button
@@ -176,8 +175,8 @@ function PaymentsContent() {
                     onClick={() => setFilter(f)}
                     className={`px-4 py-2 rounded-full text-xs uppercase tracking-widest transition-all ${
                       filter === f
-                        ? "bg-[#E5C487] text-[#402d00] font-bold"
-                        : "text-[#4D463A] hover:text-white"
+                        ? "bg-primary-fixed-dim text-primary-foreground font-bold"
+                        : "text-muted hover:text-foreground"
                     }`}
                   >
                     {f}
@@ -188,54 +187,54 @@ function PaymentsContent() {
 
             {loading ? (
               <div className="flex items-center justify-center py-12">
-                <div className="w-8 h-8 border-4 border-[#E5C487]/30 border-t-[#E5C487] rounded-full animate-spin"></div>
+                <div className="w-8 h-8 border-4 border-primary-fixed-dim/30 border-t-primary rounded-full animate-spin"></div>
               </div>
             ) : transactions.length === 0 ? (
               <div className="text-center py-12">
-                <span className="material-symbols-outlined text-4xl text-[#4D463A] mb-3">receipt_long</span>
-                <p className="text-[#4D463A]">No transactions found</p>
+                <span className="material-symbols-outlined text-4xl text-muted mb-3">receipt_long</span>
+                <p className="text-muted">No transactions found</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {transactions.map((tx) => (
-                  <div key={tx.id} className="flex items-center justify-between p-4 bg-[#353534]/30 rounded-xl hover:bg-[#353534]/50 transition-all">
+                  <div key={tx.id} className="flex items-center justify-between p-4 bg-surface-container-highest/30 rounded-xl hover:bg-surface-container-highest/50 transition-all">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl overflow-hidden bg-[#4D463A]/30 flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-xl overflow-hidden bg-outline-variant/30 flex items-center justify-center">
                         {tx.customerImage ? (
                           <img src={tx.customerImage} alt={tx.customerName} className="w-full h-full object-cover" />
                         ) : (
-                          <span className="text-lg font-bold text-[#E5C487]">
+                          <span className="text-lg font-bold text-primary">
                             {tx.customerName.charAt(0).toUpperCase()}
                           </span>
                         )}
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-white">{tx.customerName}</p>
-                        <p className="text-xs text-[#4D463A]">{tx.services}</p>
+                        <p className="text-sm font-bold text-foreground">{tx.customerName}</p>
+                        <p className="text-xs text-muted">{tx.services}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-6">
                       <div className="text-center">
                         <span className={`material-symbols-outlined text-lg ${
-                          tx.paymentMethod === 'cash' ? 'text-green-400' : 'text-blue-400'
+                          tx.paymentMethod === 'cash' ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'
                         }`}>
                           {tx.paymentMethod === 'cash' ? 'payments' : 'credit_card'}
                         </span>
-                        <p className="text-[10px] text-[#4D463A] uppercase">{tx.paymentMethod || 'card'}</p>
+                        <p className="text-[10px] text-muted uppercase">{tx.paymentMethod || 'card'}</p>
                       </div>
                       <div className="text-right min-w-[100px]">
                         <p className={`text-lg font-headline font-black ${
-                          tx.paymentStatus === 'refunded' ? 'text-red-400' : 'text-[#E5C487]'
+                          tx.paymentStatus === 'refunded' ? 'text-red-600 dark:text-red-400' : 'text-primary'
                         }`}>
-                          {tx.paymentStatus === 'refunded' ? '-' : '+'}${tx.amount.toFixed(2)}
+                          {tx.paymentStatus === 'refunded' ? '-' : '+'}{formatINR(tx.amount)}
                         </p>
-                        <p className="text-[10px] text-[#4D463A]">{formatDate(tx.date)}</p>
+                        <p className="text-[10px] text-muted">{formatDate(tx.date)}</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className={`px-3 py-1 rounded-full text-[10px] uppercase font-bold ${
-                          tx.paymentStatus === 'paid' ? 'bg-green-500/10 text-green-400' :
-                          tx.paymentStatus === 'pending' ? 'bg-yellow-500/10 text-yellow-400' :
-                          'bg-red-500/10 text-red-400'
+                          tx.paymentStatus === 'paid' ? 'bg-green-500/10 text-green-600 dark:text-green-400' :
+                          tx.paymentStatus === 'pending' ? 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400' :
+                          'bg-red-500/10 text-red-600 dark:text-red-400'
                         }`}>
                           {tx.paymentStatus}
                         </span>
@@ -243,7 +242,7 @@ function PaymentsContent() {
                           <button
                             onClick={() => handleMarkAsPaid(tx.id)}
                             disabled={updatingPayment === tx.id}
-                            className="px-3 py-1 bg-[#E5C487]/10 text-[#E5C487] rounded-full text-[10px] uppercase font-bold hover:bg-[#E5C487]/20 transition-all disabled:opacity-50"
+                            className="px-3 py-1 bg-primary-fixed-dim/10 text-primary rounded-full text-[10px] uppercase font-bold hover:bg-primary-fixed-dim/20 transition-all disabled:opacity-50"
                           >
                             {updatingPayment === tx.id ? '...' : 'Mark Paid'}
                           </button>
@@ -257,24 +256,24 @@ function PaymentsContent() {
           </div>
 
           {/* Payment Methods Info */}
-          <div className="bg-[#1C1B1B] rounded-3xl p-6 border border-[#4D463A]/10">
-            <h3 className="font-headline font-black text-lg text-white mb-6">Payment Collection</h3>
+          <div className="bg-surface-container-low rounded-3xl p-6 border border-outline-variant/10">
+            <h3 className="font-headline font-black text-lg text-foreground mb-6">Payment Collection</h3>
             <div className="grid grid-cols-2 gap-6">
-              <div className="p-4 bg-[#353534]/30 rounded-xl">
+              <div className="p-4 bg-surface-container-highest/30 rounded-xl">
                 <div className="flex items-center gap-3 mb-3">
-                  <span className="material-symbols-outlined text-green-400 text-2xl">payments</span>
+                  <span className="material-symbols-outlined text-green-600 dark:text-green-400 text-2xl">payments</span>
                   <div>
-                    <p className="text-sm font-bold text-white">Cash Payments</p>
-                    <p className="text-xs text-[#4D463A]">Mark as paid after collection</p>
+                    <p className="text-sm font-bold text-foreground">Cash Payments</p>
+                    <p className="text-xs text-muted">Mark as paid after collection</p>
                   </div>
                 </div>
               </div>
-              <div className="p-4 bg-[#353534]/30 rounded-xl">
+              <div className="p-4 bg-surface-container-highest/30 rounded-xl">
                 <div className="flex items-center gap-3 mb-3">
-                  <span className="material-symbols-outlined text-blue-400 text-2xl">credit_card</span>
+                  <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-2xl">credit_card</span>
                   <div>
-                    <p className="text-sm font-bold text-white">Card Payments</p>
-                    <p className="text-xs text-[#4D463A]">Process through your terminal</p>
+                    <p className="text-sm font-bold text-foreground">Card Payments</p>
+                    <p className="text-xs text-muted">Process through your terminal</p>
                   </div>
                 </div>
               </div>

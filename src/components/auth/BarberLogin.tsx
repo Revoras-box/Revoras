@@ -9,8 +9,7 @@ export default function BarberLogin() {
   const [loading, setLoading] = useState(false);
   const [loginType, setLoginType] = useState<'studio' | 'barber'>('studio');
   const [form, setForm] = useState({
-    phone: "",
-    email: "",
+    identifier: "",
     password: "",
     remember: false,
   });
@@ -20,18 +19,18 @@ export default function BarberLogin() {
   };
 
   const handleLogin = async () => {
-    if (loginType === 'studio') {
-      // Studio owner login - can use phone or email
-      if ((!form.phone && !form.email) || !form.password) {
-        toast.error("Please fill in phone/email and password");
-        return;
-      }
-    } else {
-      // Barber login - requires phone
-      if (!form.phone || !form.password) {
-        toast.error("Please fill in phone and password");
-        return;
-      }
+    if (!form.identifier || !form.password) {
+      toast.error("Please fill in phone/email and password");
+      return;
+    }
+
+    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.identifier);
+    const digitsOnly = form.identifier.replace(/\D/g, '');
+    const isValidPhone = digitsOnly.length >= 7 && digitsOnly.length <= 15;
+
+    if (!isValidEmail && !isValidPhone) {
+      toast.error("Please enter a valid email address or phone number");
+      return;
     }
 
     setLoading(true);
@@ -41,16 +40,13 @@ export default function BarberLogin() {
       let res;
       
       if (loginType === 'studio') {
-        // Studio owner login
         res = await api.studioLogin({
-          phone: form.phone || undefined,
-          email: form.email || undefined,
+          ...(isValidEmail ? { email: form.identifier } : { phone: form.identifier }),
           password: form.password,
         });
       } else {
-        // Barber employee login
         res = await api.barberEmployeeLogin({
-          phone: form.phone,
+          ...(isValidEmail ? { email: form.identifier } : { phone: form.identifier }),
           password: form.password,
         });
       }
@@ -90,28 +86,28 @@ export default function BarberLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white flex items-center justify-center px-6 relative overflow-hidden">
+    <div className="min-h-screen bg-background text-foreground flex items-center justify-center px-6 relative overflow-hidden">
 
       {/* Background Glow */}
-      <div className="absolute w-175 h-175 bg-[#C8A96E]/10 blur-[140px] rounded-full" />
+      <div className="absolute w-175 h-175 bg-primary-container/10 blur-[140px] rounded-full" />
 
       <div className="max-w-7xl w-full grid lg:grid-cols-2 gap-16 items-center">
 
         {/* Left Section */}
         <div className="space-y-8">
 
-          <div className="text-xs tracking-[0.35em] text-[#C8A96E] uppercase">
+          <div className="text-xs tracking-[0.35em] text-primary uppercase">
             Partner Portal
           </div>
 
           <h1 className="text-5xl font-bold leading-tight">
             Command Your <br />
-            <span className="text-[#C8A96E]">
+            <span className="text-primary">
               {loginType === 'studio' ? 'Studio.' : 'Craft.'}
             </span>
           </h1>
 
-          <p className="text-gray-400 max-w-lg">
+          <p className="text-muted max-w-lg">
             {loginType === 'studio' 
               ? "Access your studio dashboard. Manage your business, team, services, and deliver elite experiences to your clients."
               : "Access your barber dashboard. Manage your schedule, view bookings, and track your performance."}
@@ -121,12 +117,12 @@ export default function BarberLogin() {
           <div className="flex items-center gap-4">
 
             <div className="flex -space-x-2">
-              <img src="https://i.pravatar.cc/40?img=1" className="w-10 h-10 rounded-full border border-black"/>
-              <img src="https://i.pravatar.cc/40?img=2" className="w-10 h-10 rounded-full border border-black"/>
-              <img src="https://i.pravatar.cc/40?img=3" className="w-10 h-10 rounded-full border border-black"/>
+              <img src="https://i.pravatar.cc/40?img=1" className="w-10 h-10 rounded-full border border-background"/>
+              <img src="https://i.pravatar.cc/40?img=2" className="w-10 h-10 rounded-full border border-background"/>
+              <img src="https://i.pravatar.cc/40?img=3" className="w-10 h-10 rounded-full border border-background"/>
             </div>
 
-            <span className="text-sm text-gray-400">
+            <span className="text-sm text-muted">
               Joined by the world's finest studios
             </span>
 
@@ -137,7 +133,7 @@ export default function BarberLogin() {
 
 
         {/* Login Card */}
-        <div className="bg-[#0b0b0b] border border-white/5 rounded-3xl p-10 backdrop-blur-xl shadow-[0_20px_80px_rgba(0,0,0,0.8)]">
+        <div className="bg-card border border-border rounded-3xl p-10 backdrop-blur-xl shadow-floating">
 
           <div className="space-y-8">
 
@@ -146,19 +142,19 @@ export default function BarberLogin() {
                 {loginType === 'studio' ? 'Studio Login' : 'Barber Login'}
               </h2>
 
-              <p className="text-gray-400 text-sm">
+              <p className="text-muted text-sm">
                 Welcome back to SnapCut. Enter your credentials.
               </p>
             </div>
 
             {/* Login Type Toggle */}
-            <div className="flex bg-[#1a1a1a] rounded-xl p-1">
+            <div className="flex bg-surface rounded-xl p-1">
               <button
                 onClick={() => setLoginType('studio')}
                 className={`flex-1 py-3 rounded-lg text-sm font-medium transition-all ${
                   loginType === 'studio' 
-                    ? 'bg-[#C8A96E] text-black' 
-                    : 'text-gray-400 hover:text-white'
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'text-muted hover:text-foreground'
                 }`}
               >
                 Studio Owner
@@ -167,8 +163,8 @@ export default function BarberLogin() {
                 onClick={() => setLoginType('barber')}
                 className={`flex-1 py-3 rounded-lg text-sm font-medium transition-all ${
                   loginType === 'barber' 
-                    ? 'bg-[#C8A96E] text-black' 
-                    : 'text-gray-400 hover:text-white'
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'text-muted hover:text-foreground'
                 }`}
               >
                 Barber
@@ -179,45 +175,28 @@ export default function BarberLogin() {
             <div className="space-y-6">
 
               <div>
-                <label className="text-xs uppercase text-gray-500">
-                  Phone Number
+                <label className="text-xs uppercase text-secondary-foreground">
+                  Phone Number or Email Address
                 </label>
 
                 <input 
-                  className="w-full bg-transparent border-b border-gray-700 py-3 outline-none focus:border-[#C8A96E] transition"
-                  placeholder="+1 234 567 8900"
-                  value={form.phone}
-                  onChange={(e) => updateField("phone", e.target.value)}
+                  className="w-full bg-transparent border-b border-border py-3 outline-none focus:border-primary transition"
+                  placeholder="Enter your phone number or email address"
+                  value={form.identifier}
+                  onChange={(e) => updateField("identifier", e.target.value)}
                   disabled={loading}
                 />
               </div>
 
-              {loginType === 'studio' && (
-                <div>
-                  <label className="text-xs uppercase text-gray-500">
-                    Or Email Address
-                  </label>
-
-                  <input 
-                    type="email"
-                    className="w-full bg-transparent border-b border-gray-700 py-3 outline-none focus:border-[#C8A96E] transition"
-                    placeholder="owner@studio.com"
-                    value={form.email}
-                    onChange={(e) => updateField("email", e.target.value)}
-                    disabled={loading}
-                  />
-                </div>
-              )}
-
 
               <div>
-                <label className="text-xs uppercase text-gray-500">
+                <label className="text-xs uppercase text-secondary-foreground">
                   Password
                 </label>
 
                 <input 
                   type="password" 
-                  className="w-full bg-transparent border-b border-gray-700 py-3 outline-none focus:border-[#C8A96E] transition"
+                  className="w-full bg-transparent border-b border-border py-3 outline-none focus:border-primary transition"
                   placeholder="••••••••"
                   value={form.password}
                   onChange={(e) => updateField("password", e.target.value)}
@@ -229,18 +208,18 @@ export default function BarberLogin() {
 
               <div className="flex justify-between text-sm">
 
-                <label className="flex gap-2 text-gray-400 cursor-pointer">
+                <label className="flex gap-2 text-muted cursor-pointer">
                   <input 
                     type="checkbox" 
                     checked={form.remember}
                     onChange={(e) => updateField("remember", e.target.checked)}
-                    className="accent-[#C8A96E]"
+                    className="accent-primary"
                     disabled={loading}
                   />
                   Remember me
                 </label>
 
-                <span className="text-[#C8A96E] cursor-pointer">
+                <span className="text-primary cursor-pointer">
                   Forgot?
                 </span>
 
@@ -248,7 +227,7 @@ export default function BarberLogin() {
 
 
               <button 
-                className="w-full bg-[#C8A96E] text-black py-4 rounded-xl font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full bg-primary text-primary-foreground py-4 rounded-xl font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
                 onClick={handleLogin}
                 disabled={loading}
               >
@@ -265,12 +244,12 @@ export default function BarberLogin() {
             </div>
 
 
-            <div className="text-center text-sm text-gray-400">
+            <div className="text-center text-sm text-muted">
               {loginType === 'studio' ? (
                 <>
                   New to the network?
                   <span
-                    className="text-[#C8A96E] ml-2 cursor-pointer"
+                    className="text-primary ml-2 cursor-pointer"
                     onClick={() => router.push("/barber-signup")}
                   >
                     Register Your Studio →

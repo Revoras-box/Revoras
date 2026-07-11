@@ -124,10 +124,10 @@ function UploadZone({
 
   return (
     <div className={aspect === "banner" ? "col-span-2 space-y-2" : "space-y-2"}>
-      <label className="text-xs text-[#8B7D6B] uppercase tracking-widest block">{label}</label>
+      <label className="text-xs text-muted uppercase tracking-widest block">{label}</label>
       <div
         className={`relative ${sizes[aspect]} rounded-2xl overflow-hidden border-2 transition-all cursor-pointer group
-          ${dragging ? "border-[#E5C487] bg-[#E5C487]/5" : "border-[#4D463A]/30 bg-[#2A2927] hover:border-[#4D463A]"}`}
+          ${dragging ? "border-primary-fixed-dim bg-primary-fixed-dim/5" : "border-outline-variant/30 bg-surface-container-high hover:border-outline-variant"}`}
         onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
         onDragLeave={() => setDragging(false)}
         onDrop={(e) => { setDragging(false); onDrop(e); }}
@@ -145,17 +145,17 @@ function UploadZone({
           </>
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center gap-2">
-            <span className="material-symbols-outlined text-[#4D463A] text-2xl group-hover:text-[#8B7D6B] transition-colors">
+            <span className="material-symbols-outlined text-muted text-2xl group-hover:text-muted transition-colors">
               {aspect === "banner" ? "add_photo_alternate" : "person_add"}
             </span>
-            <span className="text-[#4D463A] text-xs group-hover:text-[#8B7D6B] transition-colors">
+            <span className="text-muted text-xs group-hover:text-muted transition-colors">
               {hint || "Drop or click to upload"}
             </span>
           </div>
         )}
         {uploading && (
           <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-            <div className="w-6 h-6 border-2 border-[#E5C487]/30 border-t-[#E5C487] rounded-full animate-spin"></div>
+            <div className="w-6 h-6 border-2 border-primary-fixed-dim/30 border-t-primary rounded-full animate-spin"></div>
           </div>
         )}
         <input
@@ -167,7 +167,7 @@ function UploadZone({
         />
       </div>
       {hint && aspect === "banner" && (
-        <p className="text-xs text-[#4D463A]">{hint}</p>
+        <p className="text-xs text-muted">{hint}</p>
       )}
       {children}
     </div>
@@ -187,14 +187,14 @@ function BarberCard({
   return (
     <div className={`relative group flex items-center gap-5 p-5 rounded-2xl border transition-all
       ${barber.is_active
-        ? "bg-[#242220] border-[#4D463A]/20 hover:border-[#4D463A]/40"
-        : "bg-[#1A1918] border-[#4D463A]/10 opacity-60"}`}>
+        ? "bg-surface-container border-outline-variant/20 hover:border-outline-variant/40"
+        : "bg-surface-container-low border-outline-variant/10 opacity-60"}`}>
       {/* Avatar */}
-      <div className="w-14 h-14 rounded-xl overflow-hidden bg-[#353534] flex-shrink-0">
+      <div className="w-14 h-14 rounded-xl overflow-hidden bg-surface-container-highest flex-shrink-0">
         {barber.image_url
           ? <img src={barber.image_url} alt={barber.name} className="w-full h-full object-cover" />
           : <div className="w-full h-full flex items-center justify-center">
-              <span className="material-symbols-outlined text-2xl text-[#4D463A]">person</span>
+              <span className="material-symbols-outlined text-2xl text-muted">person</span>
             </div>
         }
       </div>
@@ -202,31 +202,31 @@ function BarberCard({
       {/* Info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <p className="font-bold text-white text-sm truncate">{barber.name || "Unnamed Barber"}</p>
+          <p className="font-bold text-foreground text-sm truncate">{barber.name || "Unnamed Barber"}</p>
           {!barber.is_active && (
-            <span className="text-[9px] bg-[#4D463A]/30 text-[#8B7D6B] px-2 py-0.5 rounded-full uppercase tracking-wider">Hidden</span>
+            <span className="text-[9px] bg-outline-variant/30 text-muted px-2 py-0.5 rounded-full uppercase tracking-wider">Hidden</span>
           )}
         </div>
-        <p className="text-xs text-[#E5C487]/70 truncate">{barber.title || "Barber"}</p>
+        <p className="text-xs text-primary/70 truncate">{barber.title || "Barber"}</p>
         {barber.specialties?.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-1.5">
             {barber.specialties.slice(0, 3).map((s) => (
-              <span key={s} className="text-[9px] bg-[#353534] text-[#8B7D6B] px-2 py-0.5 rounded-full">{s}</span>
+              <span key={s} className="text-[9px] bg-surface-container-highest text-muted px-2 py-0.5 rounded-full">{s}</span>
             ))}
           </div>
         )}
       </div>
 
       {/* Order badge */}
-      <div className="w-7 h-7 rounded-lg bg-[#353534] flex items-center justify-center flex-shrink-0">
-        <span className="text-xs text-[#8B7D6B] font-mono">{index + 1}</span>
+      <div className="w-7 h-7 rounded-lg bg-surface-container-highest flex items-center justify-center flex-shrink-0">
+        <span className="text-xs text-muted font-mono">{index + 1}</span>
       </div>
 
       {/* Actions */}
       <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
         <button
           onClick={() => onToggle(index)}
-          className="p-2 rounded-xl bg-[#353534] text-[#8B7D6B] hover:text-white transition-colors"
+          className="p-2 rounded-xl bg-surface-container-highest text-muted hover:text-foreground transition-colors"
           title={barber.is_active ? "Hide from website" : "Show on website"}
         >
           <span className="material-symbols-outlined text-sm">
@@ -235,13 +235,13 @@ function BarberCard({
         </button>
         <button
           onClick={() => onEdit(index)}
-          className="p-2 rounded-xl bg-[#353534] text-[#8B7D6B] hover:text-[#E5C487] transition-colors"
+          className="p-2 rounded-xl bg-surface-container-highest text-muted hover:text-primary transition-colors"
         >
           <span className="material-symbols-outlined text-sm">edit</span>
         </button>
         <button
           onClick={() => onDelete(index)}
-          className="p-2 rounded-xl bg-[#353534] text-[#8B7D6B] hover:text-red-400 transition-colors"
+          className="p-2 rounded-xl bg-surface-container-highest text-muted hover:text-red-400 transition-colors"
         >
           <span className="material-symbols-outlined text-sm">delete</span>
         </button>
@@ -286,10 +286,10 @@ function BarberModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-[#1C1B1B] rounded-3xl border border-[#4D463A]/20 w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl">
-        <div className="sticky top-0 bg-[#1C1B1B] px-8 pt-8 pb-4 border-b border-[#4D463A]/10 flex items-center justify-between z-10">
-          <h3 className="font-headline font-black text-white text-lg">{barber.id ? "Edit Barber" : "Add Barber"}</h3>
-          <button onClick={onClose} className="p-2 rounded-xl text-[#4D463A] hover:text-white transition-colors">
+      <div className="relative bg-surface-container-low rounded-3xl border border-outline-variant/20 w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div className="sticky top-0 bg-surface-container-low px-8 pt-8 pb-4 border-b border-outline-variant/10 flex items-center justify-between z-10">
+          <h3 className="font-headline font-black text-foreground text-lg">{barber.id ? "Edit Barber" : "Add Barber"}</h3>
+          <button onClick={onClose} className="p-2 rounded-xl text-muted hover:text-foreground transition-colors">
             <span className="material-symbols-outlined">close</span>
           </button>
         </div>
@@ -298,7 +298,7 @@ function BarberModal({
           {/* Avatar upload */}
           <div className="flex items-start gap-6">
             <div
-              className="relative w-24 h-24 rounded-2xl overflow-hidden bg-[#2A2927] border-2 border-[#4D463A]/30 flex-shrink-0 cursor-pointer group hover:border-[#4D463A] transition-colors"
+              className="relative w-24 h-24 rounded-2xl overflow-hidden bg-surface-container-high border-2 border-outline-variant/30 flex-shrink-0 cursor-pointer group hover:border-outline-variant transition-colors"
               onClick={() => avatar.inputRef.current?.click()}
               onDragOver={(e) => e.preventDefault()}
               onDrop={avatar.handleDrop}
@@ -306,8 +306,8 @@ function BarberModal({
               {avatar.preview
                 ? <img src={avatar.preview} alt="Avatar" className="w-full h-full object-cover" />
                 : <div className="w-full h-full flex flex-col items-center justify-center gap-1">
-                    <span className="material-symbols-outlined text-[#4D463A] text-xl">person_add</span>
-                    <span className="text-[#4D463A] text-[9px]">Photo</span>
+                    <span className="material-symbols-outlined text-muted text-xl">person_add</span>
+                    <span className="text-muted text-[9px]">Photo</span>
                   </div>
               }
               <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -315,7 +315,7 @@ function BarberModal({
               </div>
               {avatar.uploading && (
                 <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                  <div className="w-5 h-5 border-2 border-[#E5C487]/30 border-t-[#E5C487] rounded-full animate-spin"></div>
+                  <div className="w-5 h-5 border-2 border-primary-fixed-dim/30 border-t-primary rounded-full animate-spin"></div>
                 </div>
               )}
               <input ref={avatar.inputRef} type="file" accept="image/*" className="hidden"
@@ -323,15 +323,15 @@ function BarberModal({
             </div>
             <div className="flex-1 space-y-4">
               <div>
-                <label className="text-xs text-[#8B7D6B] uppercase tracking-widest mb-2 block">Full Name *</label>
+                <label className="text-xs text-muted uppercase tracking-widest mb-2 block">Full Name *</label>
                 <input type="text" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
-                  className="w-full bg-[#2A2927] border border-[#4D463A]/20 rounded-xl px-4 py-3 text-white focus:border-[#E5C487] focus:outline-none"
+                  className="w-full bg-surface-container-high border border-outline-variant/20 rounded-xl px-4 py-3 text-foreground focus:border-primary focus:outline-none"
                   placeholder="John Doe" />
               </div>
               <div>
-                <label className="text-xs text-[#8B7D6B] uppercase tracking-widest mb-2 block">Title / Role</label>
+                <label className="text-xs text-muted uppercase tracking-widest mb-2 block">Title / Role</label>
                 <input type="text" value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
-                  className="w-full bg-[#2A2927] border border-[#4D463A]/20 rounded-xl px-4 py-3 text-white focus:border-[#E5C487] focus:outline-none"
+                  className="w-full bg-surface-container-high border border-outline-variant/20 rounded-xl px-4 py-3 text-foreground focus:border-primary focus:outline-none"
                   placeholder="Senior Barber" />
               </div>
             </div>
@@ -339,68 +339,68 @@ function BarberModal({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-xs text-[#8B7D6B] uppercase tracking-widest mb-2 block">Email</label>
+              <label className="text-xs text-muted uppercase tracking-widest mb-2 block">Email</label>
               <input type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
-                className="w-full bg-[#2A2927] border border-[#4D463A]/20 rounded-xl px-4 py-3 text-white focus:border-[#E5C487] focus:outline-none" />
+                className="w-full bg-surface-container-high border border-outline-variant/20 rounded-xl px-4 py-3 text-foreground focus:border-primary focus:outline-none" />
             </div>
             <div>
-              <label className="text-xs text-[#8B7D6B] uppercase tracking-widest mb-2 block">Phone</label>
+              <label className="text-xs text-muted uppercase tracking-widest mb-2 block">Phone</label>
               <input type="tel" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))}
-                className="w-full bg-[#2A2927] border border-[#4D463A]/20 rounded-xl px-4 py-3 text-white focus:border-[#E5C487] focus:outline-none" />
+                className="w-full bg-surface-container-high border border-outline-variant/20 rounded-xl px-4 py-3 text-foreground focus:border-primary focus:outline-none" />
             </div>
           </div>
 
           <div>
-            <label className="text-xs text-[#8B7D6B] uppercase tracking-widest mb-2 block">Bio</label>
+            <label className="text-xs text-muted uppercase tracking-widest mb-2 block">Bio</label>
             <textarea value={form.bio} onChange={e => setForm(p => ({ ...p, bio: e.target.value }))}
-              className="w-full bg-[#2A2927] border border-[#4D463A]/20 rounded-xl px-4 py-3 text-white focus:border-[#E5C487] focus:outline-none resize-none h-20"
+              className="w-full bg-surface-container-high border border-outline-variant/20 rounded-xl px-4 py-3 text-foreground focus:border-primary focus:outline-none resize-none h-20"
               placeholder="A short bio shown on the website..." />
           </div>
 
           <div>
-            <label className="text-xs text-[#8B7D6B] uppercase tracking-widest mb-2 block">Specialties</label>
+            <label className="text-xs text-muted uppercase tracking-widest mb-2 block">Specialties</label>
             <div className="flex gap-2 mb-2">
               <input type="text" value={specialty} onChange={e => setSpecialty(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && (e.preventDefault(), addSpecialty())}
-                className="flex-1 bg-[#2A2927] border border-[#4D463A]/20 rounded-xl px-4 py-2.5 text-white focus:border-[#E5C487] focus:outline-none text-sm"
+                className="flex-1 bg-surface-container-high border border-outline-variant/20 rounded-xl px-4 py-2.5 text-foreground focus:border-primary focus:outline-none text-sm"
                 placeholder="e.g. Fade, Beard Trim…" />
-              <button onClick={addSpecialty} className="px-4 py-2.5 bg-[#E5C487]/10 text-[#E5C487] rounded-xl text-sm hover:bg-[#E5C487]/20 transition-colors">
+              <button onClick={addSpecialty} className="px-4 py-2.5 bg-primary-fixed-dim/10 text-primary rounded-xl text-sm hover:bg-primary-fixed-dim/20 transition-colors">
                 Add
               </button>
             </div>
             {form.specialties.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {form.specialties.map((s, i) => (
-                  <span key={s} className="flex items-center gap-1.5 text-xs bg-[#353534] text-[#E5C487] px-3 py-1.5 rounded-full">
+                  <span key={s} className="flex items-center gap-1.5 text-xs bg-surface-container-highest text-primary px-3 py-1.5 rounded-full">
                     {s}
                     <button onClick={() => setForm(p => ({ ...p, specialties: p.specialties.filter((_, j) => j !== i) }))}
-                      className="text-[#8B7D6B] hover:text-white transition-colors">×</button>
+                      className="text-muted hover:text-foreground transition-colors">×</button>
                   </span>
                 ))}
               </div>
             )}
           </div>
 
-          <div className="flex items-center justify-between p-4 bg-[#242220] rounded-xl">
+          <div className="flex items-center justify-between p-4 bg-surface-container rounded-xl">
             <div>
-              <p className="text-sm text-white font-medium">Show on website</p>
-              <p className="text-xs text-[#4D463A] mt-0.5">Visible to customers on the public listing</p>
+              <p className="text-sm text-foreground font-medium">Show on website</p>
+              <p className="text-xs text-muted mt-0.5">Visible to customers on the public listing</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" checked={form.is_active} onChange={() => setForm(p => ({ ...p, is_active: !p.is_active }))} className="sr-only peer" />
-              <div className="w-11 h-6 bg-[#4D463A] peer-checked:bg-[#E5C487] rounded-full peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+              <div className="w-11 h-6 bg-outline-variant peer-checked:bg-primary-fixed-dim rounded-full peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
             </label>
           </div>
         </div>
 
-        <div className="sticky bottom-0 bg-[#1C1B1B] px-8 pb-8 pt-4 border-t border-[#4D463A]/10 flex gap-3">
-          <button onClick={onClose} className="flex-1 py-3 bg-[#2A2927] text-[#8B7D6B] font-bold rounded-xl hover:text-white transition-colors">
+        <div className="sticky bottom-0 bg-surface-container-low px-8 pb-8 pt-4 border-t border-outline-variant/10 flex gap-3">
+          <button onClick={onClose} className="flex-1 py-3 bg-surface-container-high text-muted font-bold rounded-xl hover:text-foreground transition-colors">
             Cancel
           </button>
           <button
             onClick={() => onSave(form)}
             disabled={!form.name.trim()}
-            className="flex-1 py-3 bg-[#E5C487] text-[#402d00] font-bold rounded-xl hover:bg-[#f0d090] transition-colors disabled:opacity-40"
+            className="flex-1 py-3 bg-primary-fixed-dim text-primary-foreground font-bold rounded-xl hover:bg-primary-fixed-dim transition-colors disabled:opacity-40"
           >
             {barber.id ? "Save Changes" : "Add Barber"}
           </button>
@@ -544,8 +544,8 @@ function SettingsContent() {
 
   if (authLoading || !isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#0E0E0E] flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-[#E5C487]/30 border-t-[#E5C487] rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-surface-container-lowest flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-primary-fixed-dim/30 border-t-primary rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -565,24 +565,24 @@ function SettingsContent() {
   });
 
   return (
-    <div className="min-h-screen bg-[#0E0E0E] text-white">
+    <div className="min-h-screen bg-surface-container-lowest text-foreground">
       <BarberSidebar />
-      <main className="ml-72 flex-1 min-h-screen flex flex-col">
+      <main className="lg:ml-72 flex-1 min-h-screen flex flex-col">
 
         {/* Header */}
-        <header className="h-20 px-10 flex justify-between items-center bg-[#1C1B1B]/60 backdrop-blur-xl z-40 sticky top-0 border-b border-[#4D463A]/10">
+        <header className="h-20 pl-16 pr-6 lg:px-10 flex justify-between items-center bg-surface-container-low/60 backdrop-blur-xl z-40 sticky top-0 border-b border-outline-variant/10">
           <div>
-            <h2 className="font-headline font-black text-2xl tracking-tight text-white">Shop Settings</h2>
-            <p className="text-xs text-[#4D463A] mt-0.5">Manage how your studio appears to customers</p>
+            <h2 className="font-headline font-black text-2xl tracking-tight text-foreground">Shop Settings</h2>
+            <p className="text-xs text-muted mt-0.5">Manage how your studio appears to customers</p>
           </div>
           {(activeTab === "profile" || activeTab === "media" || activeTab === "hours") && (
             <button
               onClick={handleSave}
               disabled={saving}
-              className="px-6 py-3 bg-[#E5C487] text-[#402d00] font-headline font-bold rounded-xl active:scale-95 transition-all disabled:opacity-50 flex items-center gap-2"
+              className="px-6 py-3 bg-primary-fixed-dim text-primary-foreground font-headline font-bold rounded-xl active:scale-95 transition-all disabled:opacity-50 flex items-center gap-2"
             >
               {saving
-                ? <><div className="w-4 h-4 border-2 border-[#402d00]/30 border-t-[#402d00] rounded-full animate-spin"></div>Saving…</>
+                ? <><div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin"></div>Saving…</>
                 : <><span className="material-symbols-outlined text-lg">save</span>Save Changes</>
               }
             </button>
@@ -591,10 +591,10 @@ function SettingsContent() {
             <button
               onClick={handleSaveBarbers}
               disabled={savingBarbers}
-              className="px-6 py-3 bg-[#E5C487] text-[#402d00] font-headline font-bold rounded-xl active:scale-95 transition-all disabled:opacity-50 flex items-center gap-2"
+              className="px-6 py-3 bg-primary-fixed-dim text-primary-foreground font-headline font-bold rounded-xl active:scale-95 transition-all disabled:opacity-50 flex items-center gap-2"
             >
               {savingBarbers
-                ? <><div className="w-4 h-4 border-2 border-[#402d00]/30 border-t-[#402d00] rounded-full animate-spin"></div>Saving…</>
+                ? <><div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin"></div>Saving…</>
                 : <><span className="material-symbols-outlined text-lg">save</span>Save Barbers</>
               }
             </button>
@@ -618,29 +618,29 @@ function SettingsContent() {
           </div>
         )}
 
-        <div className="p-8 flex-1 bg-[#0E0E0E]">
+        <div className="p-8 flex-1 bg-surface-container-lowest">
           {loading ? (
             <div className="flex items-center justify-center py-24">
-              <div className="w-10 h-10 border-4 border-[#E5C487]/30 border-t-[#E5C487] rounded-full animate-spin"></div>
+              <div className="w-10 h-10 border-4 border-primary-fixed-dim/30 border-t-primary rounded-full animate-spin"></div>
             </div>
           ) : (
             <div className="grid grid-cols-12 gap-8">
 
               {/* ── Sidebar Nav ─────────────────────────── */}
               <div className="col-span-3">
-                <div className="bg-[#1C1B1B] rounded-3xl p-3 border border-[#4D463A]/10 sticky top-28">
+                <div className="bg-surface-container-low rounded-3xl p-3 border border-outline-variant/10 sticky top-28">
                   {/* Studio card */}
-                  <div className="p-4 mb-3 rounded-2xl bg-[#242220]">
-                    <div className="w-10 h-10 rounded-xl overflow-hidden bg-[#353534] mb-3">
+                  <div className="p-4 mb-3 rounded-2xl bg-surface-container">
+                    <div className="w-10 h-10 rounded-xl overflow-hidden bg-surface-container-highest mb-3">
                       {logoUpload.preview
                         ? <img src={logoUpload.preview} alt="logo" className="w-full h-full object-cover" />
                         : <div className="w-full h-full flex items-center justify-center">
-                            <span className="material-symbols-outlined text-lg text-[#4D463A]">storefront</span>
+                            <span className="material-symbols-outlined text-lg text-muted">storefront</span>
                           </div>
                       }
                     </div>
-                    <p className="text-sm font-bold text-white truncate">{profileForm.name || "Your Studio"}</p>
-                    <p className="text-xs text-[#4D463A] truncate mt-0.5">{profileForm.city || "City"}</p>
+                    <p className="text-sm font-bold text-foreground truncate">{profileForm.name || "Your Studio"}</p>
+                    <p className="text-xs text-muted truncate mt-0.5">{profileForm.city || "City"}</p>
                   </div>
 
                   {tabs.map((tab) => (
@@ -649,13 +649,13 @@ function SettingsContent() {
                       onClick={() => setActiveTab(tab.id)}
                       className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all mb-1 text-left
                         ${activeTab === tab.id
-                          ? "bg-[#E5C487]/10 text-[#E5C487]"
-                          : "text-[#4D463A] hover:text-white hover:bg-[#353534]/30"}`}
+                          ? "bg-primary-fixed-dim/10 text-primary"
+                          : "text-muted hover:text-foreground hover:bg-surface-container-highest/30"}`}
                     >
                       <span className="material-symbols-outlined text-[18px]">{tab.icon}</span>
                       <span className="text-sm font-medium">{tab.label}</span>
                       {tab.id === "barbers" && barbers.length > 0 && (
-                        <span className="ml-auto text-[10px] bg-[#E5C487]/20 text-[#E5C487] w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                        <span className="ml-auto text-[10px] bg-primary-fixed-dim/20 text-primary w-5 h-5 rounded-full flex items-center justify-center font-bold">
                           {barbers.length}
                         </span>
                       )}
@@ -669,14 +669,14 @@ function SettingsContent() {
 
                 {/* ── Profile Tab ───────────────────────── */}
                 {activeTab === "profile" && (
-                  <div className="bg-[#1C1B1B] rounded-3xl p-8 border border-[#4D463A]/10">
+                  <div className="bg-surface-container-low rounded-3xl p-8 border border-outline-variant/10">
                     <div className="flex items-center gap-3 mb-8">
-                      <div className="w-9 h-9 rounded-xl bg-[#E5C487]/10 flex items-center justify-center">
-                        <span className="material-symbols-outlined text-[#E5C487] text-lg">storefront</span>
+                      <div className="w-9 h-9 rounded-xl bg-primary-fixed-dim/10 flex items-center justify-center">
+                        <span className="material-symbols-outlined text-primary text-lg">storefront</span>
                       </div>
                       <div>
-                        <h3 className="font-headline font-black text-white">Studio Profile</h3>
-                        <p className="text-xs text-[#4D463A]">Basic information shown to customers</p>
+                        <h3 className="font-headline font-black text-foreground">Studio Profile</h3>
+                        <p className="text-xs text-muted">Basic information shown to customers</p>
                       </div>
                     </div>
 
@@ -691,30 +691,30 @@ function SettingsContent() {
                         { label: "Country",        field: "country", type: "text"  },
                       ].map(({ label, field, type }) => (
                         <div key={field}>
-                          <label className="text-xs text-[#8B7D6B] uppercase tracking-widest mb-2 block">{label}</label>
+                          <label className="text-xs text-muted uppercase tracking-widest mb-2 block">{label}</label>
                           <input
                             type={type}
                             value={(profileForm as any)[field]}
                             onChange={e => setProfileForm(p => ({ ...p, [field]: e.target.value }))}
-                            className="w-full bg-[#242220] border border-[#4D463A]/20 rounded-xl px-4 py-3 text-white focus:border-[#E5C487] focus:outline-none transition-colors"
+                            className="w-full bg-surface-container border border-outline-variant/20 rounded-xl px-4 py-3 text-foreground focus:border-primary focus:outline-none transition-colors"
                           />
                         </div>
                       ))}
                       <div className="col-span-2">
-                        <label className="text-xs text-[#8B7D6B] uppercase tracking-widest mb-2 block">Address</label>
+                        <label className="text-xs text-muted uppercase tracking-widest mb-2 block">Address</label>
                         <textarea
                           value={profileForm.address}
                           onChange={e => setProfileForm(p => ({ ...p, address: e.target.value }))}
-                          className="w-full bg-[#242220] border border-[#4D463A]/20 rounded-xl px-4 py-3 text-white focus:border-[#E5C487] focus:outline-none resize-none h-20 transition-colors"
+                          className="w-full bg-surface-container border border-outline-variant/20 rounded-xl px-4 py-3 text-foreground focus:border-primary focus:outline-none resize-none h-20 transition-colors"
                           placeholder="123 Main Street, City, State ZIP"
                         />
                       </div>
                       <div className="col-span-2">
-                        <label className="text-xs text-[#8B7D6B] uppercase tracking-widest mb-2 block">Studio Description</label>
+                        <label className="text-xs text-muted uppercase tracking-widest mb-2 block">Studio Description</label>
                         <textarea
                           value={profileForm.description}
                           onChange={e => setProfileForm(p => ({ ...p, description: e.target.value }))}
-                          className="w-full bg-[#242220] border border-[#4D463A]/20 rounded-xl px-4 py-3 text-white focus:border-[#E5C487] focus:outline-none resize-none h-28 transition-colors"
+                          className="w-full bg-surface-container border border-outline-variant/20 rounded-xl px-4 py-3 text-foreground focus:border-primary focus:outline-none resize-none h-28 transition-colors"
                           placeholder="Tell customers what makes your studio special…"
                         />
                       </div>
@@ -726,19 +726,19 @@ function SettingsContent() {
                 {activeTab === "media" && (
                   <div className="space-y-6">
                     {/* Banner */}
-                    <div className="bg-[#1C1B1B] rounded-3xl p-8 border border-[#4D463A]/10">
+                    <div className="bg-surface-container-low rounded-3xl p-8 border border-outline-variant/10">
                       <div className="flex items-center gap-3 mb-6">
-                        <div className="w-9 h-9 rounded-xl bg-[#E5C487]/10 flex items-center justify-center">
-                          <span className="material-symbols-outlined text-[#E5C487] text-lg">panorama</span>
+                        <div className="w-9 h-9 rounded-xl bg-primary-fixed-dim/10 flex items-center justify-center">
+                          <span className="material-symbols-outlined text-primary text-lg">panorama</span>
                         </div>
                         <div>
-                          <h3 className="font-headline font-black text-white">Studio Banner</h3>
-                          <p className="text-xs text-[#4D463A]">Hero image shown at the top of your public page</p>
+                          <h3 className="font-headline font-black text-foreground">Studio Banner</h3>
+                          <p className="text-xs text-muted">Hero image shown at the top of your public page</p>
                         </div>
                       </div>
                       <div
                         className={`relative h-52 rounded-2xl overflow-hidden border-2 transition-all cursor-pointer group
-                          ${bannerUpload.preview ? "border-[#4D463A]/20" : "border-dashed border-[#4D463A]/30 bg-[#242220] hover:border-[#4D463A]"}`}
+                          ${bannerUpload.preview ? "border-outline-variant/20" : "border-dashed border-outline-variant/30 bg-surface-container hover:border-outline-variant"}`}
                         onClick={() => { const i = document.getElementById("banner-input") as HTMLInputElement; i?.click(); }}
                         onDragOver={e => e.preventDefault()}
                         onDrop={bannerUpload.handleDrop}
@@ -755,18 +755,18 @@ function SettingsContent() {
                           </>
                         ) : (
                           <div className="w-full h-full flex flex-col items-center justify-center gap-3">
-                            <div className="w-14 h-14 rounded-2xl bg-[#353534] flex items-center justify-center">
-                              <span className="material-symbols-outlined text-2xl text-[#4D463A]">add_photo_alternate</span>
+                            <div className="w-14 h-14 rounded-2xl bg-surface-container-highest flex items-center justify-center">
+                              <span className="material-symbols-outlined text-2xl text-muted">add_photo_alternate</span>
                             </div>
                             <div className="text-center">
-                              <p className="text-[#8B7D6B] text-sm">Drop an image here or click to browse</p>
-                              <p className="text-[#4D463A] text-xs mt-1">Recommended: 1600 × 500px, max 5MB</p>
+                              <p className="text-muted text-sm">Drop an image here or click to browse</p>
+                              <p className="text-muted text-xs mt-1">Recommended: 1600 × 500px, max 5MB</p>
                             </div>
                           </div>
                         )}
                         {bannerUpload.uploading && (
                           <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                            <div className="w-8 h-8 border-2 border-[#E5C487]/30 border-t-[#E5C487] rounded-full animate-spin"></div>
+                            <div className="w-8 h-8 border-2 border-primary-fixed-dim/30 border-t-primary rounded-full animate-spin"></div>
                           </div>
                         )}
                         <input id="banner-input" type="file" accept="image/*" className="hidden"
@@ -775,7 +775,7 @@ function SettingsContent() {
                       {bannerUpload.preview && (
                         <button
                           onClick={() => bannerUpload.setPreview("")}
-                          className="mt-3 text-xs text-[#4D463A] hover:text-red-400 transition-colors flex items-center gap-1"
+                          className="mt-3 text-xs text-muted hover:text-red-400 transition-colors flex items-center gap-1"
                         >
                           <span className="material-symbols-outlined text-sm">delete</span>Remove banner
                         </button>
@@ -783,20 +783,20 @@ function SettingsContent() {
                     </div>
 
                     {/* Logo */}
-                    <div className="bg-[#1C1B1B] rounded-3xl p-8 border border-[#4D463A]/10">
+                    <div className="bg-surface-container-low rounded-3xl p-8 border border-outline-variant/10">
                       <div className="flex items-center gap-3 mb-6">
-                        <div className="w-9 h-9 rounded-xl bg-[#E5C487]/10 flex items-center justify-center">
-                          <span className="material-symbols-outlined text-[#E5C487] text-lg">badge</span>
+                        <div className="w-9 h-9 rounded-xl bg-primary-fixed-dim/10 flex items-center justify-center">
+                          <span className="material-symbols-outlined text-primary text-lg">badge</span>
                         </div>
                         <div>
-                          <h3 className="font-headline font-black text-white">Studio Logo</h3>
-                          <p className="text-xs text-[#4D463A]">Square logo used in listings and the app header</p>
+                          <h3 className="font-headline font-black text-foreground">Studio Logo</h3>
+                          <p className="text-xs text-muted">Square logo used in listings and the app header</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-8">
                         <div
                           className={`relative w-32 h-32 rounded-2xl overflow-hidden border-2 transition-all cursor-pointer group flex-shrink-0
-                            ${logoUpload.preview ? "border-[#4D463A]/20" : "border-dashed border-[#4D463A]/30 bg-[#242220] hover:border-[#4D463A]"}`}
+                            ${logoUpload.preview ? "border-outline-variant/20" : "border-dashed border-outline-variant/30 bg-surface-container hover:border-outline-variant"}`}
                           onClick={() => { const i = document.getElementById("logo-input") as HTMLInputElement; i?.click(); }}
                           onDragOver={e => e.preventDefault()}
                           onDrop={logoUpload.handleDrop}
@@ -810,28 +810,28 @@ function SettingsContent() {
                             </>
                           ) : (
                             <div className="w-full h-full flex flex-col items-center justify-center gap-2">
-                              <span className="material-symbols-outlined text-[#4D463A] text-2xl">add_photo_alternate</span>
-                              <span className="text-[#4D463A] text-xs text-center px-2">Upload logo</span>
+                              <span className="material-symbols-outlined text-muted text-2xl">add_photo_alternate</span>
+                              <span className="text-muted text-xs text-center px-2">Upload logo</span>
                             </div>
                           )}
                           {logoUpload.uploading && (
                             <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                              <div className="w-6 h-6 border-2 border-[#E5C487]/30 border-t-[#E5C487] rounded-full animate-spin"></div>
+                              <div className="w-6 h-6 border-2 border-primary-fixed-dim/30 border-t-primary rounded-full animate-spin"></div>
                             </div>
                           )}
                           <input id="logo-input" type="file" accept="image/*" className="hidden"
                             onChange={e => { const f = e.target.files?.[0]; if (f) logoUpload.handleFile(f); }} />
                         </div>
                         <div className="space-y-3">
-                          <p className="text-sm text-white font-medium">Studio Logo</p>
-                          <ul className="text-xs text-[#4D463A] space-y-1">
+                          <p className="text-sm text-foreground font-medium">Studio Logo</p>
+                          <ul className="text-xs text-muted space-y-1">
                             <li className="flex items-center gap-2"><span className="material-symbols-outlined text-sm">check_circle</span>Square format (1:1 ratio)</li>
                             <li className="flex items-center gap-2"><span className="material-symbols-outlined text-sm">check_circle</span>Minimum 200 × 200px</li>
                             <li className="flex items-center gap-2"><span className="material-symbols-outlined text-sm">check_circle</span>PNG or JPG, max 2MB</li>
                           </ul>
                           {logoUpload.preview && (
                             <button onClick={() => logoUpload.setPreview("")}
-                              className="text-xs text-[#4D463A] hover:text-red-400 transition-colors flex items-center gap-1">
+                              className="text-xs text-muted hover:text-red-400 transition-colors flex items-center gap-1">
                               <span className="material-symbols-outlined text-sm">delete</span>Remove logo
                             </button>
                           )}
@@ -843,14 +843,14 @@ function SettingsContent() {
 
                 {/* ── Hours Tab ─────────────────────────── */}
                 {activeTab === "hours" && (
-                  <div className="bg-[#1C1B1B] rounded-3xl p-8 border border-[#4D463A]/10">
+                  <div className="bg-surface-container-low rounded-3xl p-8 border border-outline-variant/10">
                     <div className="flex items-center gap-3 mb-8">
-                      <div className="w-9 h-9 rounded-xl bg-[#E5C487]/10 flex items-center justify-center">
-                        <span className="material-symbols-outlined text-[#E5C487] text-lg">schedule</span>
+                      <div className="w-9 h-9 rounded-xl bg-primary-fixed-dim/10 flex items-center justify-center">
+                        <span className="material-symbols-outlined text-primary text-lg">schedule</span>
                       </div>
                       <div>
-                        <h3 className="font-headline font-black text-white">Working Hours</h3>
-                        <p className="text-xs text-[#4D463A]">Set when your studio is open for bookings</p>
+                        <h3 className="font-headline font-black text-foreground">Working Hours</h3>
+                        <p className="text-xs text-muted">Set when your studio is open for bookings</p>
                       </div>
                     </div>
 
@@ -869,7 +869,7 @@ function SettingsContent() {
                             openTime:  preset.open,
                             closeTime: preset.close,
                           })))}
-                          className="px-4 py-2 text-xs bg-[#242220] text-[#8B7D6B] rounded-xl hover:bg-[#353534] hover:text-white transition-colors border border-[#4D463A]/20"
+                          className="px-4 py-2 text-xs bg-surface-container text-muted rounded-xl hover:bg-surface-container-highest hover:text-foreground transition-colors border border-outline-variant/20"
                         >
                           {preset.label}
                         </button>
@@ -881,18 +881,18 @@ function SettingsContent() {
                         <div
                           key={day.dayOfWeek}
                           className={`flex items-center gap-4 p-4 rounded-2xl transition-all
-                            ${day.isClosed ? "bg-[#1A1918] opacity-60" : "bg-[#242220]"}`}
+                            ${day.isClosed ? "bg-surface-container-low opacity-60" : "bg-surface-container"}`}
                         >
                           {/* Day label */}
                           <div className="w-16 flex-shrink-0">
-                            <p className="text-xs font-bold text-[#8B7D6B] tracking-widest">{dayAbbr[day.dayOfWeek]}</p>
-                            <p className="text-sm text-white">{dayNames[day.dayOfWeek]}</p>
+                            <p className="text-xs font-bold text-muted tracking-widest">{dayAbbr[day.dayOfWeek]}</p>
+                            <p className="text-sm text-foreground">{dayNames[day.dayOfWeek]}</p>
                           </div>
 
                           {/* Toggle */}
                           <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
                             <input type="checkbox" checked={!day.isClosed} onChange={() => toggleDay(day.dayOfWeek)} className="sr-only peer" />
-                            <div className="w-10 h-5 bg-[#353534] peer-checked:bg-[#E5C487] rounded-full peer-checked:after:translate-x-5 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
+                            <div className="w-10 h-5 bg-surface-container-highest peer-checked:bg-primary-fixed-dim rounded-full peer-checked:after:translate-x-5 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
                           </label>
 
                           {/* Time pickers */}
@@ -902,18 +902,18 @@ function SettingsContent() {
                                 type="time"
                                 value={day.openTime}
                                 onChange={e => updateHours(day.dayOfWeek, "openTime", e.target.value)}
-                                className="bg-[#353534] border border-[#4D463A]/20 rounded-xl px-3 py-2 text-white text-sm focus:border-[#E5C487] focus:outline-none"
+                                className="bg-surface-container-highest border border-outline-variant/20 rounded-xl px-3 py-2 text-foreground text-sm focus:border-primary focus:outline-none"
                               />
-                              <span className="text-[#4D463A] text-xs">to</span>
+                              <span className="text-muted text-xs">to</span>
                               <input
                                 type="time"
                                 value={day.closeTime}
                                 onChange={e => updateHours(day.dayOfWeek, "closeTime", e.target.value)}
-                                className="bg-[#353534] border border-[#4D463A]/20 rounded-xl px-3 py-2 text-white text-sm focus:border-[#E5C487] focus:outline-none"
+                                className="bg-surface-container-highest border border-outline-variant/20 rounded-xl px-3 py-2 text-foreground text-sm focus:border-primary focus:outline-none"
                               />
                             </div>
                           ) : (
-                            <span className="ml-auto text-xs text-[#4D463A] font-medium tracking-wider">CLOSED</span>
+                            <span className="ml-auto text-xs text-muted font-medium tracking-wider">CLOSED</span>
                           )}
                         </div>
                       ))}
@@ -925,19 +925,19 @@ function SettingsContent() {
                 {activeTab === "barbers" && (
                   <div className="space-y-4">
                     {/* Header */}
-                    <div className="bg-[#1C1B1B] rounded-3xl px-8 py-6 border border-[#4D463A]/10 flex items-center justify-between">
+                    <div className="bg-surface-container-low rounded-3xl px-8 py-6 border border-outline-variant/10 flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-[#E5C487]/10 flex items-center justify-center">
-                          <span className="material-symbols-outlined text-[#E5C487] text-lg">content_cut</span>
+                        <div className="w-9 h-9 rounded-xl bg-primary-fixed-dim/10 flex items-center justify-center">
+                          <span className="material-symbols-outlined text-primary text-lg">content_cut</span>
                         </div>
                         <div>
-                          <h3 className="font-headline font-black text-white">Team Barbers</h3>
-                          <p className="text-xs text-[#4D463A]">{barbers.filter(b => b.is_active).length} of {barbers.length} shown on website</p>
+                          <h3 className="font-headline font-black text-foreground">Team Barbers</h3>
+                          <p className="text-xs text-muted">{barbers.filter(b => b.is_active).length} of {barbers.length} shown on website</p>
                         </div>
                       </div>
                       <button
                         onClick={() => setEditingBarber({ index: -1, data: { is_active: true, specialties: [], display_order: barbers.length } })}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-[#E5C487] text-[#402d00] font-bold rounded-xl hover:bg-[#f0d090] transition-colors text-sm"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-primary-fixed-dim text-primary-foreground font-bold rounded-xl hover:bg-primary-fixed-dim transition-colors text-sm"
                       >
                         <span className="material-symbols-outlined text-lg">add</span>
                         Add Barber
@@ -946,21 +946,21 @@ function SettingsContent() {
 
                     {/* Barber list */}
                     {barbers.length === 0 ? (
-                      <div className="bg-[#1C1B1B] rounded-3xl p-16 border border-[#4D463A]/10 text-center">
-                        <div className="w-16 h-16 rounded-2xl bg-[#242220] flex items-center justify-center mx-auto mb-4">
-                          <span className="material-symbols-outlined text-3xl text-[#4D463A]">content_cut</span>
+                      <div className="bg-surface-container-low rounded-3xl p-16 border border-outline-variant/10 text-center">
+                        <div className="w-16 h-16 rounded-2xl bg-surface-container flex items-center justify-center mx-auto mb-4">
+                          <span className="material-symbols-outlined text-3xl text-muted">content_cut</span>
                         </div>
-                        <p className="text-white font-bold mb-1">No barbers yet</p>
-                        <p className="text-[#4D463A] text-sm mb-6">Add your team so customers can see who they're booking with</p>
+                        <p className="text-foreground font-bold mb-1">No barbers yet</p>
+                        <p className="text-muted text-sm mb-6">Add your team so customers can see who they're booking with</p>
                         <button
                           onClick={() => setEditingBarber({ index: -1, data: { is_active: true, specialties: [], display_order: 0 } })}
-                          className="px-6 py-3 bg-[#E5C487] text-[#402d00] font-bold rounded-xl text-sm"
+                          className="px-6 py-3 bg-primary-fixed-dim text-primary-foreground font-bold rounded-xl text-sm"
                         >
                           Add your first barber
                         </button>
                       </div>
                     ) : (
-                      <div className="bg-[#1C1B1B] rounded-3xl p-4 border border-[#4D463A]/10 space-y-2">
+                      <div className="bg-surface-container-low rounded-3xl p-4 border border-outline-variant/10 space-y-2">
                         {barbers.map((b, i) => (
                           <BarberCard
                             key={b.id || i}
@@ -975,11 +975,11 @@ function SettingsContent() {
                     )}
 
                     {/* Info callout */}
-                    <div className="bg-[#1C1B1B] rounded-2xl p-5 border border-[#4D463A]/10 flex items-start gap-3">
-                      <span className="material-symbols-outlined text-[#E5C487] text-lg flex-shrink-0 mt-0.5">info</span>
+                    <div className="bg-surface-container-low rounded-2xl p-5 border border-outline-variant/10 flex items-start gap-3">
+                      <span className="material-symbols-outlined text-primary text-lg flex-shrink-0 mt-0.5">info</span>
                       <div>
-                        <p className="text-sm text-white font-medium">Visibility Control</p>
-                        <p className="text-xs text-[#4D463A] mt-1">
+                        <p className="text-sm text-foreground font-medium">Visibility Control</p>
+                        <p className="text-xs text-muted mt-1">
                           Only barbers with "Show on website" toggled on will appear in your public listing.
                           Toggle off to temporarily hide a barber without deleting them.
                         </p>
@@ -990,14 +990,14 @@ function SettingsContent() {
 
                 {/* ── Slots Tab ─────────────────────────── */}
                 {activeTab === "slots" && (
-                  <div className="bg-[#1C1B1B] rounded-3xl p-8 border border-[#4D463A]/10">
+                  <div className="bg-surface-container-low rounded-3xl p-8 border border-outline-variant/10">
                     <div className="flex items-center gap-3 mb-8">
-                      <div className="w-9 h-9 rounded-xl bg-[#E5C487]/10 flex items-center justify-center">
-                        <span className="material-symbols-outlined text-[#E5C487] text-lg">event_available</span>
+                      <div className="w-9 h-9 rounded-xl bg-primary-fixed-dim/10 flex items-center justify-center">
+                        <span className="material-symbols-outlined text-primary text-lg">event_available</span>
                       </div>
                       <div>
-                        <h3 className="font-headline font-black text-white">Slot Configuration</h3>
-                        <p className="text-xs text-[#4D463A]">Configure default booking slot settings</p>
+                        <h3 className="font-headline font-black text-foreground">Slot Configuration</h3>
+                        <p className="text-xs text-muted">Configure default booking slot settings</p>
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-6">
@@ -1008,14 +1008,14 @@ function SettingsContent() {
                         { label: "Minimum Notice",        options: [["0","No minimum"],["1","1 hour"],["2","2 hours"],["24","24 hours"]], def: "2" },
                       ].map(({ label, options, def }) => (
                         <div key={label}>
-                          <label className="text-xs text-[#8B7D6B] uppercase tracking-widest mb-2 block">{label}</label>
-                          <select defaultValue={def} className="w-full bg-[#242220] border border-[#4D463A]/20 rounded-xl px-4 py-3 text-white focus:border-[#E5C487] focus:outline-none">
+                          <label className="text-xs text-muted uppercase tracking-widest mb-2 block">{label}</label>
+                          <select defaultValue={def} className="w-full bg-surface-container border border-outline-variant/20 rounded-xl px-4 py-3 text-foreground focus:border-primary focus:outline-none">
                             {options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                           </select>
                         </div>
                       ))}
                     </div>
-                    <p className="text-xs text-[#4D463A] mt-6 flex items-center gap-2">
+                    <p className="text-xs text-muted mt-6 flex items-center gap-2">
                       <span className="material-symbols-outlined text-sm">info</span>
                       Slot configuration will be fully activated in a future update.
                     </p>
@@ -1024,14 +1024,14 @@ function SettingsContent() {
 
                 {/* ── Security Tab ──────────────────────── */}
                 {activeTab === "security" && (
-                  <div className="bg-[#1C1B1B] rounded-3xl p-8 border border-[#4D463A]/10">
+                  <div className="bg-surface-container-low rounded-3xl p-8 border border-outline-variant/10">
                     <div className="flex items-center gap-3 mb-8">
-                      <div className="w-9 h-9 rounded-xl bg-[#E5C487]/10 flex items-center justify-center">
-                        <span className="material-symbols-outlined text-[#E5C487] text-lg">lock</span>
+                      <div className="w-9 h-9 rounded-xl bg-primary-fixed-dim/10 flex items-center justify-center">
+                        <span className="material-symbols-outlined text-primary text-lg">lock</span>
                       </div>
                       <div>
-                        <h3 className="font-headline font-black text-white">Security Settings</h3>
-                        <p className="text-xs text-[#4D463A]">Manage your account password</p>
+                        <h3 className="font-headline font-black text-foreground">Security Settings</h3>
+                        <p className="text-xs text-muted">Manage your account password</p>
                       </div>
                     </div>
                     <div className="space-y-6 max-w-md">
@@ -1041,21 +1041,21 @@ function SettingsContent() {
                         { label: "Confirm Password",   placeholder: "••••••••" },
                       ].map(({ label, placeholder }) => (
                         <div key={label}>
-                          <label className="text-xs text-[#8B7D6B] uppercase tracking-widest mb-2 block">{label}</label>
+                          <label className="text-xs text-muted uppercase tracking-widest mb-2 block">{label}</label>
                           <input
                             type="password"
                             placeholder={placeholder}
-                            className="w-full bg-[#242220] border border-[#4D463A]/20 rounded-xl px-4 py-3 text-white focus:border-[#E5C487] focus:outline-none"
+                            className="w-full bg-surface-container border border-outline-variant/20 rounded-xl px-4 py-3 text-foreground focus:border-primary focus:outline-none"
                           />
                         </div>
                       ))}
-                      <button className="px-6 py-3 bg-[#E5C487] text-[#402d00] font-bold rounded-xl">
+                      <button className="px-6 py-3 bg-primary-fixed-dim text-primary-foreground font-bold rounded-xl">
                         Update Password
                       </button>
                     </div>
 
-                    <div className="border-t border-[#4D463A]/20 pt-8 mt-8">
-                      <h4 className="font-headline font-bold text-white mb-4">Account Actions</h4>
+                    <div className="border-t border-outline-variant/20 pt-8 mt-8">
+                      <h4 className="font-headline font-bold text-foreground mb-4">Account Actions</h4>
                       <button
                         onClick={logout}
                         className="flex items-center gap-2 px-6 py-3 bg-red-500/10 text-red-400 font-bold rounded-xl border border-red-500/20 hover:bg-red-500/20 transition-all"

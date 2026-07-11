@@ -33,7 +33,10 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#131313",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#F8F9FA" },
+    { media: "(prefers-color-scheme: dark)", color: "#0E0E0F" },
+  ],
 };
 
 export default function RootLayout({
@@ -42,23 +45,30 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head>
+        {/* Set the theme class before first paint to avoid a flash of the
+            wrong theme (FOUC). Mirrors the logic in ThemeProvider. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('theme');if(t!=='light'&&t!=='dark'){t=window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';}document.documentElement.classList.toggle('dark',t==='dark');}catch(e){}})();`,
+          }}
+        />
         <link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;700;800;900&family=Manrope:wght@400;500;600&family=Space+Grotesk:wght@400;700&family=Syne:wght@800&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
       </head>
-      <body className="bg-surface text-on-surface font-body selection:bg-primary/30 selection:text-primary overflow-x-hidden">
+      <body className="font-body overflow-x-hidden">
         <Providers>
           {children}
         </Providers>
-        <Toaster 
-          position="top-right" 
+        <Toaster
+          position="top-right"
           toastOptions={{
             style: {
-              background: '#0b0b0b',
-              border: '1px solid rgba(200, 169, 110, 0.2)',
-              color: '#fff',
+              background: "var(--card)",
+              border: "1px solid var(--border)",
+              color: "var(--foreground)",
             },
           }}
         />
