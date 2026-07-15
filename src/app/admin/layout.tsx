@@ -15,6 +15,8 @@ interface NavItem {
 const navItems: readonly NavItem[] = [
   { href: "/admin", label: "Dashboard", icon: "dashboard" },
   { href: "/admin/studios", label: "Studios", icon: "store" },
+  { href: "/admin/verifications", label: "Verifications", icon: "verified" },
+  { href: "/admin/curation", label: "Curation", icon: "auto_awesome" },
   { href: "/admin/users", label: "Users", icon: "people" },
   { href: "/admin/settings", label: "Settings", icon: "settings" },
 ] as const;

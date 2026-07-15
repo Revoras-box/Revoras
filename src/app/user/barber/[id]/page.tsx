@@ -1,286 +1,392 @@
 "use client";
 
 import Link from "next/link";
-import { use, useMemo, useState } from "react";
-import { useBarber } from "@/lib/hooks";
-import type { BarberProfile } from "@/lib/types";
+import { use, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, Star, BadgeCheck, Award as AwardIcon, ExternalLink, ChevronLeft, ChevronRight, X, Instagram, Facebook, Linkedin, Globe } from "lucide-react";
+import { Container, Card, Avatar, Badge, TimeSlotPicker, Button, ErrorState, TrustBadges } from "@/components/ui";
+import { useProfessional, useBusiness, useAvailability } from "@/lib/hooks";
+import { filterSlotsByWorkingHours } from "@/components/user/sections/utils";
+import ReviewSection from "@/components/user/sections/ReviewSection";
+import type { ProfessionalSocialLinks } from "@/lib/types";
 
-const availableDates = [
-  { day: "MON", date: 12, selected: true },
-  { day: "TUE", date: 13 },
-  { day: "WED", date: 14 },
-  { day: "THU", date: 15 },
-];
+const toIsoDate = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 
-const availableSlots = ["09:00 AM", "10:30 AM", "01:15 PM", "04:45 PM"];
-
-function extractBarber(payload: unknown): BarberProfile | null {
-  if (!payload || typeof payload !== "object") return null;
-  const obj = payload as Record<string, unknown>;
-  if ("barber" in obj && obj.barber && typeof obj.barber === "object") {
-    return obj.barber as BarberProfile;
-  }
-  if ("id" in obj && "name" in obj) {
-    return obj as unknown as BarberProfile;
-  }
-  return null;
+function ProSection({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section>
+      <h2 className="mb-4 font-headline text-xl font-bold text-on-surface">{title}</h2>
+      {children}
+    </section>
+  );
 }
 
-export default function BarberProfilePage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
-  const [selectedDate, setSelectedDate] = useState(12);
-  const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
+const PRO_SOCIAL: { key: keyof ProfessionalSocialLinks; Icon: typeof Star; label: string; base: (v: string) => string }[] = [
+  { key: "instagram", Icon: Instagram, label: "Instagram", base: (v) => `https://instagram.com/${v.replace(/^@/, "")}` },
+  { key: "facebook", Icon: Facebook, label: "Facebook", base: (v) => `https://facebook.com/${v}` },
+  { key: "linkedin", Icon: Linkedin, label: "LinkedIn", base: (v) => `https://linkedin.com/in/${v}` },
+  { key: "website", Icon: Globe, label: "Website", base: (v) => v },
+];
 
-  const { data, loading, error, refetch } = useBarber<BarberProfile>(id);
-  const barber = useMemo(() => extractBarber(data), [data]);
+export default function ProfessionalProfilePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+  const router = useRouter();
+
+  const dateOptions = useMemo(() => {
+    const dayFmt = new Intl.DateTimeFormat("en-US", { weekday: "short" });
+    return Array.from({ length: 5 }).map((_, i) => {
+      const date = new Date();
+      date.setDate(date.getDate() + i);
+      return { iso: toIsoDate(date), day: dayFmt.format(date), date: date.getDate() };
+    });
+  }, []);
+
+  const [selectedDate, setSelectedDate] = useState(dateOptions[0]?.iso ?? toIsoDate(new Date()));
+  const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
+  const [lightbox, setLightbox] = useState<number | null>(null);
+
+  const { data, loading, error, refetch } = useProfessional(id);
+  const professional = data?.professional;
+
+  const { data: businessData } = useBusiness(professional?.studio_id ?? "");
+  const business = businessData?.business;
+
+  const { slots, loading: slotsLoading } = useAvailability(
+    professional?.studio_id ?? "",
+    professional?.id ?? null,
+    selectedDate
+  );
+
+  const availableTimes = useMemo(
+    () => (business ? filterSlotsByWorkingHours(slots, business.workingHours, selectedDate) : slots),
+    [slots, business, selectedDate]
+  );
+
+  useEffect(() => {
+    if (!availableTimes.includes(selectedSlot ?? "")) setSelectedSlot(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [availableTimes]);
+
+  const handleConfirm = () => {
+    if (!professional || !selectedSlot) return;
+    const params = new URLSearchParams({
+      studioId: professional.studio_id,
+      barberId: professional.id,
+      date: selectedDate,
+      time: selectedSlot,
+    });
+    router.push(`/user/book?${params.toString()}`);
+  };
 
   if (loading) {
     return (
-      <main className="pt-24 pb-20 relative min-h-screen bg-background">
-        <div className="max-w-7xl mx-auto px-12 space-y-12 animate-pulse">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-6">
-              <div className="h-4 w-24 bg-surface rounded"></div>
-              <div className="h-16 w-3/4 bg-surface rounded"></div>
-              <div className="h-4 w-48 bg-surface rounded"></div>
-              <div className="h-20 w-full bg-surface rounded"></div>
-            </div>
-            <div className="h-[450px] bg-surface rounded-3xl"></div>
-          </div>
-          <div className="grid grid-cols-3 gap-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-28 bg-surface rounded-xl"></div>
-            ))}
-          </div>
-        </div>
-      </main>
+      <Container className="py-8">
+        <div className="h-96 animate-pulse rounded-2xl bg-surface-container-high" />
+      </Container>
     );
   }
 
-  if (error || !barber) {
+  if (error || !professional) {
     return (
-      <main className="pt-28 px-12 min-h-screen bg-background">
-        <div className="max-w-3xl mx-auto bg-surface border border-border/20 rounded-3xl p-10 text-center">
-          <span className="material-symbols-outlined text-5xl text-red-400">error</span>
-          <h1 className="text-3xl font-headline font-bold mt-4 mb-2">Barber not found</h1>
-          <p className="text-muted mb-6">{error || "This barber may not exist or is no longer available."}</p>
-          <div className="flex items-center justify-center gap-4">
-            <button
-              onClick={() => refetch()}
-              className="px-6 py-3 rounded-xl bg-primary text-primary-foreground font-headline font-bold hover:brightness-110 transition-all"
-            >
-              Try Again
-            </button>
-            <Link
-              href="/user/discover"
-              className="px-6 py-3 rounded-xl border border-border/40 text-foreground font-headline font-bold hover:bg-surface transition-all"
-            >
-              Browse Studios
-            </Link>
-          </div>
-        </div>
-      </main>
+      <Container className="py-16">
+        <ErrorState description={error || "This professional may not exist or is no longer available."} onRetry={refetch} />
+      </Container>
     );
   }
 
-  const displayCuts = barber.cuts_completed ? `${barber.cuts_completed.toLocaleString()}+` : null;
-  const displayRating = barber.rating != null ? Number(barber.rating).toFixed(1) : null;
-  const displayExperience = barber.experience_years ? `${barber.experience_years}y` : null;
-  const hasStats = displayCuts || displayRating || displayExperience;
-  const specialties = (barber as unknown as Record<string, unknown>).specialties;
+  const featuredServices = (business?.services ?? []).filter((s) => professional.featured_service_ids?.includes(s.id));
+  const socialLinks = PRO_SOCIAL.filter((s) => professional.social_links?.[s.key]);
+  // Cover first, then saved order.
+  const portfolio = [...(professional.portfolio ?? [])].sort(
+    (a, b) => (b.is_cover ? 1 : 0) - (a.is_cover ? 1 : 0) || a.sort_order - b.sort_order
+  );
+  const certificates = professional.certificates ?? [];
 
   return (
-    <main className="pt-20 pb-20 relative min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-12">
-        {/* Breadcrumb */}
-        <div className="mb-8">
-          <Link
-            href={barber.studio_id ? `/user/studio/${barber.studio_id}` : "/user/discover"}
-            className="inline-flex items-center gap-2 text-sm text-muted hover:text-foreground transition-colors"
-          >
-            <span className="material-symbols-outlined text-base">arrow_back</span>
-            {barber.studio_name ? `Back to ${barber.studio_name}` : "Back to Discover"}
-          </Link>
-        </div>
+    <Container className="flex flex-col gap-10 py-8">
+      <Link href={`/user/business/${professional.studio_id}`} className="inline-flex items-center gap-2 text-sm text-muted hover:text-on-surface">
+        <ArrowLeft size={16} />
+        Back to {professional.business_name}
+      </Link>
 
-        <div className="grid grid-cols-12 gap-12">
-          {/* Main Content */}
-          <div className="col-span-12 lg:col-span-8 space-y-10">
-            {/* Hero Section */}
-            <section className="grid grid-cols-1 md:grid-cols-2 gap-8 items-end">
-              <div className="order-2 md:order-1">
-                {barber.title && (
-                  <span className="font-label text-xs tracking-widest text-primary uppercase mb-3 block">
-                    {barber.title}
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-12">
+        <div className="flex flex-col gap-10 lg:col-span-8">
+          {/* Hero */}
+          <div className="flex flex-col gap-5">
+            <div className="flex items-center gap-5">
+              <Avatar name={professional.name} src={professional.image_url ?? undefined} size="xl" />
+              <div>
+                {professional.designation ? (
+                  <p className="text-xs uppercase tracking-wide text-primary">{professional.designation}</p>
+                ) : null}
+                <h1 className="font-headline text-3xl font-bold text-on-surface">{professional.name}</h1>
+                <p className="text-sm text-muted">at {professional.business_name}</p>
+                <TrustBadges badges={professional.badges} className="mt-2" />
+              </div>
+            </div>
+            {(Number(professional.rating) > 0 || professional.experience_years) ? (
+              <div className="flex flex-wrap gap-2">
+                {Number(professional.rating) > 0 ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-surface-container-high px-3 py-1 text-sm font-medium text-on-surface">
+                    <Star size={16} className="fill-primary text-primary" /> {Number(professional.rating).toFixed(1)}
                   </span>
-                )}
-                <h1 className="font-headline text-6xl md:text-7xl font-extrabold tracking-tighter text-foreground leading-none mb-4">
-                  {barber.name}
-                </h1>
-                {barber.studio_name && (
-                  <p className="text-secondary-foreground text-sm font-label tracking-wider mb-4">
-                    at <span className="text-foreground">{barber.studio_name}</span>
-                  </p>
-                )}
-                {barber.bio && (
-                  <p className="text-muted leading-relaxed font-light max-w-md">{barber.bio}</p>
-                )}
+                ) : null}
+                {professional.experience_years ? (
+                  <span className="inline-flex items-center rounded-full bg-surface-container-high px-3 py-1 text-sm text-muted">
+                    {professional.experience_years} yrs experience
+                  </span>
+                ) : null}
               </div>
-              <div className="order-1 md:order-2">
-                <div className="relative group">
-                  <div className="absolute -inset-3 bg-primary/10 rounded-[2rem] blur-2xl group-hover:bg-primary/20 transition-all"></div>
-                  <div className="relative h-[450px] w-full overflow-hidden rounded-3xl bg-surface border border-border/20">
-                    <img
-                      alt={barber.name}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                      src={barber.image_url || "/images/barber-placeholder.jpg"}
-                    />
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Specialties */}
-            {Array.isArray(specialties) && specialties.length > 0 && (
-              <section>
-                <div className="flex flex-wrap gap-2">
-                  {specialties.map((s: string, i: number) => (
-                    <span
-                      key={i}
-                      className="px-4 py-2 rounded-full bg-surface border border-border/30 text-sm text-foreground font-label"
+            ) : null}
+            {socialLinks.length > 0 ? (
+              <div className="flex flex-wrap gap-3">
+                {socialLinks.map(({ key, Icon, label, base }) => {
+                  const value = professional.social_links[key] as string;
+                  const href = /^https?:\/\//i.test(value) ? value : base(value);
+                  return (
+                    <a
+                      key={key}
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-sm text-on-surface transition-colors hover:bg-surface-container-high"
                     >
-                      {s}
-                    </span>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* Stats */}
-            {hasStats && (
-              <section className="grid grid-cols-3 gap-4">
-                {displayCuts && (
-                  <div className="bg-surface p-6 rounded-xl text-center border border-border/10">
-                    <span className="font-label text-[10px] tracking-widest text-secondary-foreground uppercase">Cuts</span>
-                    <p className="font-headline text-3xl font-bold text-primary mt-1">{displayCuts}</p>
-                  </div>
-                )}
-                {displayRating && (
-                  <div className="bg-surface p-6 rounded-xl text-center border border-border/10">
-                    <span className="font-label text-[10px] tracking-widest text-secondary-foreground uppercase">Rating</span>
-                    <div className="flex items-center justify-center gap-1 mt-1">
-                      <span className="font-headline text-3xl font-bold text-primary">{displayRating}</span>
-                      <span className="material-symbols-outlined text-primary text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>
-                        star
-                      </span>
-                    </div>
-                  </div>
-                )}
-                {displayExperience && (
-                  <div className="bg-surface p-6 rounded-xl text-center border border-border/10">
-                    <span className="font-label text-[10px] tracking-widest text-secondary-foreground uppercase">Experience</span>
-                    <p className="font-headline text-3xl font-bold text-primary mt-1">{displayExperience}</p>
-                  </div>
-                )}
-              </section>
-            )}
-
-            {/* Bio / About */}
-            {barber.bio && (
-              <section>
-                <div className="flex items-center gap-4 mb-6">
-                  <h2 className="font-headline text-2xl font-bold tracking-tight text-foreground">About</h2>
-                  <div className="h-px flex-grow bg-border/20"></div>
-                </div>
-                <p className="text-muted leading-relaxed">{barber.bio}</p>
-              </section>
-            )}
+                      <Icon size={16} /> {label}
+                    </a>
+                  );
+                })}
+              </div>
+            ) : null}
           </div>
 
-          {/* Sidebar - Quick Booking */}
-          <div className="col-span-12 lg:col-span-4">
-            <div className="sticky top-28 space-y-6">
-              <div className="bg-surface p-8 rounded-2xl border border-border/30 shadow-2xl">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="font-headline text-2xl font-bold text-foreground">Quick Booking</h3>
-                  <span className="material-symbols-outlined text-primary">calendar_month</span>
-                </div>
+          {professional.bio ? (
+            <ProSection title="About">
+              <p className="whitespace-pre-line text-sm leading-relaxed text-muted">{professional.bio}</p>
+            </ProSection>
+          ) : null}
 
-                <div className="space-y-4 mb-8">
-                  <label className="font-label text-xs tracking-widest text-secondary-foreground uppercase">Select Date</label>
-                  <div className="flex gap-3 overflow-x-auto pb-2">
-                    {availableDates.map((d) => (
-                      <button
-                        key={d.date}
-                        onClick={() => setSelectedDate(d.date)}
-                        className={`flex-shrink-0 w-16 h-20 rounded-xl flex flex-col items-center justify-center border transition-colors ${
-                          selectedDate === d.date
-                            ? "bg-primary/20 text-primary border-primary/40"
-                            : "bg-surface text-foreground border-border/20 hover:border-primary/40"
-                        }`}
-                      >
-                        <span className="text-xs font-bold">{d.day}</span>
-                        <span className="text-2xl font-black">{d.date}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-4 mb-8">
-                  <label className="font-label text-xs tracking-widest text-secondary-foreground uppercase">Available Slots</label>
-                  <div className="grid grid-cols-2 gap-3">
-                    {availableSlots.map((slot) => (
-                      <button
-                        key={slot}
-                        onClick={() => setSelectedSlot(slot)}
-                        className={`py-3 px-4 rounded-lg text-sm font-medium border transition-all text-center ${
-                          selectedSlot === slot
-                            ? "bg-primary/20 text-primary border-primary/40"
-                            : "bg-surface border-border/20 hover:border-primary/40 text-foreground"
-                        }`}
-                      >
-                        {slot}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <Link
-                  href={selectedSlot ? `/user/book?barberId=${barber.id}` : "#"}
-                  className={`w-full py-4 rounded-xl font-headline font-extrabold text-lg shadow-lg transition-all block text-center ${
-                    selectedSlot
-                      ? "bg-gradient-to-r from-primary-fixed-dim to-primary-container text-primary-foreground active:scale-95"
-                      : "bg-surface text-secondary-foreground cursor-not-allowed"
-                  }`}
-                >
-                  {selectedSlot ? "Confirm Appointment" : "Select a Slot"}
-                </Link>
+          {professional.specialties.length > 0 ? (
+            <ProSection title="Specializations">
+              <div className="flex flex-wrap gap-2">
+                {professional.specialties.map((s) => (
+                  <Badge key={s}>{s}</Badge>
+                ))}
               </div>
+            </ProSection>
+          ) : null}
 
-              {/* Studio Link */}
-              {barber.studio_id && (
-                <Link
-                  href={`/user/studio/${barber.studio_id}`}
-                  className="flex items-center gap-4 p-5 rounded-2xl bg-surface border border-border/20 hover:border-primary/30 transition-all group"
-                >
-                  <div className="p-3 rounded-xl bg-primary/10">
-                    <span className="material-symbols-outlined text-primary">store</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-headline font-bold text-sm text-foreground truncate">
-                      {barber.studio_name || "View Studio"}
-                    </p>
-                    <p className="text-xs text-secondary-foreground font-label">Visit studio page</p>
-                  </div>
-                  <span className="material-symbols-outlined text-secondary-foreground group-hover:text-foreground transition-colors">
-                    arrow_forward
+          {professional.languages?.length > 0 ? (
+            <ProSection title="Languages">
+              <div className="flex flex-wrap gap-2">
+                {professional.languages.map((l) => (
+                  <span key={l} className="rounded-full bg-surface-container-high px-3 py-1 text-sm text-muted">
+                    {l}
                   </span>
-                </Link>
+                ))}
+              </div>
+            </ProSection>
+          ) : null}
+
+          {featuredServices.length > 0 ? (
+            <ProSection title="Featured services">
+              <div className="grid gap-3 sm:grid-cols-2">
+                {featuredServices.map((s) => (
+                  <Card key={s.id} padding="md" className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-on-surface">{s.name}</span>
+                    <span className="text-sm text-muted">
+                      ₹{s.price} · {s.duration}m
+                    </span>
+                  </Card>
+                ))}
+              </div>
+            </ProSection>
+          ) : null}
+
+          {professional.education?.length > 0 ? (
+            <ProSection title="Education">
+              <div className="flex flex-col gap-3">
+                {professional.education.map((e, i) => (
+                  <Card key={`${e.institution}-${i}`} padding="md">
+                    <div className="text-sm font-medium text-on-surface">{e.institution}</div>
+                    {(e.degree || e.year) ? (
+                      <div className="text-sm text-muted">{[e.degree, e.year].filter(Boolean).join(" · ")}</div>
+                    ) : null}
+                  </Card>
+                ))}
+              </div>
+            </ProSection>
+          ) : null}
+
+          {certificates.length > 0 ? (
+            <ProSection title="Certifications">
+              <div className="grid gap-3 sm:grid-cols-2">
+                {certificates.map((c) => (
+                  <Card key={c.id} padding="md" className="flex gap-3">
+                    {c.media_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={c.media_url} alt={c.title} className="h-16 w-16 shrink-0 rounded-lg object-cover" />
+                    ) : (
+                      <BadgeCheck size={20} className="mt-0.5 shrink-0 text-primary" />
+                    )}
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium text-on-surface">{c.title}</div>
+                      <div className="text-sm text-muted">{c.issuer}</div>
+                      {(c.issued_date || c.expiry_date) ? (
+                        <div className="text-xs text-muted">
+                          {[c.issued_date?.slice(0, 10), c.expiry_date ? `exp ${c.expiry_date.slice(0, 10)}` : ""]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </div>
+                      ) : null}
+                      {c.credential_id ? <div className="text-xs text-muted">ID: {c.credential_id}</div> : null}
+                      {c.verification_url ? (
+                        <a
+                          href={c.verification_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-0.5 inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                        >
+                          View certificate <ExternalLink size={12} />
+                        </a>
+                      ) : null}
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </ProSection>
+          ) : null}
+
+          {professional.awards?.length > 0 ? (
+            <ProSection title="Awards">
+              <div className="flex flex-col gap-3">
+                {professional.awards.map((a, i) => (
+                  <Card key={`${a.title}-${i}`} padding="md" className="flex items-start gap-3">
+                    <AwardIcon size={18} className="mt-0.5 shrink-0 text-primary" />
+                    <div>
+                      <div className="text-sm font-medium text-on-surface">{a.title}</div>
+                      {a.year ? <div className="text-sm text-muted">{a.year}</div> : null}
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </ProSection>
+          ) : null}
+
+          {portfolio.length > 0 ? (
+            <ProSection title="Portfolio">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {portfolio.map((img, i) => (
+                  <button
+                    key={img.id}
+                    type="button"
+                    onClick={() => setLightbox(i)}
+                    className="group overflow-hidden rounded-xl border border-border"
+                    aria-label={img.caption ?? "View portfolio image"}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={img.media_url}
+                      alt={img.caption ?? "Portfolio image"}
+                      className="aspect-square w-full object-cover transition-transform group-hover:scale-105"
+                    />
+                  </button>
+                ))}
+              </div>
+            </ProSection>
+          ) : null}
+
+          <ProSection title="Reviews">
+            <ReviewSection businessId={professional.studio_id} />
+          </ProSection>
+        </div>
+
+        <aside className="lg:col-span-4">
+          <Card padding="lg" className="sticky top-20 flex flex-col gap-5">
+            <h3 className="font-headline text-lg font-bold text-on-surface">Quick booking</h3>
+
+            <div>
+              <p className="mb-2 text-xs uppercase tracking-wide text-muted">Select date</p>
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {dateOptions.map((d) => (
+                  <button
+                    key={d.iso}
+                    onClick={() => setSelectedDate(d.iso)}
+                    className={`flex w-14 shrink-0 flex-col items-center rounded-lg border py-2 transition-colors ${
+                      selectedDate === d.iso ? "border-primary bg-primary text-on-primary" : "border-border text-on-surface hover:bg-surface-container-low"
+                    }`}
+                  >
+                    <span className="text-xs">{d.day}</span>
+                    <span className="font-bold">{d.date}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <p className="mb-2 text-xs uppercase tracking-wide text-muted">Available times</p>
+              {slotsLoading ? (
+                <div className="h-16 animate-pulse rounded-lg bg-surface-container-high" />
+              ) : (
+                <TimeSlotPicker slots={availableTimes} selected={selectedSlot ?? undefined} onSelect={setSelectedSlot} />
               )}
             </div>
-          </div>
-        </div>
+
+            <Button size="lg" disabled={!selectedSlot} onClick={handleConfirm}>
+              {selectedSlot ? "Continue to booking" : "Select a slot"}
+            </Button>
+          </Card>
+        </aside>
       </div>
-    </main>
+
+      {lightbox !== null && portfolio[lightbox] ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onClick={() => setLightbox(null)}>
+          <button type="button" aria-label="Close" className="absolute right-4 top-4 text-white/80 hover:text-white" onClick={() => setLightbox(null)}>
+            <X size={28} />
+          </button>
+          {portfolio.length > 1 ? (
+            <button
+              type="button"
+              aria-label="Previous"
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white"
+              onClick={(e) => {
+                e.stopPropagation();
+                setLightbox((v) => (v === null ? v : (v - 1 + portfolio.length) % portfolio.length));
+              }}
+            >
+              <ChevronLeft size={32} />
+            </button>
+          ) : null}
+          <div className="max-h-full max-w-3xl" onClick={(e) => e.stopPropagation()}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={portfolio[lightbox].media_url}
+              alt={portfolio[lightbox].caption ?? "Portfolio image"}
+              className="max-h-[80vh] w-auto rounded-lg object-contain"
+            />
+            {portfolio[lightbox].caption ? (
+              <p className="mt-3 text-center text-sm text-white/80">{portfolio[lightbox].caption}</p>
+            ) : null}
+          </div>
+          {portfolio.length > 1 ? (
+            <button
+              type="button"
+              aria-label="Next"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white"
+              onClick={(e) => {
+                e.stopPropagation();
+                setLightbox((v) => (v === null ? v : (v + 1) % portfolio.length));
+              }}
+            >
+              <ChevronRight size={32} />
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+    </Container>
   );
 }

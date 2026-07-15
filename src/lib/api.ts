@@ -10,6 +10,32 @@ import type {
   StudioActionResponse,
   GeocodeResponse,
   ApiError,
+  BusinessesResponse,
+  BusinessesMapResponse,
+  BusinessResponse,
+  ServicesResponse,
+  ProfessionalsResponse,
+  ProfessionalResponse,
+  CategoriesResponse,
+  ReviewsResponse,
+  NotificationsResponse,
+  BookingsResponse,
+  BookingResponse,
+  BookingDetail,
+  ProfileResponse,
+  FavoritesResponse,
+  Profile,
+  Notification,
+  AdminVerificationQueueResponse,
+  AdminVerificationDetail,
+  CollectionsResponse,
+  CollectionResponse,
+  FavoriteIdsResponse,
+  FavoriteProfessionalsResponse,
+  RecentlyViewedResponse,
+  BookingQuoteResponse,
+  BookingTimelineResponse,
+  CancellationQuoteResponse,
 } from "./types";
 
 // const API = "https://api.revoras.tech/api";
@@ -23,14 +49,6 @@ export type * from "./types";
 interface AuthCredentials {
   email: string;
   password: string;
-}
-
-interface StudioAuthLoginResponse {
-  token?: string;
-  owner?: unknown;
-  barber?: unknown;
-  studio?: unknown;
-  error?: string;
 }
 
 interface SignupData extends AuthCredentials {
@@ -51,13 +69,12 @@ interface BarberSignupData extends SignupData {
 }
 
 interface BookingData {
-  studioId: string | number;
-  barberId?: string;
+  studioId: string;
+  businessMemberId: string;
+  serviceIds: string[];
   date: string;
   startTime: string;
-  services: Array<{ serviceId: number; price: number; duration: number }>;
   notes?: string;
-  paymentMethod?: string;
 }
 
 interface ReviewData {
@@ -108,200 +125,10 @@ const fetch = async <T = unknown>(url: string, options: FetchOptions = {}): Prom
   };
 };
 
-// Service data interface
-interface ServiceData {
-  name: string;
-  description?: string;
-  category?: string;
-  price: number;
-  duration: number;
-  imageUrl?: string;
-  isActive?: boolean;
-}
-
-// Walk-in booking interface
-interface WalkInData {
-  customerPhone?: string;
-  customerName?: string;
-  serviceIds: number[];
-  notes?: string;
-  assignedBarberId?: string;
-}
-
-// Barber blocked time / break / time off
-export interface TimeOffEntry {
-  id: string;
-  studio_id: string;
-  barber_id: string;
-  date: string;
-  start_time: string | null;
-  end_time: string | null;
-  is_full_day: boolean;
-  reason: string | null;
-}
-
-// Studio settings interface
-interface WorkingHourInput {
-  dayOfWeek: number;
-  openTime: string;
-  closeTime: string;
-  isClosed?: boolean;
-}
-
-interface StudioBarberSettingsData {
-  id?: string;
-  name?: string;
-  email?: string;
-  phone?: string;
-  title?: string;
-  imageUrl?: string;
-  logoUrl?: string;
-  specialties?: string[];
-  isActive?: boolean;
-  workingHours?: WorkingHourInput[];
-}
-
-interface StudioSettingsData {
-  name?: string;
-  description?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  zipCode?: string;
-  country?: string;
-  phone?: string;
-  email?: string;
-  lat?: number;
-  lng?: number;
-  imageUrl?: string;
-  logoUrl?: string;
-  bannerUrl?: string;
-  amenities?: string[];
-  workingHours?: WorkingHourInput[];
-  barber?: StudioBarberSettingsData;
-  barbers?: StudioBarberSettingsData[];
-}
-
-interface AddBarberToStudioData extends StudioBarberSettingsData {
-  name: string;
-  phone: string;
-  password: string;
-}
-
-type NormalizedWorkingHours = {
-  camel: Array<{
-    dayOfWeek: number;
-    openTime: string;
-    closeTime: string;
-    isClosed: boolean;
-  }>;
-  snake: Array<{
-    day_of_week: number;
-    open_time: string;
-    close_time: string;
-    is_closed: boolean;
-  }>;
-};
-
-const normalizeWorkingHours = (workingHours?: WorkingHourInput[]): NormalizedWorkingHours | undefined => {
-  if (!workingHours) return undefined;
-
-  const camel = workingHours.map((hour) => ({
-    dayOfWeek: hour.dayOfWeek,
-    openTime: hour.openTime,
-    closeTime: hour.closeTime,
-    isClosed: hour.isClosed ?? false,
-  }));
-
-  return {
-    camel,
-    snake: camel.map((hour) => ({
-      day_of_week: hour.dayOfWeek,
-      open_time: hour.openTime,
-      close_time: hour.closeTime,
-      is_closed: hour.isClosed,
-    })),
-  };
-};
-
-const normalizeStudioBarberPayload = (barber: StudioBarberSettingsData): Record<string, unknown> => {
-  const payload: Record<string, unknown> = {};
-
-  if (barber.id !== undefined) payload.id = barber.id;
-  if (barber.name !== undefined) payload.name = barber.name;
-  if (barber.email !== undefined) payload.email = barber.email;
-  if (barber.phone !== undefined) payload.phone = barber.phone;
-  if (barber.title !== undefined) payload.title = barber.title;
-  if (barber.specialties !== undefined) payload.specialties = barber.specialties;
-  if (barber.isActive !== undefined) payload.is_active = barber.isActive;
-
-  const resolvedImage = barber.imageUrl ?? barber.logoUrl;
-  if (resolvedImage !== undefined) {
-    payload.image_url = resolvedImage;
-  }
-
-  const normalizedHours = normalizeWorkingHours(barber.workingHours);
-  if (normalizedHours) {
-    payload.workingHours = normalizedHours.camel;
-    payload.working_hours = normalizedHours.snake;
-  }
-
-  return payload;
-};
-
-const normalizeStudioSettingsPayload = (data: StudioSettingsData): Record<string, unknown> => {
-  const payload: Record<string, unknown> = {};
-
-  if (data.name !== undefined) payload.name = data.name;
-  if (data.description !== undefined) payload.description = data.description;
-  if (data.address !== undefined) payload.address = data.address;
-  if (data.city !== undefined) payload.city = data.city;
-  if (data.state !== undefined) payload.state = data.state;
-  if (data.zipCode !== undefined) payload.zip_code = data.zipCode;
-  if (data.country !== undefined) payload.country = data.country;
-  if (data.phone !== undefined) payload.phone = data.phone;
-  if (data.email !== undefined) payload.email = data.email;
-  if (data.lat !== undefined) payload.lat = data.lat;
-  if (data.lng !== undefined) payload.lng = data.lng;
-  if (data.amenities !== undefined) payload.amenities = data.amenities;
-
-  if (data.imageUrl !== undefined) payload.image_url = data.imageUrl;
-  if (data.logoUrl !== undefined) payload.logo_url = data.logoUrl;
-  if (data.bannerUrl !== undefined) payload.banner_url = data.bannerUrl;
-
-  const resolvedStudioImage = data.imageUrl ?? data.logoUrl;
-  if (resolvedStudioImage !== undefined) payload.image_url = resolvedStudioImage;
-
-  const normalizedHours = normalizeWorkingHours(data.workingHours);
-  if (normalizedHours) {
-    payload.workingHours = normalizedHours.camel;
-    payload.working_hours = normalizedHours.snake;
-  }
-
-  if (data.barber) {
-    const barberPayload = normalizeStudioBarberPayload(data.barber);
-    payload.barber = barberPayload;
-    payload.barber_profile = barberPayload;
-  }
-
-  if (data.barbers) {
-    payload.barbers = data.barbers.map((barber) => normalizeStudioBarberPayload(barber));
-  }
-
-  return payload;
-};
-
 // Helper to get auth token (user)
 const getToken = (): string => {
   if (typeof window === 'undefined') return "";
   return localStorage.getItem("token") || "";
-};
-
-// Helper to get barber/studio auth token (checks both studio owner and barber tokens)
-const getBarberToken = (): string => {
-  if (typeof window === 'undefined') return "";
-  // Check studio owner token first, then barber token
-  return localStorage.getItem("studioToken") || localStorage.getItem("barberToken") || "";
 };
 
 // Helper for authenticated requests (user)
@@ -322,30 +149,6 @@ const authFetch = async <T = unknown>(url: string, options: FetchOptions = {}): 
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       window.location.href = "/login";
-    }
-  }
-  
-  return res.json();
-};
-
-// Helper for authenticated requests (barber)
-const barberAuthFetch = async <T = unknown>(url: string, options: FetchOptions = {}): Promise<T> => {
-  const token = getBarberToken();
-  const res = await fetch<T>(url, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token && { "Authorization": `Bearer ${token}` }),
-      ...options.headers,
-    },
-  });
-  
-  if (res.status === 401) {
-    // Token expired - clear and redirect to barber login
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem("barberToken");
-      localStorage.removeItem("barber");
-      window.location.href = "/login-barber";
     }
   }
   
@@ -421,6 +224,14 @@ export const api = {
   // Studio Auth APIs (New - Recommended)
   // ==========================================
   
+  // Phase 2.3 (report.md Phase 2 plan): business registration is now one
+  // unified endpoint (Business + owning User + owner Business Member +
+  // default working hours, created atomically) instead of the old
+  // studio.auth.controller.js signupStudio. Field names below are mapped to
+  // the new /api/auth/business/register contract; emailVerified/
+  // phoneVerified are still accepted but ignored server-side (the backend
+  // independently re-checks the OTP proof - always has, see
+  // consumeVerificationProof).
   studioSignup: async (data: {
     ownerName: string;
     email: string;
@@ -434,7 +245,28 @@ export const api = {
     emailVerified: boolean;
     phoneVerified: boolean;
   }) => {
-    const res = await fetch(`${API}/studios/auth/signup`, {
+    const res = await fetch(`${API}/auth/business/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ownerName: data.ownerName,
+        email: data.email,
+        phone: data.phone,
+        password: data.password,
+        businessName: data.studioName,
+        address: data.address,
+        city: data.city,
+        state: data.state,
+        zipCode: data.zipCode,
+      })
+    });
+    return res.json();
+  },
+
+  // Matches the backend contract (verification.controller.js): `type` selects
+  // email vs phone, and verify expects `otp`. Returns `{ otp }` in dev mode.
+  sendVerification: async (data: { email?: string; phone?: string; type: "email" | "phone" }) => {
+    const res = await fetch<{ otp?: string; error?: string }>(`${API}/verification/send-verification`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)
@@ -442,93 +274,8 @@ export const api = {
     return res.json();
   },
 
-  studioLogin: async (data: { phone?: string; email?: string; password: string }) => {
-    const res = await fetch<StudioAuthLoginResponse>(`${API}/studios/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    });
-    const result = await res.json();
-    if (result.token) {
-      localStorage.setItem("studioToken", result.token);
-      localStorage.setItem("studioOwner", JSON.stringify(result.owner));
-      localStorage.setItem("studio", JSON.stringify(result.studio));
-    }
-    return result;
-  },
-
-  studioLogout: () => {
-    localStorage.removeItem("studioToken");
-    localStorage.removeItem("studioOwner");
-    localStorage.removeItem("studio");
-    // Also clear legacy barber tokens
-    localStorage.removeItem("barberToken");
-    localStorage.removeItem("barber");
-    window.location.href = "/";
-  },
-
-  addBarberToStudio: async (data: AddBarberToStudioData) => {
-    const payload = {
-      ...normalizeStudioBarberPayload(data),
-      password: data.password,
-    };
-
-    return barberAuthFetch(`${API}/studios/auth/barbers`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-  },
-
-  // Barber login (for barbers added by studio)
-  barberEmployeeLogin: async (data: { phone?: string; email?: string; password: string }) => {
-    const res = await fetch<StudioAuthLoginResponse>(`${API}/studios/auth/barber-login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    });
-    const result = await res.json();
-    if (result.token) {
-      localStorage.setItem("barberToken", result.token);
-      localStorage.setItem("barber", JSON.stringify(result.barber));
-      localStorage.setItem("studio", JSON.stringify(result.studio));
-    }
-    return result;
-  },
-
-  // ==========================================
-  // Legacy Studio Manage Auth (Backward Compatibility)
-  // ==========================================
-
-  barberSignup: async (data: BarberSignupData) => {
-    const res = await fetch(`${API}/studios/manage/signup`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    });
-    return res.json();
-  },
-
-  barberLogin: async (data: { phone: string; password: string }) => {
-    const res = await fetch(`${API}/studios/manage/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    });
-    return res.json();
-  },
-
-  sendVerification: async (data: { email?: string; phone?: string }) => {
-    const res = await fetch(`${API}/verification/send-verification`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    });
-    return res.json();
-  },
-
-  verifyCode: async (data: { email?: string; phone?: string; code: string }) => {
-    const res = await fetch(`${API}/verification/verify-code`, {
+  verifyCode: async (data: { email?: string; phone?: string; type: "email" | "phone"; otp: string }) => {
+    const res = await fetch<{ verified?: boolean; error?: string }>(`${API}/verification/verify-code`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)
@@ -555,78 +302,83 @@ export const api = {
   },
 
   // ==========================================
-  // Studio APIs
+  // Discover APIs (businesses/professionals - public, optionalAuth)
   // ==========================================
-  getStudios: async (params: Record<string, string> = {}) => {
+  getBusinesses: async (params: Record<string, string> = {}): Promise<BusinessesResponse> => {
     const query = new URLSearchParams(params).toString();
-    return authFetch(`${API}/studios${query ? `?${query}` : ""}`);
+    return authFetch(`${API}/discover/businesses${query ? `?${query}` : ""}`);
   },
 
-  getStudiosForMap: async (params: { lat?: number; lng?: number; radius?: number; minLat?: number; maxLat?: number; minLng?: number; maxLng?: number; limit?: number } = {}) => {
+  getBusinessesMap: async (params: { lat?: number; lng?: number; radiusKm?: number; minLat?: number; maxLat?: number; minLng?: number; maxLng?: number; limit?: number } = {}): Promise<BusinessesMapResponse> => {
     const filteredParams: Record<string, string> = {};
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) filteredParams[key] = String(value);
     });
     const query = new URLSearchParams(filteredParams).toString();
-    return authFetch<{
-      studios: Array<{
-        id: number;
-        name: string;
-        lat: number;
-        lng: number;
-        address: string;
-        city: string;
-        state: string;
-        rating: number;
-        review_count: number;
-        image_url: string;
-        amenities: string[];
-        is_open: boolean;
-        next_open: string | null;
-        distance_km?: number;
-      }>;
-      center: { lat: number; lng: number } | null;
-      count: number;
-    }>(`${API}/studios/map${query ? `?${query}` : ""}`);
+    return authFetch(`${API}/discover/businesses/map${query ? `?${query}` : ""}`);
   },
 
-  getStudio: async (id: string) => {
-    return authFetch(`${API}/studios/${id}`);
+  getBusiness: async (id: string): Promise<BusinessResponse> => {
+    return authFetch(`${API}/discover/businesses/${id}`);
   },
 
-  getStudioServices: async (id: string, category?: string) => {
-    const query = category ? `?category=${category}` : "";
-    return authFetch(`${API}/studios/${id}/services${query}`);
+  getBusinessServices: async (id: string): Promise<ServicesResponse> => {
+    return authFetch(`${API}/discover/businesses/${id}/services`);
   },
 
-  getStudioBarbers: async (id: string) => {
-    return authFetch(`${API}/studios/${id}/barbers`);
+  getBusinessProfessionals: async (id: string): Promise<ProfessionalsResponse> => {
+    return authFetch(`${API}/discover/businesses/${id}/professionals`);
   },
 
-  getBarber: async (id: string) => {
-    return authFetch(`${API}/barbers/${id}`);
+  getProfessional: async (id: string): Promise<ProfessionalResponse> => {
+    return authFetch(`${API}/discover/professionals/${id}`);
+  },
+
+  getCategories: async (type?: "business" | "service"): Promise<CategoriesResponse> => {
+    const query = type ? `?type=${type}` : "";
+    return authFetch(`${API}/categories${query}`);
+  },
+
+  // Phase 2.2 (Discovery Curation System) - editorial collections.
+  getCollections: async (params: { city?: string } = {}): Promise<CollectionsResponse> => {
+    const query = new URLSearchParams(params as Record<string, string>).toString();
+    return authFetch(`${API}/discover/collections${query ? `?${query}` : ""}`);
+  },
+
+  getCollection: async (slug: string, params: { page?: number; limit?: number } = {}): Promise<CollectionResponse> => {
+    const filteredParams: Record<string, string> = {};
+    Object.entries(params).forEach(([key, value]) => { if (value !== undefined) filteredParams[key] = String(value); });
+    const query = new URLSearchParams(filteredParams).toString();
+    return authFetch(`${API}/discover/collections/${slug}${query ? `?${query}` : ""}`);
   },
 
   // ==========================================
   // Booking APIs
   // ==========================================
-  getAvailability: async (studioId: string, barberId: string, date: string, duration?: number) => {
+  getAvailability: async (_studioId: string, businessMemberId: string, date: string, duration?: number) => {
     const params = new URLSearchParams();
-    params.append("studioId", studioId);
+    params.append("businessMemberId", businessMemberId);
     params.append("date", date);
-    params.append("barberId", barberId);
     if (duration) params.append("duration", String(duration));
     return authFetch<{ slots: string[]; error?: string }>(`${API}/bookings/availability?${params}`);
   },
 
-  createBooking: async (data: BookingData) => {
+  createBooking: async (data: BookingData): Promise<{ message?: string; booking?: BookingDetail; error?: string }> => {
     return authFetch(`${API}/bookings`, {
       method: "POST",
       body: JSON.stringify(data)
     });
   },
 
-  getBookings: async (params: Record<string, string | undefined> = {}) => {
+  // Phase 2.4 — price + applicable-offer preview for a set of services, before booking.
+  quoteBooking: async (studioId: string, serviceIds: string[]): Promise<BookingQuoteResponse> => {
+    return authFetch(`${API}/bookings/quote`, {
+      method: "POST",
+      body: JSON.stringify({ studioId, serviceIds }),
+    });
+  },
+
+  getBookings: async (params: Record<string, string | undefined> = {}): Promise<BookingsResponse> => {
     const filteredParams: Record<string, string> = {};
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) filteredParams[key] = value;
@@ -635,21 +387,59 @@ export const api = {
     return authFetch(`${API}/bookings${query ? `?${query}` : ""}`);
   },
 
-  getBooking: async (id: string) => {
+  getBooking: async (id: string): Promise<BookingResponse> => {
     return authFetch(`${API}/bookings/${id}`);
   },
 
-  cancelBooking: async (id: string, reason?: string) => {
+  // Phase 2.5
+  getBookingTimeline: async (id: string): Promise<BookingTimelineResponse> => {
+    return authFetch(`${API}/bookings/${id}/timeline`);
+  },
+
+  getCancellationQuote: async (id: string): Promise<CancellationQuoteResponse> => {
+    return authFetch(`${API}/bookings/${id}/cancellation-quote`);
+  },
+
+  cancelBooking: async (id: string, reason?: string): Promise<{ message?: string; error?: string }> => {
     return authFetch(`${API}/bookings/${id}/cancel`, {
       method: "PATCH",
       body: JSON.stringify({ reason })
     });
   },
 
-  rescheduleBooking: async (id: string, data: { date: string; startTime: string }) => {
+  rescheduleBooking: async (id: string, data: { date: string; startTime: string }): Promise<{ message?: string; error?: string }> => {
     return authFetch(`${API}/bookings/${id}/reschedule`, {
       method: "PATCH",
-      body: JSON.stringify({ appointmentDate: data.date, appointmentTime: data.startTime })
+      body: JSON.stringify(data)
+    });
+  },
+
+  // ==========================================
+  // Payment APIs (Razorpay)
+  // ==========================================
+  createPaymentOrder: async (bookingId: string | number) => {
+    return authFetch<{
+      orderId?: string;
+      amount?: number;
+      currency?: string;
+      keyId?: string;
+      bookingId?: string | number;
+      error?: string;
+    }>(`${API}/payments/create-order`, {
+      method: "POST",
+      body: JSON.stringify({ bookingId })
+    });
+  },
+
+  verifyPayment: async (data: {
+    bookingId: string | number;
+    razorpay_order_id: string;
+    razorpay_payment_id: string;
+    razorpay_signature: string;
+  }) => {
+    return authFetch<{ message?: string; verified?: boolean; error?: string }>(`${API}/payments/verify`, {
+      method: "POST",
+      body: JSON.stringify(data)
     });
   },
 
@@ -663,14 +453,14 @@ export const api = {
     });
   },
 
-  getStudioReviews: async (studioId: string, params: Record<string, string> = {}) => {
+  getBusinessReviews: async (studioId: string, params: Record<string, string> = {}): Promise<ReviewsResponse> => {
     const query = new URLSearchParams(params).toString();
-    return authFetch(`${API}/reviews/studio/${studioId}${query ? `?${query}` : ""}`);
+    return authFetch(`${API}/reviews/business/${studioId}${query ? `?${query}` : ""}`);
   },
 
-  getBarberReviews: async (barberId: string, params: Record<string, string> = {}) => {
+  getProfessionalReviews: async (memberId: string, params: Record<string, string> = {}): Promise<ReviewsResponse> => {
     const query = new URLSearchParams(params).toString();
-    return authFetch(`${API}/reviews/barber/${barberId}${query ? `?${query}` : ""}`);
+    return authFetch(`${API}/reviews/professional/${memberId}${query ? `?${query}` : ""}`);
   },
 
   getMyReviews: async (params: Record<string, string> = {}) => {
@@ -687,18 +477,18 @@ export const api = {
   // ==========================================
   // Profile APIs
   // ==========================================
-  getProfile: async () => {
+  getProfile: async (): Promise<ProfileResponse> => {
     return authFetch(`${API}/profile`);
   },
 
-  updateProfile: async (data: ProfileData) => {
+  updateProfile: async (data: ProfileData): Promise<{ message?: string; user?: Profile; error?: string }> => {
     return authFetch(`${API}/profile`, {
       method: "PUT",
       body: JSON.stringify(data)
     });
   },
 
-  updateNotifications: async (settings: NotificationSettings) => {
+  updateNotifications: async (settings: NotificationSettings): Promise<{ message?: string; settings?: unknown; error?: string }> => {
     return authFetch(`${API}/profile/notifications`, {
       method: "PUT",
       body: JSON.stringify(settings)
@@ -712,192 +502,87 @@ export const api = {
     });
   },
 
-  getFavorites: async () => {
+  getFavorites: async (): Promise<FavoritesResponse> => {
     return authFetch(`${API}/profile/favorites`);
   },
 
-  addFavorite: async (studioId: string | number) => {
+  addFavorite: async (studioId: string | number): Promise<{ message?: string; error?: string }> => {
     return authFetch(`${API}/profile/favorites/${studioId}`, {
       method: "POST"
     });
   },
 
-  removeFavorite: async (studioId: string | number) => {
+  removeFavorite: async (studioId: string | number): Promise<{ message?: string; error?: string }> => {
     return authFetch(`${API}/profile/favorites/${studioId}`, {
       method: "DELETE"
     });
   },
 
+  // Phase 2.3 — id-only projection backing the heart on every discovery card.
+  // Deliberately not getFavorites(): that ships a full business card per
+  // favorite, which is a lot of payload to decide which hearts are filled.
+  getFavoriteIds: async (): Promise<FavoriteIdsResponse> => {
+    return authFetch(`${API}/profile/favorites/ids`);
+  },
+
+  getFavoriteProfessionals: async (): Promise<FavoriteProfessionalsResponse> => {
+    return authFetch(`${API}/profile/favorites/professionals`);
+  },
+
+  addFavoriteProfessional: async (memberId: string): Promise<{ message?: string; error?: string }> => {
+    return authFetch(`${API}/profile/favorites/professionals/${memberId}`, {
+      method: "POST"
+    });
+  },
+
+  removeFavoriteProfessional: async (memberId: string): Promise<{ message?: string; error?: string }> => {
+    return authFetch(`${API}/profile/favorites/professionals/${memberId}`, {
+      method: "DELETE"
+    });
+  },
+
+  // Phase 2.3 — server-side recently-viewed (authenticated users only; the
+  // anonymous path stays in lib/recently-viewed.ts).
+  getRecentlyViewed: async (params: { limit?: number } = {}): Promise<RecentlyViewedResponse> => {
+    const q = params.limit ? `?limit=${params.limit}` : "";
+    return authFetch(`${API}/profile/recently-viewed${q}`);
+  },
+
+  recordBusinessView: async (studioId: string): Promise<void> => {
+    await authFetch(`${API}/profile/recently-viewed/${studioId}`, { method: "POST" });
+  },
+
+  clearRecentlyViewed: async (): Promise<{ message?: string; error?: string }> => {
+    return authFetch(`${API}/profile/recently-viewed`, { method: "DELETE" });
+  },
+
+  // ==========================================
+  // Notification APIs
+  // ==========================================
+  getNotifications: async (params: { unreadOnly?: boolean; page?: number; limit?: number } = {}): Promise<NotificationsResponse> => {
+    const filteredParams: Record<string, string> = {};
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) filteredParams[key] = String(value);
+    });
+    const query = new URLSearchParams(filteredParams).toString();
+    return authFetch(`${API}/notifications${query ? `?${query}` : ""}`);
+  },
+
+  getUnreadNotificationCount: async (): Promise<{ count: number; error?: string }> => {
+    return authFetch(`${API}/notifications/unread-count`);
+  },
+
+  markNotificationRead: async (id: string): Promise<{ notification?: Notification; error?: string }> => {
+    return authFetch(`${API}/notifications/${id}/read`, { method: "PATCH" });
+  },
+
+  markAllNotificationsRead: async (): Promise<{ message?: string; error?: string }> => {
+    return authFetch(`${API}/notifications/read-all`, { method: "PATCH" });
+  },
+
   // ==========================================
   // Admin APIs
   // ==========================================
-
-  getBarberStatus: async () => {
-    const res = await fetch(`${API}/studios/manage/me/status`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${typeof window !== 'undefined' ? localStorage.getItem("barberToken") : ""}`
-      }
-    });
-    return res.json();
-  },
-
-  // ==========================================
-  // Studio Manage APIs
-  // ==========================================
-  
-  // Dashboard stats
-  getBarberDashboard: async () => {
-    return barberAuthFetch(`${API}/studios/manage/dashboard`);
-  },
-
-  // Barber's bookings/schedule
-  getBarberBookings: async (params: { date?: string; status?: string; page?: number; limit?: number } = {}) => {
-    const filteredParams: Record<string, string> = {};
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined) filteredParams[key] = String(value);
-    });
-    const query = new URLSearchParams(filteredParams).toString();
-    return barberAuthFetch(`${API}/studios/manage/bookings${query ? `?${query}` : ""}`);
-  },
-
-  // Update booking status
-  updateBarberBookingStatus: async (bookingId: string, status: string) => {
-    return barberAuthFetch(`${API}/studios/manage/bookings/${bookingId}/status`, {
-      method: "PATCH",
-      body: JSON.stringify({ status })
-    });
-  },
-
-  // Services management
-  getBarberStudioServices: async () => {
-    return barberAuthFetch(`${API}/studios/manage/services`);
-  },
-
-  createBarberService: async (data: ServiceData) => {
-    return barberAuthFetch(`${API}/studios/manage/services`, {
-      method: "POST",
-      body: JSON.stringify(data)
-    });
-  },
-
-  updateBarberService: async (serviceId: number, data: Partial<ServiceData>) => {
-    return barberAuthFetch(`${API}/studios/manage/services/${serviceId}`, {
-      method: "PUT",
-      body: JSON.stringify(data)
-    });
-  },
-
-  deleteBarberService: async (serviceId: number) => {
-    return barberAuthFetch(`${API}/studios/manage/services/${serviceId}`, {
-      method: "DELETE"
-    });
-  },
-
-  // Team management
-  getBarberTeam: async () => {
-    return barberAuthFetch(`${API}/studios/manage/team`);
-  },
-
-  updateStudioBarber: async (barberId: string, data: Partial<StudioBarberSettingsData>) => {
-    return barberAuthFetch(`${API}/studios/auth/barbers/${barberId}`, {
-      method: "PUT",
-      body: JSON.stringify(normalizeStudioBarberPayload(data))
-    });
-  },
-
-  deleteStudioBarber: async (barberId: string) => {
-    return barberAuthFetch(`${API}/studios/auth/barbers/${barberId}`, {
-      method: "DELETE"
-    });
-  },
-
-  // Blocked time / breaks / time off
-  getBarberTimeOff: async (params: { date?: string; barberId?: string; from?: string; to?: string } = {}) => {
-    const filteredParams: Record<string, string> = {};
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined) filteredParams[key] = value;
-    });
-    const query = new URLSearchParams(filteredParams).toString();
-    return barberAuthFetch<{ timeOff: TimeOffEntry[]; error?: string }>(
-      `${API}/studios/manage/time-off${query ? `?${query}` : ""}`
-    );
-  },
-
-  createBarberTimeOff: async (data: {
-    barberId?: string;
-    date: string;
-    startTime?: string;
-    endTime?: string;
-    isFullDay?: boolean;
-    reason?: string;
-  }) => {
-    return barberAuthFetch<{ timeOff: TimeOffEntry; error?: string }>(`${API}/studios/manage/time-off`, {
-      method: "POST",
-      body: JSON.stringify(data)
-    });
-  },
-
-  deleteBarberTimeOff: async (id: string) => {
-    return barberAuthFetch<{ message?: string; error?: string }>(`${API}/studios/manage/time-off/${id}`, {
-      method: "DELETE"
-    });
-  },
-
-  // Analytics
-  getBarberAnalytics: async (period: 'week' | 'month' | 'quarter' | 'year' = 'month') => {
-    return barberAuthFetch(`${API}/studios/manage/analytics?period=${period}`);
-  },
-
-  // Studio settings
-  getBarberStudioSettings: async () => {
-    return barberAuthFetch(`${API}/studio/settings`);
-  },
-
-  updateBarberStudioSettings: async (data: StudioSettingsData) => {
-    const payload = normalizeStudioSettingsPayload(data);
-    return barberAuthFetch(`${API}/studio/settings`, {
-      method: "PUT",
-      body: JSON.stringify(payload)
-    });
-  },
-
-  // Walk-in booking
-  createWalkInBooking: async (data: WalkInData) => {
-    return barberAuthFetch(`${API}/studios/manage/walk-in`, {
-      method: "POST",
-      body: JSON.stringify(data)
-    });
-  },
-
-  // Barber reviews
-  getBarberDashboardReviews: async (params: { page?: number; limit?: number } = {}) => {
-    const filteredParams: Record<string, string> = {};
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined) filteredParams[key] = String(value);
-    });
-    const query = new URLSearchParams(filteredParams).toString();
-    return barberAuthFetch(`${API}/studios/manage/reviews${query ? `?${query}` : ""}`);
-  },
-
-  // Barber payments
-  getBarberPayments: async (params: { status?: string; page?: number; limit?: number } = {}) => {
-    const filteredParams: Record<string, string> = {};
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined) filteredParams[key] = String(value);
-    });
-    const query = new URLSearchParams(filteredParams).toString();
-    return barberAuthFetch(`${API}/studios/manage/payments${query ? `?${query}` : ""}`);
-  },
-
-  updatePaymentStatus: async (bookingId: number, data: { paymentStatus?: string; paymentMethod?: string }) => {
-    return barberAuthFetch(`${API}/studios/manage/payments/${bookingId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    });
-  },
 
   // ==========================================
   // Admin APIs
@@ -931,49 +616,55 @@ export const api = {
     return adminAuthFetch(`${API}/admin/dashboard`);
   },
 
+  // Phase 2.5 (report.md Phase 2 plan): backend path segments renamed
+  // /admin/studios* -> /admin/businesses* ("remove all remaining references
+  // to old Studio tables") - these queried only dropped tables before this
+  // phase, so there was no working admin-panel integration to preserve.
+  // Function names kept as-is to avoid touching every admin page call site;
+  // only the URLs underneath changed (same approach as Phase 2.3/2.4).
   getAdminStudios: async (params: { status?: string; search?: string; page?: number; limit?: number; sortBy?: string; sortOrder?: string } = {}): Promise<AdminStudiosResponse> => {
     const filteredParams: Record<string, string> = {};
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) filteredParams[key] = String(value);
     });
     const query = new URLSearchParams(filteredParams).toString();
-    return adminAuthFetch(`${API}/admin/studios${query ? `?${query}` : ""}`);
+    return adminAuthFetch(`${API}/admin/businesses${query ? `?${query}` : ""}`);
   },
 
   getAdminStudio: async (id: string | number): Promise<AdminStudioResponse> => {
-    return adminAuthFetch(`${API}/admin/studios/${id}`);
+    return adminAuthFetch(`${API}/admin/businesses/${id}`);
   },
 
   updateAdminStudio: async (id: string | number, data: Record<string, unknown>): Promise<StudioActionResponse> => {
-    return adminAuthFetch(`${API}/admin/studios/${id}`, {
+    return adminAuthFetch(`${API}/admin/businesses/${id}`, {
       method: "PUT",
       body: JSON.stringify(data)
     });
   },
 
   approveStudio: async (id: string | number, adminNotes?: string): Promise<StudioActionResponse> => {
-    return adminAuthFetch(`${API}/admin/studios/${id}/approve`, {
+    return adminAuthFetch(`${API}/admin/businesses/${id}/approve`, {
       method: "POST",
       body: JSON.stringify({ admin_notes: adminNotes })
     });
   },
 
   rejectStudio: async (id: string | number, reason: string, adminNotes?: string): Promise<StudioActionResponse> => {
-    return adminAuthFetch(`${API}/admin/studios/${id}/reject`, {
+    return adminAuthFetch(`${API}/admin/businesses/${id}/reject`, {
       method: "POST",
       body: JSON.stringify({ reason, admin_notes: adminNotes })
     });
   },
 
   suspendStudio: async (id: string | number, reason: string): Promise<StudioActionResponse> => {
-    return adminAuthFetch(`${API}/admin/studios/${id}/suspend`, {
+    return adminAuthFetch(`${API}/admin/businesses/${id}/suspend`, {
       method: "POST",
       body: JSON.stringify({ reason })
     });
   },
 
   geocodeStudio: async (id: string | number, addressOverride?: { address?: string; city?: string; state?: string; country?: string }): Promise<GeocodeResponse> => {
-    return adminAuthFetch(`${API}/admin/studios/${id}/geocode`, {
+    return adminAuthFetch(`${API}/admin/businesses/${id}/geocode`, {
       method: "POST",
       body: JSON.stringify(addressOverride || {})
     });
@@ -988,6 +679,17 @@ export const api = {
     return adminAuthFetch(`${API}/admin/users${query ? `?${query}` : ""}`);
   },
 
+  // New this phase (report.md Phase 2.5 plan - "User suspension" was named
+  // as something to verify, but no backend route existed for it before now;
+  // filling that gap is completing "User Management," not a new feature).
+  suspendAdminUser: async (id: string): Promise<{ message?: string; user?: unknown } & ApiError> => {
+    return adminAuthFetch(`${API}/admin/users/${id}/suspend`, { method: "PATCH" });
+  },
+
+  activateAdminUser: async (id: string): Promise<{ message?: string; user?: unknown } & ApiError> => {
+    return adminAuthFetch(`${API}/admin/users/${id}/activate`, { method: "PATCH" });
+  },
+
   getAdmins: async (): Promise<{ admins: Admin[] } & ApiError> => {
     return adminAuthFetch(`${API}/admin/admins`);
   },
@@ -997,5 +699,45 @@ export const api = {
       method: "POST",
       body: JSON.stringify(data)
     });
+  },
+
+  // Phase 1.4b - admin Verification Queue.
+  getVerificationQueue: async (params: { status?: string; page?: number; limit?: number } = {}): Promise<AdminVerificationQueueResponse> => {
+    const query = new URLSearchParams();
+    Object.entries(params).forEach(([k, v]) => { if (v !== undefined && v !== "") query.set(k, String(v)); });
+    const q = query.toString();
+    return adminAuthFetch(`${API}/admin/verifications${q ? `?${q}` : ""}`);
+  },
+
+  getVerificationRequest: async (id: string): Promise<{ request: AdminVerificationDetail } & ApiError> => {
+    return adminAuthFetch(`${API}/admin/verifications/${id}`);
+  },
+
+  startVerificationReview: async (id: string): Promise<ApiError & { request?: unknown }> => {
+    return adminAuthFetch(`${API}/admin/verifications/${id}/review`, { method: "POST" });
+  },
+
+  approveVerification: async (id: string, note?: string): Promise<ApiError & { request?: unknown }> => {
+    return adminAuthFetch(`${API}/admin/verifications/${id}/approve`, { method: "POST", body: JSON.stringify({ note }) });
+  },
+
+  rejectVerification: async (id: string, reason: string): Promise<ApiError & { request?: unknown }> => {
+    return adminAuthFetch(`${API}/admin/verifications/${id}/reject`, { method: "POST", body: JSON.stringify({ reason }) });
+  },
+
+  suspendVerification: async (id: string, reason: string): Promise<ApiError & { request?: unknown }> => {
+    return adminAuthFetch(`${API}/admin/verifications/${id}/suspend`, { method: "POST", body: JSON.stringify({ reason }) });
+  },
+
+  requestVerificationInfo: async (id: string, reason: string): Promise<ApiError & { request?: unknown }> => {
+    return adminAuthFetch(`${API}/admin/verifications/${id}/request-info`, { method: "POST", body: JSON.stringify({ reason }) });
+  },
+
+  reviewVerificationDocument: async (id: string, documentId: string, status: "accepted" | "rejected", note?: string): Promise<ApiError & { document?: unknown }> => {
+    return adminAuthFetch(`${API}/admin/verifications/${id}/documents/${documentId}`, { method: "PATCH", body: JSON.stringify({ status, note }) });
+  },
+
+  addVerificationNote: async (id: string, note: string): Promise<ApiError & { note?: unknown }> => {
+    return adminAuthFetch(`${API}/admin/verifications/${id}/notes`, { method: "POST", body: JSON.stringify({ note }) });
   }
 };

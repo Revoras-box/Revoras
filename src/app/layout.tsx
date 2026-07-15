@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Toaster } from "sonner";
+import { Toaster } from "@/components/ui/Toast";
 import { Providers } from "./providers";
 import "./globals.css";
 
@@ -62,16 +62,7 @@ export default function RootLayout({
         <Providers>
           {children}
         </Providers>
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            style: {
-              background: "var(--card)",
-              border: "1px solid var(--border)",
-              color: "var(--foreground)",
-            },
-          }}
-        />
+        <Toaster />
       </body>
     </html>
   );

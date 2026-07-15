@@ -2,6 +2,9 @@
 
 import { useState, useEffect, useCallback, DependencyList } from "react";
 import { api } from "./api";
+import { useAuth } from "./auth";
+import { getRecentlyViewed } from "./recently-viewed";
+import type { RecentlyViewedCard } from "./types";
 
 interface ApiResponse<T = unknown> {
   data?: T;
@@ -51,29 +54,42 @@ export function useApi<T>(
   return { data, loading, error, refetch };
 }
 
-// Studios hooks
-export function useStudios<T = unknown>(params: Record<string, string> = {}) {
-  return useApi<T>(() => api.getStudios(params) as Promise<T>, [JSON.stringify(params)]);
+// Discover hooks (businesses/professionals)
+export function useBusinesses(params: Record<string, string> = {}) {
+  return useApi(() => api.getBusinesses(params), [JSON.stringify(params)]);
 }
 
-export function useStudiosForMap<T = unknown>(params: { lat?: number; lng?: number; radius?: number; limit?: number } = {}) {
-  return useApi<T>(() => api.getStudiosForMap(params) as Promise<T>, [JSON.stringify(params)]);
+export function useBusinessesMap(params: { lat?: number; lng?: number; radiusKm?: number; minLat?: number; maxLat?: number; minLng?: number; maxLng?: number; limit?: number } = {}) {
+  return useApi(() => api.getBusinessesMap(params), [JSON.stringify(params)]);
 }
 
-export function useStudio<T = unknown>(id: string) {
-  return useApi<T>(() => api.getStudio(id) as Promise<T>, [id]);
+export function useBusiness(id: string) {
+  return useApi(() => api.getBusiness(id), [id]);
 }
 
-export function useStudioServices<T = unknown>(id: string, category?: string) {
-  return useApi<T>(() => api.getStudioServices(id, category) as Promise<T>, [id, category]);
+export function useBusinessServices(id: string) {
+  return useApi(() => api.getBusinessServices(id), [id]);
 }
 
-export function useStudioBarbers<T = unknown>(id: string) {
-  return useApi<T>(() => api.getStudioBarbers(id) as Promise<T>, [id]);
+export function useBusinessProfessionals(id: string) {
+  return useApi(() => api.getBusinessProfessionals(id), [id]);
 }
 
-export function useBarber<T = unknown>(id: string) {
-  return useApi<T>(() => api.getBarber(id) as Promise<T>, [id]);
+export function useProfessional(id: string) {
+  return useApi(() => api.getProfessional(id), [id]);
+}
+
+export function useCategories(type?: "business" | "service") {
+  return useApi(() => api.getCategories(type), [type]);
+}
+
+// Phase 2.2 (Discovery Curation System) - editorial collections.
+export function useCollections(params: { city?: string } = {}) {
+  return useApi(() => api.getCollections(params), [JSON.stringify(params)]);
+}
+
+export function useCollection(slug: string, params: { page?: number; limit?: number } = {}) {
+  return useApi(() => api.getCollection(slug, params), [slug, JSON.stringify(params)]);
 }
 
 // Booking hooks
@@ -83,6 +99,11 @@ export function useBookings(params: Record<string, string | undefined> = {}) {
 
 export function useBooking(id: string) {
   return useApi(() => api.getBooking(id), [id]);
+}
+
+// Phase 2.5 - `version` lets a caller force a refetch after a lifecycle action.
+export function useBookingTimeline(id: string, version = 0) {
+  return useApi(() => api.getBookingTimeline(id), [id, version]);
 }
 
 interface AvailabilityResult {
@@ -126,17 +147,17 @@ export function useAvailability(studioId: string, barberId: string | null, date:
 }
 
 // Review hooks
-export function useStudioReviews<T = unknown>(studioId: string, params: Record<string, string> = {}) {
-  return useApi<T>(
-    () => api.getStudioReviews(studioId, params) as Promise<T>,
+export function useBusinessReviews(studioId: string, params: Record<string, string> = {}) {
+  return useApi(
+    () => api.getBusinessReviews(studioId, params),
     [studioId, JSON.stringify(params)]
   );
 }
 
-export function useBarberReviews<T = unknown>(barberId: string, params: Record<string, string> = {}) {
-  return useApi<T>(
-    () => api.getBarberReviews(barberId, params) as Promise<T>,
-    [barberId, JSON.stringify(params)]
+export function useProfessionalReviews(memberId: string, params: Record<string, string> = {}) {
+  return useApi(
+    () => api.getProfessionalReviews(memberId, params),
+    [memberId, JSON.stringify(params)]
   );
 }
 
@@ -151,6 +172,64 @@ export function useProfile() {
 
 export function useFavorites() {
   return useApi(() => api.getFavorites(), []);
+}
+
+export function useFavoriteProfessionals() {
+  return useApi(() => api.getFavoriteProfessionals(), []);
+}
+
+/**
+ * Phase 2.3 (Decision D2) — hybrid recently-viewed.
+ *
+ * Authenticated users read their server-side history (so it follows them across
+ * devices); everyone else falls back to the localStorage store this feature
+ * originally shipped on.
+ *
+ * Note: every `/user/*` route is currently behind `AuthGate`, so the anonymous
+ * branch is unreachable today — there is no logged-out browsing surface. It's
+ * kept because the fallback costs one conditional and public business pages are
+ * a plausible near-term addition; if that never happens, this branch and
+ * `lib/recently-viewed.ts` are both dead code worth deleting.
+ *
+ * `version` lets a caller force a re-read (e.g. after "Clear history").
+ */
+export function useRecentlyViewed(limit = 12, version = 0) {
+  const { user } = useAuth();
+  const [local, setLocal] = useState<RecentlyViewedCard[]>([]);
+  const remote = useApi(() => api.getRecentlyViewed({ limit }), [user?.id ?? "anon", limit, version]);
+
+  useEffect(() => {
+    if (user) return;
+    // Map the client store onto the same card shape the API returns, so the
+    // rail renders one way regardless of which half of the hybrid fed it.
+    setLocal(
+      getRecentlyViewed()
+        .slice(0, limit)
+        .map((r) => ({
+          id: r.id,
+          name: r.name,
+          slug: "",
+          image_url: r.imageUrl,
+          rating: r.rating,
+          review_count: r.reviewCount,
+          city: r.category,
+          address: "",
+          viewed_at: r.viewedAt,
+        }))
+    );
+  }, [user, limit, version]);
+
+  if (!user) return { businesses: local, loading: false, error: null };
+  return { businesses: remote.data?.businesses ?? [], loading: remote.loading, error: remote.error };
+}
+
+// Notification hooks
+export function useNotifications(params: { unreadOnly?: boolean; page?: number; limit?: number } = {}) {
+  return useApi(() => api.getNotifications(params), [JSON.stringify(params)]);
+}
+
+export function useUnreadNotificationCount() {
+  return useApi(() => api.getUnreadNotificationCount(), []);
 }
 
 // Mutation hook for actions

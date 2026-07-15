@@ -232,7 +232,7 @@ export default function LoginHeroContent() {
             New to the studio?{" "}
             <span
               className="text-primary cursor-pointer hover:opacity-80"
-              onClick={() => router.push("/signup")}
+              onClick={() => router.push("/signup/customer")}
             >
               Create an Account
             </span>

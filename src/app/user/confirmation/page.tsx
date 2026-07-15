@@ -1,357 +1,147 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useMemo } from "react";
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { api } from "@/lib/api";
-import { useApi } from "@/lib/hooks";
+import { CheckCircle2, CalendarPlus, MapPin } from "lucide-react";
+import { Container, Card, Avatar, Badge, Button, ErrorState } from "@/components/ui";
+import { useBooking } from "@/lib/hooks";
+import { formatBookingDateLabel, formatTimeLabel } from "@/components/user/sections/utils";
+import { buildICS, directionsUrl } from "@/lib/bookings";
 
-interface BookingService {
-  name?: string;
-  duration?: number;
+function statusTone(status: string): "success" | "warning" | "danger" | "neutral" {
+  if (status === "cancelled" || status === "no_show") return "danger";
+  if (status === "pending") return "warning";
+  if (status === "confirmed") return "success";
+  return "neutral";
 }
-
-interface BookingDetails {
-  id: string;
-  booking_date?: string;
-  start_time?: string;
-  status?: string;
-  confirmation_code?: string;
-  studio_name?: string;
-  studio_address?: string;
-  studio_city?: string;
-  studio_state?: string;
-  barber_name?: string;
-  barber_image?: string;
-  barber_title?: string;
-  barber_rating?: number;
-  services?: BookingService[];
-}
-
-interface BookingResponse {
-  booking?: BookingDetails;
-  error?: string;
-}
-
-const DEFAULT_BARBER_IMAGE =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuBFRTw09ATzddkEkZPI--dLiP7oV5j7rS6xDTVEpHl6XZ3mJ1HVa7mnjjO2KLA72RxuUJhNEjXYoDUtIduvgahBsaLOjHgLgIkea6pwZqQGcdxtHp8Z86QtlJRHXI4r3ZkzPeo-w50UE817K6gKt2q-RJ0VwilKqQwOHg7K2E6xc-2XdtuyeZh3GpDxcaK9mBNkpQ4z5NhHAS0f9OYJYdzlsQxXJH1QMtrV6DhCpQ-kSMoya0E_LLoteq0bVEMchsotHVKij9qwxv8";
-const DEFAULT_MAP_IMAGE =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuD5Ly9TO7G9ibQSfewG42Wsh11vGVf2vkyLdmN-hu5owa50sVXw_h85b4UaJFuFA5d0i5cHFZfYW9kuHPTnYmjJpbBxrpeMpLeNSdttLayogmsBwVU9imEMGntghlMj7ybfpmvNariTDUB4ef0KKO45XyR9932g4nnEjFxzI_h4_AU_3NPDkTFwu-E70G7SmMnNhAGGX6Du0vRmFXnyVSz1z9i0DOEI94OHeKc9jRHJplvgdgD5briAXR3JBMeVeBuPgqGIaO3xWyo";
-
-const to24HourTime = (raw: string): string | null => {
-  const value = raw.trim();
-  if (!value) return null;
-
-  const strict24 = value.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
-  if (strict24) {
-    const hour = Number(strict24[1]);
-    const min = Number(strict24[2]);
-    if (hour >= 0 && hour <= 23 && min >= 0 && min <= 59) {
-      return `${String(hour).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
-    }
-  }
-
-  const ampm = value.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
-  if (ampm) {
-    const hour = Number(ampm[1]);
-    const min = Number(ampm[2]);
-    const period = ampm[3].toUpperCase();
-    if (hour >= 1 && hour <= 12 && min >= 0 && min <= 59) {
-      const normalizedHour = period === "PM" ? (hour % 12) + 12 : hour % 12;
-      return `${String(normalizedHour).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
-    }
-  }
-
-  return null;
-};
-
-const formatDisplayTime = (time: string): string => {
-  const [hoursRaw, minsRaw] = time.split(":");
-  const hours = Number(hoursRaw);
-  const mins = Number(minsRaw);
-  if (Number.isNaN(hours) || Number.isNaN(mins)) return time;
-  const period = hours >= 12 ? "PM" : "AM";
-  const hour12 = hours % 12 || 12;
-  return `${hour12}:${String(mins).padStart(2, "0")} ${period}`;
-};
-
-const formatDisplayDate = (date: string): string => {
-  const parsed = new Date(`${date}T00:00:00`);
-  if (Number.isNaN(parsed.getTime())) return date;
-  return parsed.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-};
-
-const addMinutesToTime = (time: string, minutesToAdd: number): string | null => {
-  const normalized = to24HourTime(time);
-  if (!normalized) return null;
-  const [hourRaw, minuteRaw] = normalized.split(":");
-  const base = Number(hourRaw) * 60 + Number(minuteRaw);
-  if (Number.isNaN(base)) return null;
-
-  const total = (base + minutesToAdd) % (24 * 60);
-  const correctedTotal = total < 0 ? total + 24 * 60 : total;
-  const hour = Math.floor(correctedTotal / 60);
-  const minute = correctedTotal % 60;
-  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
-};
-
-const buildTimeRange = (startTime?: string, durationMinutes = 0): string => {
-  if (!startTime) return "Time unavailable";
-  const normalizedStart = to24HourTime(startTime);
-  if (!normalizedStart) return startTime;
-  if (durationMinutes <= 0) return formatDisplayTime(normalizedStart);
-
-  const end = addMinutesToTime(normalizedStart, durationMinutes);
-  if (!end) return formatDisplayTime(normalizedStart);
-  return `${formatDisplayTime(normalizedStart)} — ${formatDisplayTime(end)}`;
-};
-
-const formatStatus = (status?: string): string => {
-  if (!status) return "Confirmed";
-  return status
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-    .join(" ");
-};
-
-const getStatusStyles = (status?: string): string => {
-  const normalized = status?.toLowerCase();
-  if (normalized === "cancelled") return "bg-red-900/30 text-red-400";
-  if (normalized === "pending") return "bg-amber-900/30 text-amber-400";
-  return "bg-green-900/30 text-green-400";
-};
-
-const extractBooking = (payload: unknown): BookingDetails | null => {
-  if (!payload || typeof payload !== "object") return null;
-  const obj = payload as Record<string, unknown>;
-
-  if ("booking" in obj && obj.booking && typeof obj.booking === "object") {
-    return obj.booking as BookingDetails;
-  }
-
-  if ("id" in obj && typeof obj.id === "string") {
-    return obj as unknown as BookingDetails;
-  }
-
-  return null;
-};
 
 function ConfirmationPageContent() {
   const searchParams = useSearchParams();
   const bookingId = searchParams.get("booking")?.trim() ?? "";
 
-  const { data: bookingData, loading, error } = useApi<BookingResponse>(
-    () => {
-      if (!bookingId) return Promise.resolve({ error: "Booking reference is missing." });
-      return api.getBooking(bookingId) as Promise<BookingResponse>;
-    },
-    [bookingId]
-  );
-
-  const booking = useMemo(() => extractBooking(bookingData), [bookingData]);
-  const services = booking?.services ?? [];
-  const serviceNames = services.map((service) => service.name).filter((name): name is string => Boolean(name));
-  const totalDuration = services.reduce((sum, service) => {
-    const duration = Number(service.duration ?? 0);
-    return sum + (Number.isFinite(duration) ? duration : 0);
-  }, 0);
-
-  const serviceTitle = serviceNames.length > 0 ? serviceNames.join(", ") : "Your Appointment";
-  const barberName = booking?.barber_name || "Assigned Barber";
-  const statusLabel = formatStatus(booking?.status);
-  const statusStyles = getStatusStyles(booking?.status);
-  const reservationCode = booking?.confirmation_code || booking?.id || bookingId || "--";
-  const bookingDate = booking?.booking_date ? formatDisplayDate(booking.booking_date) : "Date unavailable";
-  const bookingTime = buildTimeRange(booking?.start_time, totalDuration);
-  const locationName = booking?.studio_name || "Studio information unavailable";
-  const locationAddress =
-    booking?.studio_address ||
-    [booking?.studio_city, booking?.studio_state].filter(Boolean).join(", ") ||
-    "Address unavailable";
-  const reviewBookingId = booking?.id || bookingId;
-
-  const qrPayload = JSON.stringify({
-    bookingId: booking?.id || bookingId,
-    confirmationCode: reservationCode,
-    studio: booking?.studio_name || "",
-    date: booking?.booking_date || "",
-    time: booking?.start_time || "",
-  });
-  const qrCodeSrc = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(qrPayload)}`;
+  const { data, loading, error } = useBooking(bookingId);
+  const booking = data?.booking;
 
   if (!bookingId) {
     return (
-      <main className="relative z-10 flex flex-col items-center justify-center px-6 pt-24 pb-20 max-w-7xl mx-auto min-h-screen">
-        <div className="bg-surface border border-border/20 rounded-3xl p-10 text-center max-w-xl w-full">
-          <h1 className="font-headline text-3xl font-bold text-primary mb-3">Booking reference missing</h1>
-          <p className="text-muted mb-8">Open this page from your bookings list to view a real confirmation.</p>
-          <Link
-            href="/user/bookings"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-primary-fixed-dim to-primary-container text-primary-foreground font-bold"
-          >
-            <span className="material-symbols-outlined">arrow_back</span>
-            Back to Bookings
-          </Link>
-        </div>
-      </main>
+      <Container className="py-16">
+        <ErrorState title="Booking reference missing" description="Open this page from your bookings list to view a real confirmation." />
+      </Container>
     );
   }
 
   if (loading) {
     return (
-      <main className="relative z-10 flex flex-col items-center justify-center px-6 pt-24 pb-20 max-w-7xl mx-auto min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-fixed-dim"></div>
-        <p className="text-muted mt-4">Loading confirmation...</p>
-      </main>
+      <Container className="py-16">
+        <div className="h-64 animate-pulse rounded-2xl bg-surface-container-high" />
+      </Container>
     );
   }
 
   if (error || !booking) {
     return (
-      <main className="relative z-10 flex flex-col items-center justify-center px-6 pt-24 pb-20 max-w-7xl mx-auto min-h-screen">
-        <div className="bg-surface border border-border/20 rounded-3xl p-10 text-center max-w-xl w-full">
-          <h1 className="font-headline text-3xl font-bold text-primary mb-3">Unable to load confirmation</h1>
-          <p className="text-muted mb-8">{error || "This booking could not be found."}</p>
-          <Link
-            href="/user/bookings"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-primary-fixed-dim to-primary-container text-primary-foreground font-bold"
-          >
-            <span className="material-symbols-outlined">arrow_back</span>
-            Back to Bookings
-          </Link>
-        </div>
-      </main>
+      <Container className="py-16">
+        <ErrorState description={error || "This booking could not be found."} />
+      </Container>
     );
   }
 
+  const serviceNames = booking.services.map((s) => s.name).join(", ") || "Your appointment";
+  const qrPayload = JSON.stringify({
+    bookingId: booking.id,
+    confirmationCode: booking.confirmation_code,
+    studio: booking.studio_name,
+    date: booking.booking_date,
+    time: booking.start_time,
+  });
+  const qrCodeSrc = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(qrPayload)}`;
+
   return (
-    <main className="relative z-10 flex flex-col items-center justify-center px-6 pt-24 pb-20 max-w-7xl mx-auto min-h-screen">
-      <div className="text-center mb-12">
-        <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-green-900/20 mb-8 border border-green-500/30 relative">
-          <span className="material-symbols-outlined text-green-400 text-6xl" style={{ fontVariationSettings: "'FILL' 0" }}>
-            check_circle
-          </span>
-          <div className="absolute inset-0 rounded-full border-2 border-green-400 animate-ping opacity-20"></div>
-        </div>
-        <h1 className="font-headline text-5xl md:text-7xl font-black tracking-tighter text-primary mb-4">Booking Confirmed</h1>
-        <p className="font-label text-muted tracking-widest uppercase text-sm">
-          Reservation ID: <span className="font-mono text-primary/80">{reservationCode}</span>
+    <Container className="flex flex-col items-center gap-10 py-12">
+      <div className="flex flex-col items-center gap-3 text-center">
+        <CheckCircle2 size={64} className="text-secondary" />
+        <h1 className="font-headline text-3xl font-bold text-on-surface md:text-4xl">Booking confirmed</h1>
+        <p className="text-sm text-muted">
+          Reservation ID: <span className="font-mono text-on-surface">{booking.confirmation_code}</span>
         </p>
       </div>
 
-      <div className="w-full max-w-4xl grid md:grid-cols-12 gap-0 bg-surface rounded-3xl overflow-hidden shadow-floating border border-border/20">
-        <div className="md:col-span-7 p-10 md:p-12 space-y-10">
-          <div className="flex justify-between items-start">
+      <Card padding="lg" className="grid w-full max-w-4xl gap-8 md:grid-cols-12">
+        <div className="flex flex-col gap-6 md:col-span-7">
+          <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 className="font-headline text-3xl font-bold mb-2">{serviceTitle}</h2>
-              <p className="text-muted font-medium">
-                with <span className="text-primary font-bold">{barberName}</span>
-              </p>
+              <h2 className="font-headline text-xl font-bold text-on-surface">{serviceNames}</h2>
+              {booking.member_designation ? <p className="mt-1 text-sm text-muted">with {booking.member_designation}</p> : null}
             </div>
-            <div className="flex flex-col items-end">
-              <span className={`${statusStyles} text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5 uppercase`}>
-                <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
-                {statusLabel}
-              </span>
+            <Badge tone={statusTone(booking.status)} dot>
+              {booking.status}
+            </Badge>
+          </div>
+
+          <div className="grid grid-cols-2 gap-6">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-muted">Date & time</p>
+              <p className="mt-1 font-medium text-on-surface">{formatBookingDateLabel(booking.booking_date)}</p>
+              <p className="text-sm text-muted">{formatTimeLabel(booking.start_time)}</p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-wide text-muted">Location</p>
+              <p className="mt-1 font-medium text-on-surface">{booking.studio_name}</p>
+              <p className="text-sm text-muted">{booking.studio_address}</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-8">
-            <div className="space-y-1">
-              <p className="font-label text-[10px] uppercase tracking-widest text-secondary-foreground">Date & Time</p>
-              <p className="font-semibold text-lg">{bookingDate}</p>
-              <p className="text-muted">{bookingTime}</p>
-            </div>
-            <div className="space-y-1">
-              <p className="font-label text-[10px] uppercase tracking-widest text-secondary-foreground">Location</p>
-              <p className="font-semibold text-lg">{locationName}</p>
-              <p className="text-muted">{locationAddress}</p>
-            </div>
-          </div>
-
-          <div className="pt-8 border-t border-border/30 flex items-center gap-6">
-            <img
-              alt={barberName}
-              className="w-16 h-16 rounded-tl-2xl rounded-br-2xl object-cover grayscale hover:grayscale-0 transition-all duration-500"
-              src={booking.barber_image || DEFAULT_BARBER_IMAGE}
-            />
-            <div>
-              <p className="font-label text-[10px] uppercase tracking-widest text-secondary-foreground mb-1">Your Professional</p>
-              <p className="font-bold text-primary">{barberName}</p>
-              <div className="flex items-center gap-1 mt-1">
-                <span className="material-symbols-outlined text-primary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>
-                  badge
-                </span>
-                <span className="text-xs text-muted">
-                  {booking.barber_title || "Senior Specialist"}
-                  {typeof booking.barber_rating === "number" ? ` • ${booking.barber_rating.toFixed(1)} rating` : ""}
-                </span>
+          {booking.member_designation || booking.member_image ? (
+            <div className="flex items-center gap-4 border-t border-border pt-6">
+              <Avatar name={booking.member_designation ?? "Professional"} src={booking.member_image ?? undefined} size="lg" />
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted">Your professional</p>
+                <p className="font-medium text-on-surface">{booking.member_designation ?? "Professional"}</p>
               </div>
             </div>
-          </div>
+          ) : null}
         </div>
 
-        <div className="md:col-span-5 bg-surface relative flex flex-col items-center justify-center p-12 overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary-fixed-dim to-primary-container opacity-10 blur-3xl -mr-16 -mt-16"></div>
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br from-primary-fixed-dim to-primary-container opacity-10 blur-3xl -ml-16 -mb-16"></div>
-
-          <div className="relative z-10 text-center">
-            <div className="bg-white p-4 rounded-2xl inline-block mb-6 shadow-xl transform hover:rotate-2 transition-transform cursor-pointer">
-              <img alt="Booking QR Code" className="w-40 h-40" src={qrCodeSrc} />
-            </div>
-            <p className="font-label text-[10px] uppercase tracking-widest text-muted mb-1">Scan at Concierge</p>
-            <p className="text-xs text-secondary-foreground italic">Check-in opens 10 mins prior</p>
+        <div className="flex flex-col items-center justify-center gap-2 border-t border-border pt-6 md:col-span-5 md:border-l md:border-t-0 md:pl-6 md:pt-0">
+          <div className="rounded-2xl bg-white p-4 shadow-soft">
+            {/* eslint-disable-next-line @next/next/no-img-element -- external QR generator */}
+            <img alt="Booking QR code" className="h-40 w-40" src={qrCodeSrc} />
           </div>
-
-          <div className="absolute inset-x-0 bottom-0 h-32 overflow-hidden">
-            <div className="w-full h-full opacity-30 grayscale contrast-125">
-              <img alt="Location preview" className="w-full h-full object-cover" src={DEFAULT_MAP_IMAGE} />
-            </div>
-            <div className="absolute inset-0 bg-gradient-to-t from-surface-container-high via-transparent to-transparent"></div>
-          </div>
+          <p className="text-xs uppercase tracking-wide text-muted">Scan at concierge</p>
         </div>
-      </div>
+      </Card>
 
-      <div className="mt-12 w-full max-w-4xl flex flex-col md:flex-row items-center justify-center gap-6">
-        <Link
-          href="/user/bookings"
-          className="w-full md:w-auto px-8 py-4 bg-gradient-to-r from-primary-fixed-dim to-primary-container text-primary-foreground font-bold rounded-xl flex items-center justify-center gap-3 active:scale-95 transition-transform hover:shadow-[0_10px_30px_rgba(229,196,135,0.3)] group"
-        >
-          <span className="material-symbols-outlined group-hover:rotate-12 transition-transform">event_available</span>
-          View All Bookings
+      <div className="flex flex-wrap justify-center gap-3">
+        <Link href={`/user/bookings/${encodeURIComponent(booking.id)}`}>
+          <Button>View booking</Button>
         </Link>
-        <Link
-          href={`/user/review?booking=${encodeURIComponent(reviewBookingId)}`}
-          className="w-full md:w-auto px-8 py-4 bg-card border border-border/30 text-foreground font-bold rounded-xl flex items-center justify-center gap-3 active:scale-95 transition-transform hover:border-primary/40 group"
+        <a
+          href={buildICS({
+            id: booking.id,
+            title: `${serviceNames} at ${booking.studio_name}`,
+            location: booking.studio_address,
+            date: booking.booking_date,
+            startTime: booking.start_time,
+            durationMinutes: booking.total_duration,
+          })}
+          download={`booking-${booking.confirmation_code}.ics`}
         >
-          <span className="material-symbols-outlined group-hover:scale-110 transition-transform">rate_review</span>
-          Leave a Review
-        </Link>
-        <Link
-          href="/user"
-          className="w-full md:w-auto px-8 py-4 text-primary font-bold rounded-xl flex items-center justify-center gap-3 active:scale-95 transition-transform hover:bg-primary/5 group"
-        >
-          <span className="material-symbols-outlined group-hover:-translate-x-1 transition-transform">arrow_back</span>
-          Back to Home
+          <Button intent="outline"><CalendarPlus size={16} /> Add to calendar</Button>
+        </a>
+        <a href={directionsUrl({ lat: booking.lat, lng: booking.lng, address: booking.studio_address })} target="_blank" rel="noreferrer">
+          <Button intent="outline"><MapPin size={16} /> Directions</Button>
+        </a>
+        <Link href="/user">
+          <Button intent="ghost">Back to home</Button>
         </Link>
       </div>
-
-      <p className="mt-16 font-label text-[11px] tracking-widest text-secondary-foreground uppercase flex items-center gap-2">
-        <span className="material-symbols-outlined text-xs">help_outline</span>
-        Need assistance? Our concierge is available at{" "}
-        <span className="text-primary/80 border-b border-primary/30 cursor-pointer">+44 20 7946 0123</span>
-      </p>
-    </main>
+    </Container>
   );
 }
 
 function ConfirmationPageLoading() {
-  return (
-    <main className="relative z-10 flex flex-col items-center justify-center px-6 pt-24 pb-20 max-w-7xl mx-auto min-h-screen">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-fixed-dim"></div>
-      <p className="text-muted mt-4">Loading...</p>
-    </main>
-  );
+  return <Container className="py-16 text-sm text-muted">Loading confirmation...</Container>;
 }
 
 export default function ConfirmationPage() {

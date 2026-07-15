@@ -29,7 +29,7 @@ export default function UserFooter() {
             href="/user/bookings"
             className="text-secondary-foreground font-label uppercase text-xs tracking-widest hover:text-primary transition-all opacity-80 hover:opacity-100"
           >
-            VIP Access
+            My Bookings
           </Link>
           <Link
             href="/careers"
@@ -39,7 +39,7 @@ export default function UserFooter() {
           </Link>
         </div>
         <div className="text-secondary-foreground font-label uppercase text-[10px] tracking-widest">
-          © 2024 Revoras. All rights reserved.
+          © {new Date().getFullYear()} Revoras. All rights reserved.
         </div>
       </div>
     </footer>

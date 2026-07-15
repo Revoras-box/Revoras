@@ -1,402 +1,120 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import Link from "next/link";
-import { useState } from "react";
-import { useBookings, useProfile } from "@/lib/hooks";
-import { api } from "@/lib/api";
-import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { CalendarClock, QrCode } from "lucide-react";
+import { Container, Card, Badge, Button, Avatar, Tabs, TabsPanel, CardSkeleton, EmptyState } from "@/components/ui";
+import { useBookings } from "@/lib/hooks";
+import { STATUS_LABEL, STATUS_TONE, categorize, type BookingCategory } from "@/lib/bookings";
+import { formatBookingDateLabel, formatTimeLabel } from "@/components/user/sections/utils";
+import CancelBookingModal from "@/components/user/sections/CancelBookingModal";
+import type { BookingListItem } from "@/lib/types";
 
-// Type definitions
-interface Service {
-  name: string;
-  price: number;
-  duration: number;
-}
+const TAB_ITEMS = [
+  { value: "today", label: "Today" },
+  { value: "upcoming", label: "Upcoming" },
+  { value: "completed", label: "Completed" },
+  { value: "cancelled", label: "Cancelled" },
+  { value: "no_show", label: "No-show" },
+];
 
-interface Booking {
-  id: string;
-  booking_date: string;
-  start_time: string;
-  status: string;
-  total_amount: number;
-  confirmation_code?: string;
-  studio_name?: string;
-  barber_name?: string;
-  barber_image?: string;
-  services?: Service[];
-  reviewed?: boolean;
-  rating?: number;
-  cancellation_reason?: string;
-}
-
-interface Stats {
-  totalBookings: number;
-  totalSpent: number;
-  completedBookings: number;
-  loyaltyPoints: number;
-}
-
-interface BookingsData {
-  bookings?: Booking[];
-}
-
-interface ProfileData {
-  stats?: Stats;
-}
-
-interface ApiErrorShape {
-  error?: string;
-}
-
-const isApiError = (value: unknown): value is ApiErrorShape =>
-  typeof value === "object" && value !== null && "error" in value;
+const inr = (n: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
 
 export default function BookingsPage() {
-  const [activeTab, setActiveTab] = useState<"upcoming" | "past" | "cancelled">("upcoming");
-  const [cancelling, setCancelling] = useState(false);
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState<BookingCategory>("upcoming");
+  const [cancelId, setCancelId] = useState<string | null>(null);
+  const [version, setVersion] = useState(0);
 
-  // Fetch bookings based on tab
-  const getStatusFilter = () => {
-    switch (activeTab) {
-      case "upcoming": return "pending,confirmed";
-      case "past": return "completed";
-      case "cancelled": return "cancelled";
-      default: return undefined;
+  // One fetch of all statuses (bookings lists are small per user), grouped
+  // client-side via the shared categorize() so Today/Upcoming split cleanly.
+  const { data, loading, refetch } = useBookings({});
+  const all = useMemo(() => (data?.bookings ?? []) as BookingListItem[], [data]);
+
+  const grouped = useMemo(() => {
+    const g: Record<BookingCategory, BookingListItem[]> = { today: [], upcoming: [], completed: [], cancelled: [], no_show: [] };
+    for (const b of all) g[categorize(b)].push(b);
+    // Soonest first for active lists, most-recent first for terminal ones.
+    g.today.sort((a, b) => a.start_time.localeCompare(b.start_time));
+    g.upcoming.sort((a, b) => (a.booking_date + a.start_time).localeCompare(b.booking_date + b.start_time));
+    return g;
+  }, [all]);
+
+  const afterCancel = () => {
+    setVersion((v) => v + 1);
+    refetch();
+  };
+
+  const renderList = (cat: BookingCategory) => {
+    const list = grouped[cat];
+    if (loading) return <div className="flex flex-col gap-4">{[1, 2].map((i) => <CardSkeleton key={i} />)}</div>;
+    if (list.length === 0) {
+      return (
+        <EmptyState
+          title={`No ${TAB_ITEMS.find((t) => t.value === cat)?.label.toLowerCase()} bookings`}
+          description={cat === "today" || cat === "upcoming" ? "Book an appointment and it'll show up here." : "Nothing here yet."}
+          action={cat === "upcoming" ? <Button onClick={() => router.push("/user")}>Find a studio</Button> : undefined}
+        />
+      );
     }
-  };
-
-  const { data: bookingsData, loading: bookingsLoading, refetch } = useBookings({ status: getStatusFilter() });
-  const { data: profileData } = useProfile();
-  
-  const typedBookingsData = bookingsData as BookingsData | null;
-  const typedProfileData = profileData as ProfileData | null;
-  
-  const bookings = typedBookingsData?.bookings || [];
-  const stats = typedProfileData?.stats || { totalBookings: 0, totalSpent: 0, completedBookings: 0, loyaltyPoints: 0 };
-
-  const handleCancel = async (bookingId: string) => {
-    if (!confirm("Are you sure you want to cancel this booking?")) return;
-    
-    setCancelling(true);
-    try {
-      const result = await api.cancelBooking(bookingId, "User requested cancellation");
-      if (!isApiError(result) || !result.error) {
-        toast.success("Booking cancelled successfully");
-        refetch();
-      } else {
-        toast.error(result.error || "Failed to cancel booking");
-      }
-    } catch {
-      toast.error("Failed to cancel booking");
-    } finally {
-      setCancelling(false);
-    }
-  };
-
-  // Calculate loyalty tier based on points
-  const getLoyaltyTier = (points: number) => {
-    if (points >= 3000) return { tier: "Platinum", nextTier: "Diamond", pointsToNext: 5000 - points };
-    if (points >= 2000) return { tier: "Gold", nextTier: "Platinum", pointsToNext: 3000 - points };
-    if (points >= 1000) return { tier: "Silver", nextTier: "Gold", pointsToNext: 2000 - points };
-    return { tier: "Bronze", nextTier: "Silver", pointsToNext: 1000 - points };
-  };
-
-  const loyalty = getLoyaltyTier(stats.loyaltyPoints);
-
-  const tabs = [
-    { id: "upcoming", label: "Upcoming", count: activeTab === "upcoming" ? bookings.length : "..." },
-    { id: "past", label: "Past", count: activeTab === "past" ? bookings.length : "..." },
-    { id: "cancelled", label: "Cancelled", count: activeTab === "cancelled" ? bookings.length : "..." },
-  ] as const;
-
-  // Format date for display
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString("en-US", { 
-      month: "short", day: "numeric", year: "numeric" 
-    });
-  };
-
-  const formatTime = (timeStr: string) => {
-    const [hours, minutes] = timeStr.split(":");
-    const h = parseInt(hours);
-    const ampm = h >= 12 ? "PM" : "AM";
-    const hour12 = h % 12 || 12;
-    return `${hour12}:${minutes} ${ampm}`;
+    return (
+      <div className="flex flex-col gap-4">
+        {list.map((b) => {
+          const canCancel = ["pending", "confirmed"].includes(b.status);
+          return (
+            <Card key={b.id} padding="md" className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-4">
+                <Avatar name={b.member_designation ?? b.studio_name} src={b.member_image ?? b.studio_image ?? undefined} size="lg" />
+                <div>
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold text-on-surface">{b.studio_name}</p>
+                    <Badge tone={STATUS_TONE[b.status]}>{STATUS_LABEL[b.status]}</Badge>
+                  </div>
+                  <p className="mt-0.5 text-sm text-muted">
+                    {formatBookingDateLabel(b.booking_date)} · {formatTimeLabel(b.start_time)}
+                    {b.member_designation ? ` · ${b.member_designation}` : ""}
+                  </p>
+                  <p className="mt-0.5 text-sm font-medium text-primary tabular-nums">{inr(Number(b.total_amount))}</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Link href={`/user/bookings/${b.id}`}>
+                  <Button intent="outline" size="sm"><QrCode size={14} /> View</Button>
+                </Link>
+                {canCancel ? (
+                  <>
+                    <Link href={`/user/book?studioId=${b.studio_id}&barberId=${b.business_member_id}&reschedule=${b.id}`}>
+                      <Button intent="ghost" size="sm"><CalendarClock size={14} /> Reschedule</Button>
+                    </Link>
+                    <Button intent="ghost" size="sm" className="text-error" onClick={() => setCancelId(b.id)}>Cancel</Button>
+                  </>
+                ) : null}
+                {b.status === "completed" ? (
+                  <Link href={`/user/review?booking=${b.id}`}>
+                    <Button size="sm">Leave review</Button>
+                  </Link>
+                ) : null}
+              </div>
+            </Card>
+          );
+        })}
+      </div>
+    );
   };
 
   return (
-    <main className="relative z-10 flex flex-col px-6 pt-20 pb-20 max-w-7xl mx-auto min-h-screen">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
-        <div>
-          <p className="font-label text-[10px] uppercase tracking-widest text-primary/60 mb-2">Your Journey</p>
-          <h1 className="font-headline text-5xl md:text-6xl font-black tracking-tighter">My Bookings</h1>
-        </div>
-        <Link
-          href="/user/book"
-          className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-fixed-dim to-primary-container text-primary-foreground font-bold rounded-full hover:shadow-[0_10px_30px_rgba(229,196,135,0.3)] transition-all"
-        >
-          <span className="material-symbols-outlined text-xl">add</span>
-          New Booking
-        </Link>
-      </div>
+    <Container className="flex flex-col gap-6 py-8">
+      <h1 className="font-headline text-2xl font-bold text-on-surface">Your bookings</h1>
+      <Tabs items={TAB_ITEMS} value={activeTab} onValueChange={(v) => setActiveTab(v as BookingCategory)}>
+        {TAB_ITEMS.map((t) => (
+          <TabsPanel key={t.value} value={t.value}>
+            {renderList(t.value as BookingCategory)}
+          </TabsPanel>
+        ))}
+      </Tabs>
 
-      <div className="grid lg:grid-cols-12 gap-8">
-        {/* Main Content */}
-        <div className="lg:col-span-8">
-          {/* Tabs */}
-          <div className="flex gap-2 mb-8 bg-surface p-1.5 rounded-2xl w-fit">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-6 py-3 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 ${
-                  activeTab === tab.id
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted hover:text-foreground hover:bg-white/5"
-                }`}
-              >
-                {tab.label}
-                <span
-                  className={`text-xs px-2 py-0.5 rounded-full ${
-                    activeTab === tab.id ? "bg-primary-foreground/20" : "bg-white/10"
-                  }`}
-                >
-                  {tab.count}
-                </span>
-              </button>
-            ))}
-          </div>
-
-          {/* Loading State */}
-          {bookingsLoading ? (
-            <div className="space-y-6">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="animate-pulse bg-surface rounded-3xl h-40"></div>
-              ))}
-            </div>
-          ) : bookings.length === 0 ? (
-            <div className="text-center py-16">
-              <span className="material-symbols-outlined text-6xl text-secondary-foreground mb-4 block">
-                {activeTab === "upcoming" ? "event_available" : activeTab === "past" ? "history" : "cancel"}
-              </span>
-              <p className="text-muted">
-                {activeTab === "upcoming" 
-                  ? "No upcoming bookings" 
-                  : activeTab === "past" 
-                  ? "No past bookings" 
-                  : "No cancelled bookings"}
-              </p>
-              {activeTab === "upcoming" && (
-                <Link 
-                  href="/user/discover" 
-                  className="inline-block mt-4 px-6 py-3 bg-primary text-primary-foreground rounded-full font-bold"
-                >
-                  Discover Studios
-                </Link>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {bookings.map((booking: any) => (
-                <div
-                  key={booking.id}
-                  className={`bg-surface rounded-3xl p-6 border border-border/20 hover:border-primary/30 transition-all group ${
-                    booking.status === "cancelled" ? "opacity-60" : ""
-                  }`}
-                >
-                  <div className="flex flex-col md:flex-row gap-6">
-                    {/* Barber Image */}
-                    {booking.barber_image && (
-                      <div className="relative">
-                        <img
-                          src={booking.barber_image}
-                          alt={booking.barber_name}
-                          className="w-24 h-24 rounded-2xl object-cover grayscale group-hover:grayscale-0 transition-all"
-                        />
-                        {booking.status === "confirmed" && (
-                          <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center border-4 border-surface">
-                            <span className="material-symbols-outlined text-foreground text-sm icon-filled">check</span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Details */}
-                    <div className="flex-1 space-y-4">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <div className="flex items-center gap-3">
-                            <h3 className="font-headline text-xl font-bold text-foreground">
-                              {booking.services?.map((s: any) => s.name).join(", ") || "Appointment"}
-                            </h3>
-                            {booking.status === "cancelled" && (
-                              <span className="px-2 py-1 bg-red-900/30 text-red-400 text-xs font-bold rounded-full">
-                                Cancelled
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-muted">
-                            {booking.barber_name && (
-                              <>with <span className="text-primary">{booking.barber_name}</span> at </>
-                            )}
-                            {booking.studio_name}
-                          </p>
-                        </div>
-                        <span className={`text-2xl font-bold ${booking.status === "cancelled" ? "text-secondary-foreground line-through" : "text-primary"}`}>
-                          ${booking.total_amount}
-                        </span>
-                      </div>
-
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div>
-                          <p className="font-label text-[9px] uppercase tracking-widest text-secondary-foreground mb-1">Date</p>
-                          <p className="font-semibold text-foreground">{formatDate(booking.booking_date)}</p>
-                        </div>
-                        <div>
-                          <p className="font-label text-[9px] uppercase tracking-widest text-secondary-foreground mb-1">Time</p>
-                          <p className="font-semibold text-foreground">{formatTime(booking.start_time)}</p>
-                        </div>
-                        <div>
-                          <p className="font-label text-[9px] uppercase tracking-widest text-secondary-foreground mb-1">Status</p>
-                          <p className="font-semibold text-foreground capitalize">{booking.status}</p>
-                        </div>
-                        <div>
-                          <p className="font-label text-[9px] uppercase tracking-widest text-secondary-foreground mb-1">Code</p>
-                          <p className="font-semibold text-foreground font-mono">{booking.confirmation_code}</p>
-                        </div>
-                      </div>
-
-                      {/* Actions based on status */}
-                      {activeTab === "upcoming" && (
-                        <div className="flex flex-wrap gap-3 pt-4 border-t border-border/20">
-                          <Link
-                            href={`/user/confirmation?booking=${booking.id}`}
-                            className="px-4 py-2 bg-primary/10 text-primary rounded-lg text-sm font-semibold hover:bg-primary/20 transition-colors flex items-center gap-2"
-                          >
-                            <span className="material-symbols-outlined text-lg">qr_code_2</span>
-                            View QR
-                          </Link>
-                          <button className="px-4 py-2 bg-surface-container text-foreground rounded-lg text-sm font-semibold hover:bg-surface-container-high transition-colors flex items-center gap-2">
-                            <span className="material-symbols-outlined text-lg">edit_calendar</span>
-                            Reschedule
-                          </button>
-                          <button 
-                            onClick={() => handleCancel(booking.id)}
-                            disabled={cancelling}
-                            className="px-4 py-2 text-red-400/70 rounded-lg text-sm font-semibold hover:bg-red-400/10 transition-colors flex items-center gap-2 disabled:opacity-50"
-                          >
-                            <span className="material-symbols-outlined text-lg">cancel</span>
-                            Cancel
-                          </button>
-                        </div>
-                      )}
-
-                      {activeTab === "past" && (
-                        <div className="flex items-center justify-between pt-4 border-t border-border/20">
-                          {booking.reviewed ? (
-                            <div className="flex items-center gap-2">
-                              <div className="flex">
-                                {[...Array(5)].map((_, i) => (
-                                  <span
-                                    key={i}
-                                    className={`material-symbols-outlined text-lg ${
-                                      i < (booking.rating || 0) ? "text-primary" : "text-secondary-foreground"
-                                    } icon-filled`}
-                                  >
-                                    star
-                                  </span>
-                                ))}
-                              </div>
-                              <span className="text-xs text-secondary-foreground">Review submitted</span>
-                            </div>
-                          ) : (
-                            <Link
-                              href={`/user/review?booking=${booking.id}`}
-                              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:shadow-lg transition-all flex items-center gap-2"
-                            >
-                              <span className="material-symbols-outlined text-lg">rate_review</span>
-                              Leave Review
-                            </Link>
-                          )}
-                          <button className="px-4 py-2 bg-surface-container text-foreground rounded-lg text-sm font-semibold hover:bg-surface-container-high transition-colors flex items-center gap-2">
-                            <span className="material-symbols-outlined text-lg">replay</span>
-                            Book Again
-                          </button>
-                        </div>
-                      )}
-
-                      {activeTab === "cancelled" && booking.cancellation_reason && (
-                        <p className="text-secondary-foreground text-sm pt-4 border-t border-border/20">
-                          Reason: {booking.cancellation_reason}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Sidebar - Loyalty Stats */}
-        <div className="lg:col-span-4">
-          <div className="bg-surface rounded-3xl p-8 border border-border/20 sticky top-24">
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="font-headline text-2xl font-bold">Loyalty Status</h3>
-              <div className="px-3 py-1.5 bg-gradient-to-r from-primary-fixed-dim to-primary-container text-primary-foreground rounded-full text-sm font-black">
-                {loyalty.tier}
-              </div>
-            </div>
-
-            {/* Progress to next tier */}
-            <div className="mb-8">
-              <div className="flex justify-between text-sm mb-2">
-                <span className="text-muted">Progress to {loyalty.nextTier}</span>
-                <span className="text-primary font-semibold">{Math.max(0, loyalty.pointsToNext)} pts away</span>
-              </div>
-              <div className="h-2 bg-surface rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-primary-fixed-dim to-primary-container rounded-full transition-all"
-                  style={{
-                    width: `${Math.min(100, (stats.loyaltyPoints / (stats.loyaltyPoints + Math.max(0, loyalty.pointsToNext))) * 100)}%`,
-                  }}
-                />
-              </div>
-              <p className="text-xs text-secondary-foreground mt-2">{stats.loyaltyPoints} points</p>
-            </div>
-
-            {/* Stats Grid */}
-            <div className="grid grid-cols-2 gap-4 mb-8">
-              <div className="bg-surface rounded-2xl p-4 text-center">
-                <span className="material-symbols-outlined text-primary text-3xl mb-2 block">calendar_month</span>
-                <p className="text-2xl font-bold text-foreground">{stats.completedBookings}</p>
-                <p className="text-xs text-secondary-foreground">Total Visits</p>
-              </div>
-              <div className="bg-surface rounded-2xl p-4 text-center">
-                <span className="material-symbols-outlined text-green-400 text-3xl mb-2 block">payments</span>
-                <p className="text-2xl font-bold text-foreground">${stats.totalSpent.toFixed(0)}</p>
-                <p className="text-xs text-secondary-foreground">Total Spent</p>
-              </div>
-            </div>
-
-            {/* Perks */}
-            <div className="mt-8 space-y-3">
-              <p className="font-label text-[9px] uppercase tracking-widest text-secondary-foreground">{loyalty.tier} Perks</p>
-              {[
-                { icon: "percent", text: loyalty.tier === "Platinum" ? "15% off all services" : loyalty.tier === "Gold" ? "10% off all services" : "5% off all services" },
-                { icon: "priority_high", text: "Priority booking" },
-                { icon: "local_cafe", text: "Complimentary beverages" },
-              ].map((perk, i) => (
-                <div key={i} className="flex items-center gap-3 text-sm text-foreground">
-                  <span className="material-symbols-outlined text-primary text-lg">{perk.icon}</span>
-                  {perk.text}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
+      {cancelId ? <CancelBookingModal bookingId={cancelId} onClose={() => setCancelId(null)} onCancelled={afterCancel} /> : null}
+    </Container>
   );
 }

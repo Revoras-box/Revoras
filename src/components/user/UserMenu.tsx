@@ -1,27 +1,21 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import {
   User,
-  Settings,
-  CreditCard,
   BookOpen,
   LogOut,
 } from "lucide-react";
 
 const menuItems = [
   { label: "My Profile", href: "/user/profile", icon: User },
-  { label: "Settings", href: "/user/settings", icon: Settings },
-  { label: "Membership", href: "/user/membership", icon: CreditCard },
-  { label: "Booking History", href: "/bookings", icon: BookOpen },
+  { label: "Booking History", href: "/user/bookings", icon: BookOpen },
 ];
 
 export default function UserMenu() {
-  const { user } = useAuth();
-  const router = useRouter();
+  const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -56,9 +50,8 @@ export default function UserMenu() {
   }, [open]);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    router.push("/login");
+    setOpen(false);
+    logout();
   };
 
   return (

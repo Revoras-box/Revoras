@@ -1,13 +1,13 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { useBusinessAuth } from "@/lib/business/auth";
 
 export default function BarberLogin() {
   const router = useRouter();
+  const { login } = useBusinessAuth();
   const [loading, setLoading] = useState(false);
-  const [loginType, setLoginType] = useState<'studio' | 'barber'>('studio');
   const [form, setForm] = useState({
     identifier: "",
     password: "",
@@ -37,47 +37,27 @@ export default function BarberLogin() {
     toast.loading("Authenticating...");
 
     try {
-      let res;
-      
-      if (loginType === 'studio') {
-        res = await api.studioLogin({
-          ...(isValidEmail ? { email: form.identifier } : { phone: form.identifier }),
-          password: form.password,
-        });
-      } else {
-        res = await api.barberEmployeeLogin({
-          ...(isValidEmail ? { email: form.identifier } : { phone: form.identifier }),
-          password: form.password,
-        });
-      }
+      // Owners and staff share one login (report.md Phase 2.3 plan) - the
+      // backend resolves role/permissions per business membership, there's
+      // no separate "studio" vs "barber" login type anymore.
+      const { error } = await login({
+        ...(isValidEmail ? { email: form.identifier } : { phone: form.identifier }),
+        password: form.password,
+      });
 
       toast.dismiss();
 
-      if (res.token) {
-        // Debug: verify localStorage is being set
-        console.log("Login successful, token received:", res.token ? "YES" : "NO");
-        console.log("Owner:", res.owner);
-        console.log("Studio:", res.studio);
-        
-        // Verify localStorage after setting (the API function sets it)
-        setTimeout(() => {
-          console.log("localStorage studioToken:", localStorage.getItem("studioToken") ? "SET" : "NOT SET");
-          console.log("localStorage studioOwner:", localStorage.getItem("studioOwner") ? "SET" : "NOT SET");
-        }, 100);
-        
-        toast.success(loginType === 'studio' 
-          ? "Welcome back, Studio Owner!" 
-          : "Welcome back, Professional!");
-        // Use window.location for full page reload to ensure fresh auth context
-        window.location.href = "/barbers/dashboard";
-      } else if (res.error === "Account not found" || res.error === "Not found") {
+      if (!error) {
+        toast.success("Welcome back!");
+        window.location.href = "/business";
+      } else if (error === "Account not found" || error === "Not found") {
         toast.error("Account not found. Please check your credentials.");
-      } else if (res.error === "Invalid credentials" || res.error === "Invalid") {
+      } else if (error === "Invalid credentials" || error === "Invalid") {
         toast.error("Invalid credentials. Please try again.");
       } else {
-        toast.error(res.error || "Login failed. Please try again.");
+        toast.error(error || "Login failed. Please try again.");
       }
-    } catch (error) {
+    } catch {
       toast.dismiss();
       toast.error("Something went wrong. Please try again.");
     } finally {
@@ -102,15 +82,11 @@ export default function BarberLogin() {
 
           <h1 className="text-5xl font-bold leading-tight">
             Command Your <br />
-            <span className="text-primary">
-              {loginType === 'studio' ? 'Studio.' : 'Craft.'}
-            </span>
+            <span className="text-primary">Business.</span>
           </h1>
 
           <p className="text-muted max-w-lg">
-            {loginType === 'studio' 
-              ? "Access your studio dashboard. Manage your business, team, services, and deliver elite experiences to your clients."
-              : "Access your barber dashboard. Manage your schedule, view bookings, and track your performance."}
+            Access your business dashboard. Manage your team, services, schedule, and deliver elite experiences to your clients.
           </p>
 
           {/* Avatars */}
@@ -123,7 +99,7 @@ export default function BarberLogin() {
             </div>
 
             <span className="text-sm text-muted">
-              Joined by the world's finest studios
+              Joined by the world&apos;s finest studios
             </span>
 
           </div>
@@ -139,38 +115,13 @@ export default function BarberLogin() {
 
             <div>
               <h2 className="text-2xl font-semibold">
-                {loginType === 'studio' ? 'Studio Login' : 'Barber Login'}
+                Business Login
               </h2>
 
               <p className="text-muted text-sm">
-                Welcome back to SnapCut. Enter your credentials.
+                Welcome back to Revoras. Enter your credentials.
               </p>
             </div>
-
-            {/* Login Type Toggle */}
-            <div className="flex bg-surface rounded-xl p-1">
-              <button
-                onClick={() => setLoginType('studio')}
-                className={`flex-1 py-3 rounded-lg text-sm font-medium transition-all ${
-                  loginType === 'studio' 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'text-muted hover:text-foreground'
-                }`}
-              >
-                Studio Owner
-              </button>
-              <button
-                onClick={() => setLoginType('barber')}
-                className={`flex-1 py-3 rounded-lg text-sm font-medium transition-all ${
-                  loginType === 'barber' 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'text-muted hover:text-foreground'
-                }`}
-              >
-                Barber
-              </button>
-            </div>
-
 
             <div className="space-y-6">
 
@@ -179,7 +130,7 @@ export default function BarberLogin() {
                   Phone Number or Email Address
                 </label>
 
-                <input 
+                <input
                   className="w-full bg-transparent border-b border-border py-3 outline-none focus:border-primary transition"
                   placeholder="Enter your phone number or email address"
                   value={form.identifier}
@@ -194,8 +145,8 @@ export default function BarberLogin() {
                   Password
                 </label>
 
-                <input 
-                  type="password" 
+                <input
+                  type="password"
                   className="w-full bg-transparent border-b border-border py-3 outline-none focus:border-primary transition"
                   placeholder="••••••••"
                   value={form.password}
@@ -209,8 +160,8 @@ export default function BarberLogin() {
               <div className="flex justify-between text-sm">
 
                 <label className="flex gap-2 text-muted cursor-pointer">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     checked={form.remember}
                     onChange={(e) => updateField("remember", e.target.checked)}
                     className="accent-primary"
@@ -226,7 +177,7 @@ export default function BarberLogin() {
               </div>
 
 
-              <button 
+              <button
                 className="w-full bg-primary text-primary-foreground py-4 rounded-xl font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
                 onClick={handleLogin}
                 disabled={loading}
@@ -245,21 +196,13 @@ export default function BarberLogin() {
 
 
             <div className="text-center text-sm text-muted">
-              {loginType === 'studio' ? (
-                <>
-                  New to the network?
-                  <span
-                    className="text-primary ml-2 cursor-pointer"
-                    onClick={() => router.push("/barber-signup")}
-                  >
-                    Register Your Studio →
-                  </span>
-                </>
-              ) : (
-                <>
-                  Contact your studio admin to get your login credentials.
-                </>
-              )}
+              New to the network?
+              <span
+                className="text-primary ml-2 cursor-pointer"
+                onClick={() => router.push("/barber-signup")}
+              >
+                Register Your Business →
+              </span>
             </div>
 
           </div>

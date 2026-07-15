@@ -210,6 +210,53 @@
   --radius-2xl: 1.5rem;
 }
 
+/* ------------------------------------------------------------------ */
+/*  Design-system tokens (Phase 3.1) — z-index and motion.             */
+/*  Colors/typography/radius/elevation above already covered the rest  */
+/*  of the scale; spacing and breakpoints deliberately stay Tailwind's */
+/*  own defaults (p-1..p-96, sm/md/lg/xl/2xl) rather than a parallel   */
+/*  set of custom tokens for the same thing.                           */
+/* ------------------------------------------------------------------ */
+:root {
+  /* Stacking order — every overlay component in components/ui reads
+     from this list so a dropdown never fights a modal for a layer. */
+  --z-dropdown: 1000;
+  --z-sticky: 1100;
+  --z-drawer-backdrop: 1190;
+  --z-drawer: 1200;
+  --z-modal-backdrop: 1300;
+  --z-modal: 1310;
+  /* Floating popover content (Select/menu options) triggered from WITHIN a
+     modal or drawer must render above it, or its options sit behind the
+     overlay and can't be clicked. This sits above --z-modal but below toast so
+     a toast still surfaces over an open select. (--z-dropdown stays below the
+     overlays for page-level dropdowns that should be covered by a modal.) */
+  --z-popover: 1320;
+  --z-toast: 1400;
+  --z-tooltip: 1500;
+
+  /* Motion — durations pair with the easing already used by the theme
+     transition below; components pick the duration that matches their
+     size (micro-interactions fast, sheets/modals slower). */
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+@theme inline {
+  --z-index-dropdown: var(--z-dropdown);
+  --z-index-sticky: var(--z-sticky);
+  --z-index-drawer-backdrop: var(--z-drawer-backdrop);
+  --z-index-drawer: var(--z-drawer);
+  --z-index-modal-backdrop: var(--z-modal-backdrop);
+  --z-index-modal: var(--z-modal);
+  --z-index-popover: var(--z-popover);
+  --z-index-toast: var(--z-toast);
+  --z-index-tooltip: var(--z-tooltip);
+}
+
 @layer base {
   body {
     background-color: var(--background);
@@ -307,6 +354,25 @@
     opacity: 1;
     transform: scale(1) translateY(0);
   }
+}
+
+@keyframes drawer-in-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+@keyframes drawer-in-left {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+@keyframes drawer-in-bottom {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@layer utilities {
+  .animate-drawer-right { animation: drawer-in-right var(--duration-slow) var(--ease-out); }
+  .animate-drawer-left { animation: drawer-in-left var(--duration-slow) var(--ease-out); }
+  .animate-drawer-bottom { animation: drawer-in-bottom var(--duration-slow) var(--ease-out); }
 }
 
 @media (prefers-reduced-motion: reduce) {
