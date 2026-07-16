@@ -21,6 +21,8 @@ export interface BusinessCardProps {
   onFavoriteToggle?: () => void;
   onClick?: () => void;
   className?: string;
+  /** "grid" (default) is the vertical tile; "list" is a horizontal row for list views. */
+  layout?: "grid" | "list";
 }
 
 /** A Discover result / favorites-list tile. Pure display props — the page fetching `/discover/businesses` maps the API response onto these. */
@@ -37,7 +39,9 @@ export function BusinessCard({
   onFavoriteToggle,
   onClick,
   className,
+  layout = "grid",
 }: BusinessCardProps) {
+  const isList = layout === "list";
   return (
     <div
       onClick={onClick}
@@ -54,17 +58,32 @@ export function BusinessCard({
           : undefined
       }
       className={cn(
-        "group flex flex-col overflow-hidden rounded-2xl border border-border bg-card cursor-pointer",
+        "group flex overflow-hidden rounded-2xl border border-border bg-card cursor-pointer",
+        isList ? "flex-row" : "flex-col",
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
         "transition-shadow duration-(--duration-base) ease-(--ease-out) hover:shadow-elevated",
         className
       )}
     >
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-surface-container-high">
+      <div
+        className={cn(
+          "relative overflow-hidden bg-surface-container-high",
+          isList ? "w-32 shrink-0 self-stretch sm:w-44" : "aspect-[4/3] w-full"
+        )}
+      >
         {imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- card grids render arbitrary remote business photos
           <img src={imageUrl} alt={name} className="h-full w-full object-cover transition-transform duration-(--duration-slow) ease-(--ease-out) group-hover:scale-105" />
-        ) : null}
+        ) : (
+          // Branded placeholder for studios without a photo yet (also the graceful
+          // state while R2 media is unavailable) — a soft jade→clay wash + the
+          // studio's monogram, so imageless cards still read intentional.
+          <div className="flex h-full w-full items-center justify-center bg-linear-to-br from-primary/12 via-surface-container to-accent/12">
+            <span aria-hidden="true" className="select-none font-headline text-5xl font-extrabold text-on-surface/15">
+              {(name?.trim()?.charAt(0) ?? "R").toUpperCase()}
+            </span>
+          </div>
+        )}
         {offerLabel ? (
           <span className="absolute left-2.5 top-2.5 inline-flex items-center gap-1 rounded-full bg-error px-2 py-0.5 text-xs font-semibold text-on-error shadow-soft">
             <Tag size={11} />
@@ -85,7 +104,7 @@ export function BusinessCard({
           </button>
         ) : null}
       </div>
-      <div className="flex flex-col gap-1 p-3.5">
+      <div className="flex min-w-0 flex-1 flex-col gap-1 p-3.5">
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-headline text-sm font-semibold text-on-surface truncate">{name}</h3>
           <RatingDisplay value={rating} count={reviewCount} />

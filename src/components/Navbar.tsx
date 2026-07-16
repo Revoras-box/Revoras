@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Menu, X, ArrowRight } from "lucide-react";
 import ThemeToggleButton from "@/components/ThemeToggleButton";
 
 interface NavbarProps {
@@ -10,80 +12,110 @@ interface NavbarProps {
   navLinks?: Array<{ href: string; label: string }>;
 }
 
+const DEFAULT_LINKS = [
+  { href: "/user", label: "Explore" },
+  { href: "/user/search?hasOffers=true", label: "Offers" },
+  { href: "/host/signup", label: "For Business" },
+];
+
 export default function Navbar({
   brandText = "Revoras",
   brandHref = "/",
-  navLinks =
-  [
-    { href: "/services", label: "Services" },
-    { href: "/barbers", label: "Barbers" },
-    { href: "/locations", label: "Locations" },
-    { href: "/experience", label: "Experience" },
-  ]
+  navLinks = DEFAULT_LINKS,
 }: NavbarProps) {
-
   const pathname = usePathname();
-  
+  const [open, setOpen] = useState(false);
+
   return (
-    <nav className="fixed top-0 w-full z-1000 backdrop-blur-xl bg-background/60 border-b border-border">
-
-      <div className="flex justify-between items-center w-full px-8 py-5 max-w-screen-2xl mx-auto">
-
+    <nav className="fixed top-0 z-1000 w-full border-b border-border glass-nav">
+      <div className="mx-auto flex max-w-screen-2xl items-center justify-between gap-6 px-5 py-3.5 md:px-8">
         {/* Logo */}
-        <Link
-          href={brandHref}
-          className="text-2xl font-bold text-primary"
-        >
+        <Link href={brandHref} className="shrink-0 font-headline text-2xl font-extrabold tracking-tight text-primary">
           {brandText}
         </Link>
 
-        {/* Nav Links */}
-        <div className="hidden md:flex gap-10 items-center">
-
+        {/* Center links */}
+        <div className="hidden items-center gap-8 md:flex">
           {navLinks.map((link) => {
-
             const isActive = pathname === link.href;
-
             return (
               <Link
                 key={link.label}
                 href={link.href}
-                className={`text-sm uppercase tracking-widest transition relative
-                ${isActive
-                    ? "text-primary"
-                    : "text-secondary-foreground hover:text-primary"
-                  }`}
+                className={`relative text-sm font-medium transition-colors ${
+                  isActive ? "text-on-surface" : "text-secondary-foreground hover:text-on-surface"
+                }`}
               >
                 {link.label}
-
-                {isActive && (
-                  <span className="absolute -bottom-2 left-0 w-full h-0.5 bg-primary" />
-                )}
-
+                {isActive && <span className="absolute -bottom-1.5 left-0 h-0.5 w-full rounded-full bg-primary" />}
               </Link>
             );
           })}
-
         </div>
 
-
-        {/* Right */}
-        <div className="flex items-center gap-6">
-
-          <ThemeToggleButton className="-mr-1" />
-
-          <Link href="/login-barber" className="text-sm uppercase tracking-widest text-secondary-foreground hover:text-primary transition-colors">
-            Join as Barber
+        {/* Right actions */}
+        <div className="flex items-center gap-2 md:gap-3">
+          <ThemeToggleButton />
+          <Link
+            href="/login"
+            className="hidden rounded-full px-4 py-2 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-high sm:inline-flex"
+          >
+            Log in
+          </Link>
+          <Link
+            href="/signup"
+            className="hidden items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-soft transition-transform hover:-translate-y-0.5 sm:inline-flex"
+          >
+            Sign up
+            <ArrowRight size={15} />
           </Link>
 
-          <Link href="/login" className="bg-primary text-primary-foreground px-5 py-2 rounded-lg text-sm font-semibold hover:bg-primary/80 transition-colors">
-            Login
-          </Link>
-
+          {/* Mobile toggle */}
+          <button
+            type="button"
+            aria-label={open ? "Close menu" : "Open menu"}
+            aria-expanded={open}
+            onClick={() => setOpen((v) => !v)}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full text-on-surface transition-colors hover:bg-surface-container-high md:hidden"
+          >
+            {open ? <X size={20} /> : <Menu size={20} />}
+          </button>
         </div>
-
       </div>
 
+      {/* Mobile panel */}
+      {open && (
+        <div className="border-t border-border bg-surface px-5 py-4 md:hidden animate-dropdown">
+          <div className="flex flex-col gap-1">
+            {navLinks.map((link) => (
+              <Link
+                key={link.label}
+                href={link.href}
+                onClick={() => setOpen(false)}
+                className="rounded-xl px-3 py-2.5 text-sm font-medium text-on-surface transition-colors hover:bg-surface-container-high"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+          <div className="mt-3 flex flex-col gap-2 border-t border-border pt-3">
+            <Link
+              href="/login"
+              onClick={() => setOpen(false)}
+              className="rounded-full px-4 py-2.5 text-center text-sm font-semibold text-on-surface ring-1 ring-border transition-colors hover:bg-surface-container-high"
+            >
+              Log in
+            </Link>
+            <Link
+              href="/signup"
+              onClick={() => setOpen(false)}
+              className="rounded-full bg-primary px-4 py-2.5 text-center text-sm font-semibold text-primary-foreground"
+            >
+              Sign up
+            </Link>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }

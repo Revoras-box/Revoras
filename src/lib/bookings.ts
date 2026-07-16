@@ -30,13 +30,44 @@ export function categorize(b: BookingListItem): BookingCategory {
   if (b.status === "cancelled") return "cancelled";
   if (b.status === "no_show") return "no_show";
   if (b.status === "completed") return "completed";
-  const today = new Date().toISOString().slice(0, 10);
-  const date = b.booking_date.slice(0, 10);
-  if (date === today) return "today";
-  return "upcoming";
+  // Compared as LOCAL calendar days. This previously compared two UTC strings
+  // (`new Date().toISOString()` vs a sliced booking_date) which agreed only
+  // while the local date and the UTC date happened to match - so in IST every
+  // booking for today fell into "upcoming" from 05:30 onwards, leaving the
+  // Today tab empty for most of the day.
+  const now = new Date();
+  const d = bookingDayParts(b.booking_date);
+  const isToday = d.year === now.getFullYear() && d.month === now.getMonth() + 1 && d.day === now.getDate();
+  return isToday ? "today" : "upcoming";
 }
 
 const pad = (n: number) => String(n).padStart(2, "0");
+
+/**
+ * The booking day as local calendar parts.
+ *
+ * `bookings.booking_date` is a DATE column. The pg driver hands it back as a JS
+ * Date at LOCAL midnight, which JSON serialises to a UTC instant - so Monday
+ * 2026-07-20 in IST arrives as "2026-07-19T18:30:00.000Z". Slicing that string
+ * takes the UTC calendar day, i.e. the day BEFORE, for every positive-offset
+ * timezone. Parsing it and reading local components recovers the intended day.
+ * A bare "YYYY-MM-DD" (no time part) is already local and is split as-is.
+ */
+export function bookingDayParts(raw: string): { year: number; month: number; day: number } {
+  if (raw.includes("T")) {
+    const d = new Date(raw);
+    return { year: d.getFullYear(), month: d.getMonth() + 1, day: d.getDate() };
+  }
+  const [year, month, day] = raw.split("-").map(Number);
+  return { year, month, day };
+}
+
+/** The booking's start as a local Date, built from its calendar parts. */
+export function bookingStartDate(bookingDate: string, startTime: string): Date {
+  const { year, month, day } = bookingDayParts(bookingDate);
+  const [hh, mm] = startTime.split(":").map(Number);
+  return new Date(year, month - 1, day, hh || 0, mm || 0);
+}
 
 /**
  * A .ics calendar file for a booking. Built client-side (no server round-trip)
@@ -52,9 +83,7 @@ export function buildICS(b: {
   startTime: string; // HH:MM[:SS]
   durationMinutes: number;
 }): string {
-  const [y, mo, d] = b.date.slice(0, 10).split("-").map(Number);
-  const [hh, mm] = b.startTime.split(":").map(Number);
-  const start = new Date(y, mo - 1, d, hh, mm || 0);
+  const start = bookingStartDate(b.date, b.startTime);
   const end = new Date(start.getTime() + b.durationMinutes * 60000);
   const fmt = (dt: Date) => `${dt.getFullYear()}${pad(dt.getMonth() + 1)}${pad(dt.getDate())}T${pad(dt.getHours())}${pad(dt.getMinutes())}00`;
 

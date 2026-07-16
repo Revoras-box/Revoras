@@ -61,7 +61,7 @@ export function StepSubscription({ studioId, state, goPrev, jumpTo, exit }: Wiza
         description: "Revoras for Business — monthly subscription",
         order_id: order.orderId,
         prefill: { name: user?.name, email: user?.email, contact: user?.phone || undefined },
-        theme: { color: "#C9A45C" },
+        theme: { color: "#0E7C6B" },
         handler: async (response) => {
           try {
             const result = await verifyPayment.mutateAsync({

@@ -6,23 +6,23 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: {
     template: "%s | Revoras",
-    default: "Revoras | The Gilded Groom Experience",
+    default: "Revoras | Beauty & Wellness, Booked Beautifully",
   },
-  description: "Skip the wait. Walk in fresh. The digital concierge for elite grooming experiences.",
-  keywords: ["barber", "grooming", "booking", "luxury", "haircut", "beard"],
+  description: "Discover and book trusted salons, barbers, spas and beauty professionals near you — all in one place.",
+  keywords: ["salon", "barber", "spa", "nails", "beauty", "wellness", "booking", "appointment"],
   authors: [{ name: "Revoras" }],
   creator: "Revoras",
   metadataBase: new URL("https://revoras.com"),
   openGraph: {
-    title: "Revoras | The Gilded Groom Experience",
-    description: "Skip the wait. Walk in fresh. The digital concierge for elite grooming experiences.",
+    title: "Revoras | Beauty & Wellness, Booked Beautifully",
+    description: "Discover and book trusted salons, barbers, spas and beauty professionals near you — all in one place.",
     type: "website",
     siteName: "Revoras",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Revoras | The Gilded Groom Experience",
-    description: "Skip the wait. Walk in fresh. The digital concierge for elite grooming experiences.",
+    title: "Revoras | Beauty & Wellness, Booked Beautifully",
+    description: "Discover and book trusted salons, barbers, spas and beauty professionals near you — all in one place.",
   },
   robots: {
     index: true,
@@ -34,8 +34,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#F8F9FA" },
-    { media: "(prefers-color-scheme: dark)", color: "#0E0E0F" },
+    { media: "(prefers-color-scheme: light)", color: "#FAF7F2" },
+    { media: "(prefers-color-scheme: dark)", color: "#0C1A17" },
   ],
 };
 

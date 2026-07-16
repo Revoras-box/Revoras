@@ -8,8 +8,8 @@ export default function UserFooter() {
           <Link href="/user" className="text-primary font-black font-headline text-xl tracking-tighter">
             Revoras
           </Link>
-          <p className="text-secondary-foreground font-label text-[10px] tracking-widest uppercase italic">
-            The Digital Concierge.
+          <p className="text-secondary-foreground font-label text-[10px] tracking-widest uppercase">
+            Beauty &amp; wellness, booked beautifully.
           </p>
         </div>
         <div className="flex gap-8">

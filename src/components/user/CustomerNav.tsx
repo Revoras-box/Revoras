@@ -12,6 +12,7 @@ import UserMenu from "./UserMenu";
 const NAV_LINKS = [
   { href: "/user", label: "Discover" },
   { href: "/user/search", label: "Search" },
+  { href: "/user/search?hasOffers=true", label: "Offers" },
   { href: "/user/bookings", label: "Bookings" },
 ];
 
@@ -22,12 +23,24 @@ const TAB_ITEMS = [
   { href: "/user/profile", label: "Profile", icon: <UserRound size={ICON_SIZE.md} /> },
 ];
 
+/**
+ * Focused funnel routes own the bottom of the screen. Each renders its own
+ * fixed action bar (Continue / Pay), and the tab bar sits at the same
+ * `bottom-0` with a far higher z-index (--z-sticky 1100 vs the bar's 40) - so
+ * on a phone the tab bar rendered ON TOP of the primary CTA and swallowed the
+ * tap. A checkout also shouldn't offer tab navigation competing with "Pay".
+ * Matched exactly (or as a path segment) so "/user/bookings" - which is NOT a
+ * funnel - doesn't match the "/user/book" prefix.
+ */
+const FUNNEL_ROUTES = ["/user/book", "/user/checkout"];
+
 export default function CustomerNav() {
   const pathname = usePathname();
   const { data: unreadData } = useUnreadNotificationCount();
   const unreadCount = unreadData?.count ?? 0;
 
   const isActive = (href: string) => (href === "/user" ? pathname === "/user" : pathname.startsWith(href));
+  const inFunnel = FUNNEL_ROUTES.some((r) => pathname === r || pathname.startsWith(`${r}/`));
 
   return (
     <>
@@ -61,10 +74,12 @@ export default function CustomerNav() {
           </>
         }
       />
-      <BottomNav
-        items={TAB_ITEMS.map((item) => ({ ...item, active: isActive(item.href) }))}
-        linkComponent={Link}
-      />
+      {inFunnel ? null : (
+        <BottomNav
+          items={TAB_ITEMS.map((item) => ({ ...item, active: isActive(item.href) }))}
+          linkComponent={Link}
+        />
+      )}
     </>
   );
 }

@@ -60,11 +60,12 @@ function ReviewPageContent() {
   const typedBookingData = bookingData as BookingReviewDetails | null;
   const booking = typedBookingData?.booking;
 
+  // studioId/barberId are deliberately not sent: the backend derives the studio
+  // and professional from the booking itself and strips these, so passing them
+  // only invited the `studioId ?? 0` fallback below to look meaningful.
   const { mutate: submitReview, loading: submitting } = useMutation<CreateReviewResponse, [CreateReviewPayload]>(
     (data) => api.createReview({
       bookingId: data.bookingId ?? "",
-      studioId: data.studioId ?? 0,
-      barberId: data.barberId ?? undefined,
       rating: data.rating,
       title: data.title,
       comment: data.comment,

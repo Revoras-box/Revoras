@@ -736,6 +736,7 @@ export interface BookingListItem {
   studio_name: string;
   studio_address: string;
   studio_image: string | null;
+  member_name: string;
   member_designation: string | null;
   member_image: string | null;
   // Phase 2.4/2.5
@@ -743,6 +744,8 @@ export interface BookingListItem {
   discount_amount: string | null;
   cancellation_fee: string | null;
   offer_id: string | null;
+  /** Legal next transitions from the state machine — drives which actions render. */
+  allowedNextStatuses?: BookingStatus[];
 }
 
 export interface BookingsResponse {

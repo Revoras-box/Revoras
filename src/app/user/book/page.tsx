@@ -3,19 +3,354 @@
 import Link from "next/link";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Container, Section, Card, ServiceCard, ProfessionalCard, TimeSlotPicker, Textarea, Button, ErrorState } from "@/components/ui";
+import {
+  Check, Plus, ChevronLeft, ArrowRight, Clock, ShieldCheck, Star, Tag, Sparkles, CalendarClock,
+} from "lucide-react";
+import { Container, Avatar, Textarea, Button, ErrorState } from "@/components/ui";
+import { api } from "@/lib/api";
 import { useBusiness, useAvailability } from "@/lib/hooks";
 import { filterSlotsByWorkingHours } from "@/components/user/sections/utils";
+import type { BusinessDetail, Service } from "@/lib/types";
 
-const parseIdList = (value: string | null): string[] =>
-  value ? value.split(",").map((v) => v.trim()).filter(Boolean) : [];
+const parseIdList = (v: string | null): string[] =>
+  v ? v.split(",").map((x) => x.trim()).filter(Boolean) : [];
 
-const toIsoDate = (date: Date): string => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+const toIsoDate = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+const inr = (n: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
+
+const displayTime = (t: string) => {
+  const [h, m] = t.split(":").map(Number);
+  return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`;
 };
+
+const STEPS = ["Services", "Professional", "Date", "Time", "Confirm"] as const;
+
+/* --------------------------------- stepper -------------------------------- */
+
+function Stepper({ step, maxReached, onGo }: { step: number; maxReached: number; onGo: (i: number) => void }) {
+  return (
+    <div className="flex items-center gap-1.5 sm:gap-2">
+      {STEPS.map((label, i) => {
+        const done = i < step;
+        const current = i === step;
+        const reachable = i <= maxReached;
+        return (
+          <div key={label} className="flex flex-1 items-center gap-1.5 sm:gap-2">
+            <button
+              type="button"
+              disabled={!reachable}
+              onClick={() => reachable && onGo(i)}
+              className="group flex min-w-0 flex-1 flex-col items-center gap-1.5"
+            >
+              <span className="flex w-full items-center">
+                <span className={`h-1 flex-1 rounded-full ${i === 0 ? "opacity-0" : done || current ? "bg-primary" : "bg-surface-container-highest"}`} />
+                <span
+                  className={`mx-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors ${
+                    done ? "bg-primary text-primary-foreground" : current ? "bg-primary/15 text-primary ring-2 ring-primary" : "bg-surface-container-high text-muted"
+                  }`}
+                >
+                  {done ? <Check size={14} /> : i + 1}
+                </span>
+                <span className={`h-1 flex-1 rounded-full ${i === STEPS.length - 1 ? "opacity-0" : done ? "bg-primary" : "bg-surface-container-highest"}`} />
+              </span>
+              <span className={`truncate text-[11px] font-medium ${current ? "text-on-surface" : "text-muted"} hidden sm:block`}>{label}</span>
+            </button>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ------------------------------- step: services --------------------------- */
+
+function ServiceStep({ services, selected, onToggle }: { services: Service[]; selected: string[]; onToggle: (id: string) => void }) {
+  if (services.length === 0) return <p className="text-sm text-muted">This studio hasn&apos;t listed any services yet.</p>;
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      {services.map((s) => {
+        const isOn = selected.includes(s.id);
+        return (
+          <button
+            key={s.id}
+            type="button"
+            onClick={() => onToggle(s.id)}
+            className={`flex items-center justify-between gap-3 rounded-2xl border p-4 text-left transition-colors ${
+              isOn ? "border-primary bg-primary/5" : "border-border bg-card hover:bg-surface-container-low"
+            }`}
+          >
+            <div className="min-w-0">
+              <div className="font-headline text-sm font-semibold text-on-surface">{s.name}</div>
+              <div className="mt-0.5 text-xs text-muted">
+                {inr(Number(s.price))} · {s.duration} min
+              </div>
+            </div>
+            <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors ${isOn ? "bg-primary text-primary-foreground" : "bg-surface-container-high text-on-surface"}`}>
+              {isOn ? <Check size={16} /> : <Plus size={16} />}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ----------------------------- step: professional ------------------------- */
+
+function ProfessionalStep({
+  professionals,
+  selectedId,
+  onSelect,
+}: {
+  professionals: BusinessDetail["professionals"];
+  selectedId: string;
+  onSelect: (id: string) => void;
+}) {
+  if (professionals.length === 0) return <p className="text-sm text-muted">No professionals available. Try choosing another day or studio.</p>;
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      {professionals.map((p) => {
+        const isOn = p.id === selectedId;
+        const rating = Number(p.rating ?? 0);
+        return (
+          <button
+            key={p.id}
+            type="button"
+            onClick={() => onSelect(p.id)}
+            className={`flex items-center gap-4 rounded-2xl border p-4 text-left transition-colors ${
+              isOn ? "border-primary bg-primary/5" : "border-border bg-card hover:bg-surface-container-low"
+            }`}
+          >
+            <Avatar name={p.name} src={p.image_url ?? undefined} size="lg" />
+            <div className="min-w-0 flex-1">
+              <div className="font-headline text-sm font-semibold text-on-surface">{p.name}</div>
+              {p.designation && <div className="truncate text-xs text-muted">{p.designation}</div>}
+              {rating > 0 && (
+                <div className="mt-1 inline-flex items-center gap-1 text-xs text-on-surface">
+                  <Star size={12} className="fill-primary text-primary" />
+                  {rating.toFixed(1)}
+                </div>
+              )}
+              {p.specialties && p.specialties.length > 0 && (
+                <div className="mt-1.5 flex flex-wrap gap-1">
+                  {p.specialties.slice(0, 2).map((sp) => (
+                    <span key={sp} className="rounded-full bg-surface-container-high px-2 py-0.5 text-[10px] text-on-surface-variant">{sp}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+            <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${isOn ? "bg-primary text-primary-foreground" : "border border-border"}`}>
+              {isOn ? <Check size={14} /> : null}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/* -------------------------------- step: date ------------------------------ */
+
+function DateStep({ dateOptions, selected, onSelect }: { dateOptions: { iso: string; day: string; month: string; date: number; label: string }[]; selected: string; onSelect: (iso: string) => void }) {
+  return (
+    <div className="flex gap-3 overflow-x-auto pb-1">
+      {dateOptions.map((d) => {
+        const isOn = selected === d.iso;
+        return (
+          <button
+            key={d.iso}
+            type="button"
+            onClick={() => onSelect(d.iso)}
+            className={`flex w-20 shrink-0 flex-col items-center rounded-2xl border py-3 transition-colors ${
+              isOn ? "border-primary bg-primary text-primary-foreground" : "border-border text-on-surface hover:bg-surface-container-low"
+            }`}
+          >
+            <span className={`text-xs ${isOn ? "text-primary-foreground/80" : "text-muted"}`}>{d.label}</span>
+            <span className="text-xl font-bold">{d.date}</span>
+            <span className={`text-xs ${isOn ? "text-primary-foreground/80" : "text-muted"}`}>{d.month}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/* -------------------------------- step: time ------------------------------ */
+
+function TimeStep({
+  loading,
+  error,
+  onRetry,
+  times,
+  selected,
+  onSelect,
+  hasPro,
+}: {
+  loading: boolean;
+  error: string | null;
+  onRetry: () => void;
+  times: string[];
+  selected: string | null;
+  onSelect: (t: string) => void;
+  hasPro: boolean;
+}) {
+  if (!hasPro) return <p className="text-sm text-muted">Select a professional first to see their available times.</p>;
+  if (loading) return <div className="h-24 animate-pulse rounded-2xl bg-surface-container-high" />;
+  if (error) return <ErrorState description={error} onRetry={onRetry} />;
+  if (times.length === 0) {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-6 text-center">
+        <CalendarClock size={22} className="mx-auto text-muted" />
+        <p className="mt-2 text-sm font-medium text-on-surface">No slots available on this date</p>
+        <p className="text-xs text-muted">Try another day from the calendar above.</p>
+      </div>
+    );
+  }
+  const groups: { label: string; slots: string[] }[] = [
+    { label: "Morning", slots: times.filter((t) => Number(t.split(":")[0]) < 12) },
+    { label: "Afternoon", slots: times.filter((t) => { const h = Number(t.split(":")[0]); return h >= 12 && h < 17; }) },
+    { label: "Evening", slots: times.filter((t) => Number(t.split(":")[0]) >= 17) },
+  ].filter((g) => g.slots.length > 0);
+
+  return (
+    <div className="flex flex-col gap-5">
+      {groups.map((g) => (
+        <div key={g.label}>
+          <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">{g.label}</div>
+          <div className="flex flex-wrap gap-2">
+            {g.slots.map((t) => {
+              const isOn = selected === t;
+              return (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => onSelect(t)}
+                  className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
+                    isOn ? "border-primary bg-primary text-primary-foreground" : "border-border text-on-surface hover:border-primary hover:text-primary"
+                  }`}
+                >
+                  {displayTime(t)}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* --------------------------------- summary -------------------------------- */
+
+interface Quote { discountAmount: number; total: number; offer: { label: string } | null }
+
+function Summary({
+  business, professionalName, services, duration, subtotal, quote, date, time,
+}: {
+  business: BusinessDetail;
+  professionalName?: string;
+  services: Service[];
+  duration: number;
+  subtotal: number;
+  quote: Quote | null;
+  date?: string;
+  time?: string | null;
+}) {
+  const total = quote ? quote.total : subtotal;
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-3">
+        <Avatar name={business.name} src={business.image_url ?? undefined} size="md" />
+        <div className="min-w-0">
+          <div className="truncate font-headline text-sm font-bold text-on-surface">{business.name}</div>
+          {professionalName && <div className="truncate text-xs text-muted">with {professionalName}</div>}
+        </div>
+      </div>
+
+      {(date || time) && (
+        <div className="flex items-center gap-2 rounded-xl bg-surface-container-low px-3 py-2 text-xs text-on-surface">
+          <CalendarClock size={14} className="text-primary" />
+          {date ? new Date(`${date}T00:00:00`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) : "Pick a date"}
+          {time ? ` · ${displayTime(time)}` : ""}
+        </div>
+      )}
+
+      {services.length > 0 ? (
+        <ul className="flex flex-col gap-1.5 border-t border-border pt-3 text-sm">
+          {services.map((s) => (
+            <li key={s.id} className="flex justify-between gap-2">
+              <span className="truncate text-on-surface">{s.name}</span>
+              <span className="shrink-0 tabular-nums text-muted">{inr(Number(s.price))}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="border-t border-border pt-3 text-sm text-muted">No services selected yet.</p>
+      )}
+
+      {services.length > 0 && (
+        <div className="flex items-center justify-between border-t border-border pt-3 text-xs text-muted">
+          <span className="inline-flex items-center gap-1"><Clock size={12} /> Duration</span>
+          <span>{duration} min</span>
+        </div>
+      )}
+
+      {quote && quote.discountAmount > 0 && (
+        <div className="flex flex-col gap-1 rounded-xl bg-secondary-container/40 p-3 text-sm">
+          <div className="flex justify-between text-muted"><span>Subtotal</span><span className="tabular-nums">{inr(subtotal)}</span></div>
+          <div className="flex items-center justify-between font-medium text-secondary">
+            <span className="inline-flex items-center gap-1"><Tag size={13} /> {quote.offer?.label ?? "Offer applied"}</span>
+            <span className="tabular-nums">−{inr(quote.discountAmount)}</span>
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-end justify-between border-t border-border pt-3">
+        <span className="font-medium text-on-surface">Total</span>
+        <span className="font-headline text-2xl font-extrabold text-primary tabular-nums">{inr(total)}</span>
+      </div>
+    </div>
+  );
+}
+
+/* -------------------------------- confirm --------------------------------- */
+
+function ConfirmStep({ business, notes, onNotes }: { business: BusinessDetail; notes: string; onNotes: (v: string) => void }) {
+  const cancellation = business.policies?.cancellation;
+  return (
+    <div className="flex flex-col gap-6">
+      {business.amenities && business.amenities.length > 0 && (
+        <div>
+          <div className="mb-2 font-headline text-sm font-semibold text-on-surface">Good to know</div>
+          <div className="flex flex-wrap gap-2">
+            {business.amenities.map((a) => (
+              <span key={a} className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-xs text-on-surface">
+                <Check size={12} className="text-primary" /> {a}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-start gap-3 rounded-2xl border border-border bg-card p-4">
+        <ShieldCheck size={18} className="mt-0.5 shrink-0 text-primary" />
+        <div>
+          <div className="text-sm font-medium text-on-surface">Cancellation policy</div>
+          <p className="text-xs text-muted">{cancellation || "Free cancellation up to a few hours before your appointment. See studio policy for details."}</p>
+        </div>
+      </div>
+
+      <div>
+        <div className="mb-2 font-headline text-sm font-semibold text-on-surface">Notes for the studio (optional)</div>
+        <Textarea value={notes} onChange={(e) => onNotes(e.target.value)} maxLength={250} rows={3} placeholder="Anything the professional should know?" />
+      </div>
+    </div>
+  );
+}
+
+/* ---------------------------------- page ---------------------------------- */
 
 function BookPageContent() {
   const router = useRouter();
@@ -28,44 +363,41 @@ function BookPageContent() {
   const dateOptions = useMemo(() => {
     const dayFmt = new Intl.DateTimeFormat("en-US", { weekday: "short" });
     const monthFmt = new Intl.DateTimeFormat("en-US", { month: "short" });
-    return Array.from({ length: 7 }).map((_, i) => {
-      const date = new Date();
-      date.setDate(date.getDate() + i);
-      return { iso: toIsoDate(date), day: dayFmt.format(date), month: monthFmt.format(date), date: date.getDate() };
+    return Array.from({ length: 10 }).map((_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() + i);
+      const label = i === 0 ? "Today" : i === 1 ? "Tmrw" : dayFmt.format(d);
+      return { iso: toIsoDate(d), day: dayFmt.format(d), month: monthFmt.format(d), date: d.getDate(), label };
     });
   }, []);
 
+  const [step, setStep] = useState(0);
+  const [maxReached, setMaxReached] = useState(0);
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>(preselectedServiceIds);
   const [selectedProfessionalId, setSelectedProfessionalId] = useState(preselectedProfessionalId);
   const [selectedDate, setSelectedDate] = useState(dateOptions[0]?.iso ?? toIsoDate(new Date()));
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
+  const [quote, setQuote] = useState<Quote | null>(null);
 
   const { data, loading, error, refetch } = useBusiness(studioId);
   const business = data?.business;
-  const services = business?.services ?? [];
-  const professionals = business?.professionals ?? [];
+  const services = useMemo(() => business?.services ?? [], [business]);
+  const professionals = useMemo(() => business?.professionals ?? [], [business]);
 
   useEffect(() => {
     if (professionals.length === 0 || selectedProfessionalId) return;
     setSelectedProfessionalId(professionals[0].id);
   }, [professionals, selectedProfessionalId]);
 
-  const selectedServices = useMemo(
-    () => services.filter((s) => selectedServiceIds.includes(s.id)),
-    [services, selectedServiceIds]
-  );
+  const selectedServices = useMemo(() => services.filter((s) => selectedServiceIds.includes(s.id)), [services, selectedServiceIds]);
   const selectedProfessional = professionals.find((p) => p.id === selectedProfessionalId);
   const totalDuration = selectedServices.reduce((sum, s) => sum + s.duration, 0);
-  const totalPrice = selectedServices.reduce((sum, s) => sum + Number(s.price), 0);
+  const subtotal = selectedServices.reduce((sum, s) => sum + Number(s.price), 0);
 
   const { slots, loading: slotsLoading, error: slotsError, refetch: refetchSlots } = useAvailability(
-    studioId,
-    selectedProfessionalId || null,
-    selectedDate,
-    totalDuration || undefined
+    studioId, selectedProfessionalId || null, selectedDate, totalDuration || undefined
   );
-
   const availableTimes = useMemo(
     () => (business ? filterSlotsByWorkingHours(slots, business.workingHours, selectedDate) : []),
     [slots, business, selectedDate]
@@ -76,166 +408,133 @@ function BookPageContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [availableTimes]);
 
-  const toggleService = (id: string) => {
+  // Auto-applied offer preview — same engine that charges at checkout.
+  const serviceKey = selectedServiceIds.join(",");
+  useEffect(() => {
+    if (!studioId || selectedServiceIds.length === 0) { setQuote(null); return; }
+    let cancelled = false;
+    api.quoteBooking(studioId, selectedServiceIds)
+      .then((res) => { if (!cancelled && res.quote) setQuote({ discountAmount: res.quote.discountAmount, total: res.quote.total, offer: res.quote.offer }); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [studioId, serviceKey]);
+
+  const toggleService = (id: string) =>
     setSelectedServiceIds((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]));
-  };
 
-  const canContinue = selectedServices.length > 0 && selectedProfessionalId && selectedTime;
+  const goToStep = (i: number) => { setStep(i); setMaxReached((m) => Math.max(m, i)); };
 
-  const handleContinue = () => {
-    if (!canContinue || !selectedTime) return;
-    const params = new URLSearchParams({
-      studioId,
-      barberId: selectedProfessionalId,
-      date: selectedDate,
-      time: selectedTime,
-      services: selectedServiceIds.join(","),
-    });
+  const stepValid = [
+    selectedServices.length > 0,
+    Boolean(selectedProfessionalId),
+    Boolean(selectedDate),
+    Boolean(selectedTime),
+    true,
+  ][step];
+
+  const next = () => {
+    if (!stepValid) return;
+    if (step < STEPS.length - 1) { goToStep(step + 1); return; }
+    // final step → hand off to checkout (payment)
+    const params = new URLSearchParams({ studioId, barberId: selectedProfessionalId, date: selectedDate, time: selectedTime ?? "", services: selectedServiceIds.join(",") });
     if (notes.trim()) params.set("notes", notes.trim());
     router.push(`/user/checkout?${params.toString()}`);
   };
 
   if (!studioId) {
     return (
-      <Container className="py-16 text-center">
+      <Container width="lg" className="py-16 text-center">
         <h1 className="font-headline text-2xl font-bold text-on-surface">Choose a studio to book</h1>
         <p className="mt-2 text-sm text-muted">Start from Search or a studio page, then continue here.</p>
-        <Link href="/user/search" className="mt-6 inline-block">
-          <Button>Go to Search</Button>
-        </Link>
+        <Button asChild className="mt-6"><Link href="/user/search">Go to Search</Link></Button>
       </Container>
     );
   }
+  if (loading) return <Container width="lg" className="py-8"><div className="h-72 animate-pulse rounded-3xl bg-surface-container-high" /></Container>;
+  if (error || !business) return <Container width="lg" className="py-8"><ErrorState description={error || "Unable to load this studio."} onRetry={refetch} /></Container>;
 
-  if (loading) {
-    return (
-      <Container className="py-8">
-        <div className="h-64 animate-pulse rounded-2xl bg-surface-container-high" />
-      </Container>
-    );
-  }
-
-  if (error || !business) {
-    return (
-      <Container className="py-8">
-        <ErrorState description={error || "Unable to load this studio."} onRetry={refetch} />
-      </Container>
-    );
-  }
+  const stepTitles = ["Choose your services", "Pick a professional", "Choose a date", "Pick a time", "Review & confirm"];
+  const ctaLabel = step < STEPS.length - 1 ? "Continue" : "Continue to payment";
 
   return (
-    <Container className="grid grid-cols-1 gap-10 py-8 lg:grid-cols-12">
-      <div className="flex flex-col gap-10 lg:col-span-8">
-        <Section title="Select services">
-          <div className="grid gap-3 md:grid-cols-2">
-            {services.map((service) => (
-              <ServiceCard
-                key={service.id}
-                name={service.name}
-                description={service.description ?? undefined}
-                price={Number(service.price)}
-                duration={service.duration}
-                selected={selectedServiceIds.includes(service.id)}
-                onSelect={() => toggleService(service.id)}
+    <>
+      <Container width="lg" className="flex flex-col gap-6 py-6 pb-28 lg:pb-6">
+        <Stepper step={step} maxReached={maxReached} onGo={goToStep} />
+
+        <div className="grid gap-8 lg:grid-cols-[1fr_340px] lg:items-start">
+          {/* Step content */}
+          <div key={step} className="flex min-w-0 flex-col gap-5">
+            <div>
+              <h1 className="font-headline text-2xl font-extrabold tracking-tight text-on-surface">{stepTitles[step]}</h1>
+              <p className="mt-0.5 text-sm text-muted">Step {step + 1} of {STEPS.length}</p>
+            </div>
+
+            {step === 0 && <ServiceStep services={services} selected={selectedServiceIds} onToggle={toggleService} />}
+            {step === 1 && <ProfessionalStep professionals={professionals} selectedId={selectedProfessionalId} onSelect={setSelectedProfessionalId} />}
+            {step === 2 && <DateStep dateOptions={dateOptions} selected={selectedDate} onSelect={setSelectedDate} />}
+            {step === 3 && (
+              <TimeStep
+                loading={slotsLoading} error={slotsError} onRetry={refetchSlots}
+                times={availableTimes} selected={selectedTime} onSelect={setSelectedTime}
+                hasPro={Boolean(selectedProfessionalId)}
               />
-            ))}
+            )}
+            {step === 4 && <ConfirmStep business={business} notes={notes} onNotes={setNotes} />}
+
+            <div className="flex items-center gap-3 pt-2">
+              {step > 0 && (
+                <Button intent="outline" onClick={() => goToStep(step - 1)}>
+                  <ChevronLeft size={16} /> Back
+                </Button>
+              )}
+              <Button className="hidden lg:inline-flex" disabled={!stepValid} onClick={next}>
+                {ctaLabel} <ArrowRight size={16} />
+              </Button>
+            </div>
           </div>
-        </Section>
 
-        <Section title="Select professional">
-          <div className="flex flex-col gap-3">
-            {professionals.map((professional) => (
-              <ProfessionalCard
-                key={professional.id}
-                name={professional.name}
-                avatarUrl={professional.image_url ?? undefined}
-                designation={professional.designation ?? undefined}
-                rating={professional.rating ? Number(professional.rating) : undefined}
-                onClick={() => setSelectedProfessionalId(professional.id)}
-                className={professional.id === selectedProfessionalId ? "border-primary bg-primary-container/20" : undefined}
-              />
-            ))}
-          </div>
-        </Section>
-
-        <Section title="Select date">
-          <div className="flex gap-3 overflow-x-auto pb-1">
-            {dateOptions.map((d) => (
-              <button
-                key={d.iso}
-                onClick={() => setSelectedDate(d.iso)}
-                className={`flex w-16 shrink-0 flex-col items-center rounded-xl border py-3 transition-colors ${
-                  selectedDate === d.iso ? "border-primary bg-primary text-on-primary" : "border-border text-on-surface hover:bg-surface-container-low"
-                }`}
-              >
-                <span className="text-xs">{d.month}</span>
-                <span className="text-lg font-bold">{d.date}</span>
-                <span className="text-xs">{d.day}</span>
-              </button>
-            ))}
-          </div>
-        </Section>
-
-        <Section title="Select time">
-          {!selectedProfessionalId ? (
-            <p className="text-sm text-muted">Select a professional to view available times.</p>
-          ) : slotsLoading ? (
-            <div className="h-16 animate-pulse rounded-lg bg-surface-container-high" />
-          ) : slotsError ? (
-            <ErrorState description={slotsError} onRetry={refetchSlots} />
-          ) : (
-            <TimeSlotPicker slots={availableTimes} selected={selectedTime ?? undefined} onSelect={setSelectedTime} />
-          )}
-        </Section>
-
-        <Section title="Notes (optional)">
-          <Textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            maxLength={250}
-            rows={3}
-            placeholder="Any preference for your appointment?"
-          />
-        </Section>
-      </div>
-
-      <aside className="lg:col-span-4">
-        <Card padding="lg" className="sticky top-20 flex flex-col gap-4">
-          <h3 className="font-headline text-lg font-bold text-on-surface">Reservation summary</h3>
-          <div className="text-sm text-muted">{business.name}</div>
-          {selectedProfessional ? <div className="text-sm text-on-surface">with {selectedProfessional.name}</div> : null}
-          <div className="flex flex-col gap-1.5">
-            {selectedServices.map((s) => (
-              <div key={s.id} className="flex justify-between text-sm">
-                <span className="text-on-surface">{s.name}</span>
-                <span className="text-muted tabular-nums">
-                  {new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(Number(s.price))}
-                </span>
+          {/* Desktop sticky summary */}
+          <aside className="hidden lg:block">
+            <div className="sticky top-24 rounded-2xl border border-border bg-card p-5 shadow-elevated">
+              <div className="mb-3 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted">
+                <Sparkles size={13} className="text-accent" /> Your appointment
               </div>
-            ))}
-          </div>
-          <div className="flex justify-between border-t border-border pt-3 text-sm">
-            <span className="text-muted">Duration</span>
-            <span className="text-on-surface">{totalDuration} min</span>
-          </div>
-          <div className="flex items-end justify-between border-t border-border pt-3">
-            <span className="font-medium text-on-surface">Total</span>
-            <span className="text-xl font-bold text-primary tabular-nums">
-              {new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(totalPrice)}
-            </span>
-          </div>
-          <Button size="lg" disabled={!canContinue} onClick={handleContinue}>
-            Continue to checkout
-          </Button>
-        </Card>
-      </aside>
-    </Container>
+              <Summary
+                business={business}
+                professionalName={selectedProfessional?.name}
+                services={selectedServices}
+                duration={totalDuration}
+                subtotal={subtotal}
+                quote={quote}
+                date={selectedDate}
+                time={selectedTime}
+              />
+              <Button className="mt-4 w-full" size="lg" disabled={!stepValid} onClick={next}>
+                {ctaLabel} <ArrowRight size={16} />
+              </Button>
+            </div>
+          </aside>
+        </div>
+      </Container>
+
+      {/* Mobile sticky CTA */}
+      <div className="fixed inset-x-0 bottom-0 z-(--z-index-sticky) flex items-center justify-between gap-4 border-t border-border bg-surface/95 px-4 py-3 backdrop-blur-sm lg:hidden">
+        <div>
+          <div className="text-xs text-muted">{selectedServices.length} service{selectedServices.length === 1 ? "" : "s"}</div>
+          <div className="font-headline text-lg font-extrabold text-on-surface tabular-nums">{inr(quote ? quote.total : subtotal)}</div>
+        </div>
+        <Button size="lg" disabled={!stepValid} onClick={next}>
+          {ctaLabel} <ArrowRight size={16} />
+        </Button>
+      </div>
+    </>
   );
 }
 
 export default function BookPage() {
   return (
-    <Suspense fallback={<Container className="py-8 text-sm text-muted">Loading booking...</Container>}>
+    <Suspense fallback={<Container width="lg" className="py-8 text-sm text-muted">Loading booking…</Container>}>
       <BookPageContent />
     </Suspense>
   );

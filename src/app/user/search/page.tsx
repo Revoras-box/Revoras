@@ -1,13 +1,15 @@
 "use client";
 
 import { Suspense, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Search as SearchIcon, SlidersHorizontal } from "lucide-react";
-import { Container, Input, Select, Checkbox, Chip, Button, BusinessCard, CardSkeleton, EmptyState, ErrorState, Pagination } from "@/components/ui";
+import { Search as SearchIcon, SlidersHorizontal, LayoutGrid, List as ListIcon } from "lucide-react";
+import { Container, Input, Select, Chip, Button, BusinessCard, CardSkeleton, EmptyState, ErrorState, Pagination } from "@/components/ui";
 import { useBusinesses, useCategories } from "@/lib/hooks";
 import { useFavoriteState } from "@/lib/favorites";
 import { businessToCardProps } from "@/components/user/sections/utils";
-import { FilterDrawer, EMPTY_FILTERS, countActiveFilters, type AdvancedFilters } from "@/components/user/sections/FilterDrawer";
+import DiscoveryRail from "@/components/user/sections/DiscoveryRail";
+import { FilterDrawer, FilterControls, EMPTY_FILTERS, countActiveFilters, type AdvancedFilters } from "@/components/user/sections/FilterDrawer";
 
 const SORT_OPTIONS = [
   { value: "recommended", label: "Recommended" },
@@ -51,6 +53,7 @@ function SearchPageContent() {
   const [openNow, setOpenNow] = useState(searchParams.get("openNow") === "true");
   const [filters, setFilters] = useState<AdvancedFilters>(() => filtersFromParams(searchParams));
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [view, setView] = useState<"grid" | "list">("grid");
   const [page, setPage] = useState(1);
   const [location, setLocation] = useState<{ lat: number; lng: number } | undefined>();
 
@@ -144,51 +147,170 @@ function SearchPageContent() {
     ...filters.languages.map((a) => ({ key: `lang-${a}`, label: a, onRemove: () => setFilters((f) => ({ ...f, languages: f.languages.filter((x) => x !== a) })) })),
   ];
 
+  const totalCount = pagination?.total ?? businesses.length;
+  const gridClass =
+    view === "list" ? "flex flex-col gap-3" : "grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3";
+
   return (
-    <Container className="flex flex-col gap-6 py-8">
-      <div>
-        <h1 className="font-headline text-2xl font-bold text-on-surface">Search</h1>
-        <p className="mt-1 text-sm text-muted">Find the right studio or professional.</p>
-      </div>
-
-      <div className="flex flex-col gap-3 md:flex-row">
-        <div className="flex-1">
-          <Input
-            leadingIcon={<SearchIcon size={18} />}
-            placeholder="Search studios, services, or professionals..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            aria-label="Search"
+    <>
+      {/* Sticky compact search header */}
+      <div className="sticky top-16 z-30 border-b border-border glass-nav">
+        <Container width="lg" className="flex items-center gap-2 py-3">
+          <div className="flex-1">
+            <Input
+              leadingIcon={<SearchIcon size={18} />}
+              placeholder="Search studios, services, or professionals..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              aria-label="Search"
+            />
+          </div>
+          <Select
+            options={categoryOptions}
+            value={categoryId}
+            onValueChange={setCategoryId}
+            placeholder="Category"
+            className="hidden w-40 sm:block"
           />
-        </div>
-        <Select
-          options={categoryOptions}
-          value={categoryId}
-          onValueChange={setCategoryId}
-          placeholder="Category"
-          className="md:w-48"
-        />
-        <Select options={SORT_OPTIONS} value={sortBy} onValueChange={setSortBy} className="md:w-44" />
-        <Button intent="outline" onClick={() => setFiltersOpen(true)} className="shrink-0">
-          <SlidersHorizontal size={16} /> Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
-        </Button>
+          <Button intent="outline" onClick={() => setFiltersOpen(true)} className="shrink-0 lg:hidden">
+            <SlidersHorizontal size={16} /> Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
+          </Button>
+        </Container>
       </div>
 
-      <Checkbox label="Open now" checked={openNow} onCheckedChange={setOpenNow} />
+      <Container width="lg" className="flex flex-col gap-5 py-6">
+        {/* Results header */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="font-headline text-xl font-semibold text-on-surface">
+              {loading ? "Searching…" : `${totalCount} ${totalCount === 1 ? "studio" : "studios"}`}
+            </h1>
+            <p className="text-sm text-muted">
+              {search.trim() ? `for “${search.trim()}”` : "Find the right studio or professional."}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Select options={SORT_OPTIONS} value={sortBy} onValueChange={setSortBy} className="w-40" />
+            <div className="hidden items-center rounded-full border border-border p-0.5 sm:flex">
+              {([
+                { key: "grid", Icon: LayoutGrid, label: "Grid view" },
+                { key: "list", Icon: ListIcon, label: "List view" },
+              ] as const).map(({ key, Icon, label }) => (
+                <button
+                  key={key}
+                  type="button"
+                  aria-label={label}
+                  aria-pressed={view === key}
+                  onClick={() => setView(key)}
+                  className={`flex h-8 w-8 items-center justify-center rounded-full transition-colors ${
+                    view === key ? "bg-primary text-primary-foreground" : "text-muted hover:text-on-surface"
+                  }`}
+                >
+                  <Icon size={16} />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
 
-      {appliedChips.length > 0 ? (
+        {/* Quick toggle + applied filter chips */}
         <div className="flex flex-wrap items-center gap-2">
+          <Chip type="button" selected={openNow} onClick={() => setOpenNow((v) => !v)}>
+            Open now
+          </Chip>
           {appliedChips.map((c) => (
             <Chip key={c.key} onRemove={c.onRemove}>
               {c.label}
             </Chip>
           ))}
-          <button className="text-sm font-medium text-primary hover:underline" onClick={clearFilters}>
-            Clear all
-          </button>
+          {appliedChips.length > 0 ? (
+            <button className="text-sm font-medium text-primary hover:underline" onClick={clearFilters}>
+              Clear all
+            </button>
+          ) : null}
         </div>
-      ) : null}
 
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
+          {/* Desktop sticky filter sidebar */}
+          <aside className="hidden shrink-0 lg:block lg:w-64">
+            <div className="sticky top-32 max-h-[calc(100vh-9rem)] overflow-y-auto rounded-2xl border border-border bg-card p-5">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="font-headline text-base font-semibold text-on-surface">Filters</h2>
+                {activeFilterCount > 0 ? (
+                  <button className="text-sm font-medium text-primary hover:underline" onClick={clearFilters}>
+                    Clear
+                  </button>
+                ) : null}
+              </div>
+              <FilterControls value={filters} onChange={setFilters} />
+            </div>
+          </aside>
+
+          {/* Results */}
+          <div className="min-w-0 flex-1">
+            {loading ? (
+              <div className={gridClass}>
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <CardSkeleton key={i} />
+                ))}
+              </div>
+            ) : error ? (
+              <ErrorState description={error} onRetry={refetch} />
+            ) : businesses.length === 0 ? (
+              <div className="flex flex-col gap-10">
+                <EmptyState
+                  title="No studios match your search"
+                  description="Try widening things a little."
+                  action={
+                    <div className="flex flex-wrap justify-center gap-2">
+                      {activeFilterCount > 0 ? (
+                        <Button size="sm" onClick={clearFilters}>Clear filters</Button>
+                      ) : null}
+                      {openNow ? (
+                        <Button intent="outline" size="sm" onClick={() => setOpenNow(false)}>Remove “Open now”</Button>
+                      ) : null}
+                      <Button intent="outline" size="sm" onClick={() => { setSearch(""); setCategoryId(""); setOpenNow(false); clearFilters(); }}>
+                        Reset all
+                      </Button>
+                      <Button intent="outline" size="sm" asChild>
+                        <Link href="/user">Browse nearby</Link>
+                      </Button>
+                    </div>
+                  }
+                />
+                <section className="flex flex-col gap-4">
+                  <h2 className="font-headline text-xl font-semibold text-on-surface">You may also like</h2>
+                  <DiscoveryRail params={{ sortBy: "recommended" }} emptyTitle="Nothing to show yet" />
+                </section>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-8">
+                <div className={gridClass}>
+                  {businesses.map((business) => (
+                    <BusinessCard
+                      key={business.id}
+                      {...businessToCardProps(business)}
+                      layout={view}
+                      isFavorite={isFavorite(business.id)}
+                      onFavoriteToggle={() => toggleFavorite(business.id)}
+                      onClick={() => router.push(`/user/business/${business.id}`)}
+                    />
+                  ))}
+                </div>
+                {pagination ? <Pagination page={pagination.page} pages={pagination.pages} onPageChange={setPage} /> : null}
+                {businesses.length < 4 ? (
+                  <section className="flex flex-col gap-4">
+                    <h2 className="font-headline text-xl font-semibold text-on-surface">You may also like</h2>
+                    <DiscoveryRail params={{ sortBy: "recommended" }} emptyTitle="Nothing else to show" />
+                  </section>
+                ) : null}
+              </div>
+            )}
+          </div>
+        </div>
+      </Container>
+
+      {/* Mobile bottom-sheet filters */}
       <FilterDrawer
         open={filtersOpen}
         onOpenChange={setFiltersOpen}
@@ -197,41 +319,7 @@ function SearchPageContent() {
         onClear={clearFilters}
         resultCount={pagination?.total}
       />
-
-      {loading ? (
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-            <CardSkeleton key={i} />
-          ))}
-        </div>
-      ) : error ? (
-        <ErrorState description={error} onRetry={refetch} />
-      ) : businesses.length === 0 ? (
-        <EmptyState
-          title="No studios found"
-          description={
-            openNow || activeFilterCount > 0
-              ? "No studios match these filters. Try removing one or two."
-              : "Try a different search, category, or sort order."
-          }
-        />
-      ) : (
-        <>
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            {businesses.map((business) => (
-              <BusinessCard
-                key={business.id}
-                {...businessToCardProps(business)}
-                isFavorite={isFavorite(business.id)}
-                onFavoriteToggle={() => toggleFavorite(business.id)}
-                onClick={() => router.push(`/user/business/${business.id}`)}
-              />
-            ))}
-          </div>
-          {pagination ? <Pagination page={pagination.page} pages={pagination.pages} onPageChange={setPage} /> : null}
-        </>
-      )}
-    </Container>
+    </>
   );
 }
 

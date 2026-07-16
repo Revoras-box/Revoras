@@ -2,10 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useAuth } from "@/lib/auth";
 import { useCollections } from "@/lib/hooks";
 import { Container, Section } from "@/components/ui";
-import SearchEntryBar from "@/components/user/sections/SearchEntryBar";
+import HomeHero from "@/components/user/sections/HomeHero";
 import UpcomingBookingCard from "@/components/user/sections/UpcomingBookingCard";
 import CategoryRail from "@/components/user/sections/CategoryRail";
 import NearbyBusinesses from "@/components/user/sections/NearbyBusinesses";
@@ -15,7 +14,6 @@ import RecentlyViewedRail from "@/components/user/sections/RecentlyViewedRail";
 import FavoritesRail from "@/components/user/sections/FavoritesRail";
 
 export default function DiscoverPage() {
-  const { user } = useAuth();
   const [location, setLocation] = useState<{ lat: number; lng: number } | undefined>();
   const [recentCount, setRecentCount] = useState(0);
   const { data: collectionsData } = useCollections();
@@ -32,14 +30,7 @@ export default function DiscoverPage() {
 
   return (
     <Container className="flex flex-col gap-10 py-8">
-      <div>
-        <h1 className="font-headline text-3xl font-bold text-on-surface">
-          {user?.name ? `Welcome back, ${user.name.split(" ")[0]}` : "Discover"}
-        </h1>
-        <p className="mt-1 text-sm text-muted">Find and book your next appointment.</p>
-      </div>
-
-      <SearchEntryBar />
+      <HomeHero />
 
       <Section title="Upcoming booking">
         <UpcomingBookingCard />

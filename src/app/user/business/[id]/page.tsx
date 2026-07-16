@@ -1,16 +1,13 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Container, Section, ErrorState } from "@/components/ui";
+import { Container, ErrorState } from "@/components/ui";
 import { useBusiness } from "@/lib/hooks";
 import { useAuth } from "@/lib/auth";
 import { useFavoriteState } from "@/lib/favorites";
 import { api } from "@/lib/api";
 import { recordRecentlyViewed } from "@/lib/recently-viewed";
-import BusinessHero from "@/components/user/sections/BusinessHero";
-import BusinessInfoBar from "@/components/user/sections/BusinessInfoBar";
-import BusinessTrust from "@/components/user/sections/BusinessTrust";
 import BusinessAbout from "@/components/user/sections/BusinessAbout";
 import BusinessPolicies from "@/components/user/sections/BusinessPolicies";
 import ServiceGrid from "@/components/user/sections/ServiceGrid";
@@ -18,9 +15,21 @@ import ProfessionalCarousel from "@/components/user/sections/ProfessionalCarouse
 import ReviewSection from "@/components/user/sections/ReviewSection";
 import BusinessOffers from "@/components/user/sections/BusinessOffers";
 import StickyBookingFooter from "@/components/user/sections/StickyBookingFooter";
+import HeroGallery from "@/components/user/business/HeroGallery";
+import BookingCard from "@/components/user/business/BookingCard";
+import { DetailHeader, SectionNav, LocationSection } from "@/components/user/business/DetailChrome";
 
 interface BusinessDetailPageProps {
   params: Promise<{ id: string }>;
+}
+
+function Block({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
+  return (
+    <section id={id} className="flex scroll-mt-32 flex-col gap-4">
+      <h2 className="font-headline text-xl font-semibold text-on-surface">{title}</h2>
+      {children}
+    </section>
+  );
 }
 
 export default function BusinessDetailPage({ params }: BusinessDetailPageProps) {
@@ -34,10 +43,8 @@ export default function BusinessDetailPage({ params }: BusinessDetailPageProps) 
   const business = data?.business;
   const isFavorite = isFavoriteFn(id);
 
-  // Phase 2.3 (Decision D2) — record the view server-side for signed-in users
-  // so it follows them across devices; fall back to the client store otherwise.
-  // Fire-and-forget either way: this is bookkeeping, and a failed write must
-  // never surface an error toast over a page the customer is trying to read.
+  // Phase 2.3 (Decision D2) — record the view server-side for signed-in users so
+  // it follows them across devices; fall back to the client store otherwise.
   useEffect(() => {
     if (!business) return;
     if (user) {
@@ -54,61 +61,106 @@ export default function BusinessDetailPage({ params }: BusinessDetailPageProps) 
     });
   }, [business, user]);
 
-  const toggleService = (serviceId: string) => {
-    setSelectedServiceIds((prev) =>
-      prev.includes(serviceId) ? prev.filter((s) => s !== serviceId) : [...prev, serviceId]
-    );
-  };
-
-  const handleFavoriteToggle = () => toggleFavorite(id);
+  const toggleService = (serviceId: string) =>
+    setSelectedServiceIds((prev) => (prev.includes(serviceId) ? prev.filter((s) => s !== serviceId) : [...prev, serviceId]));
 
   const handleContinue = () => {
-    const params = new URLSearchParams({ studioId: id, services: selectedServiceIds.join(",") });
-    router.push(`/user/book?${params.toString()}`);
+    const qs = new URLSearchParams({ studioId: id, services: selectedServiceIds.join(",") });
+    router.push(`/user/book?${qs.toString()}`);
   };
+
+  const selectedServices = useMemo(
+    () => (business ? business.services.filter((s) => selectedServiceIds.includes(s.id)) : []),
+    [business, selectedServiceIds]
+  );
+
+  const sectionNav = useMemo(() => {
+    if (!business) return [];
+    const items = [{ id: "services", label: "Services" }];
+    if (business.professionals?.length) items.push({ id: "professionals", label: "Professionals" });
+    if (business.offers?.length) items.push({ id: "offers", label: "Offers" });
+    items.push({ id: "reviews", label: "Reviews" }, { id: "about", label: "About" }, { id: "location", label: "Location" });
+    return items;
+  }, [business]);
 
   if (loading) {
     return (
-      <Container className="py-8">
-        <div className="h-96 animate-pulse rounded-2xl bg-surface-container-high" />
+      <Container width="lg" className="py-8">
+        <div className="h-[420px] animate-pulse rounded-3xl bg-surface-container-high" />
       </Container>
     );
   }
 
   if (error || !business) {
     return (
-      <Container className="py-8">
+      <Container width="lg" className="py-8">
         <ErrorState description={error || "This studio may not exist."} onRetry={refetch} />
       </Container>
     );
   }
 
-  const selectedServices = business.services.filter((s) => selectedServiceIds.includes(s.id));
-
   return (
     <>
-      <Container className="flex flex-col gap-10 py-8 pb-4">
-        <BusinessHero business={business} isFavorite={isFavorite} onFavoriteToggle={handleFavoriteToggle} />
-        <BusinessTrust business={business} />
-        <BusinessInfoBar business={business} />
-        <BusinessAbout business={business} />
-        {business.offers && business.offers.length > 0 ? (
-          <Section title="Offers">
-            <BusinessOffers offers={business.offers} services={business.services} />
-          </Section>
-        ) : null}
-        <Section title="Services">
-          <ServiceGrid services={business.services} selectedIds={selectedServiceIds} onToggle={toggleService} />
-        </Section>
-        <Section title="Professionals">
-          <ProfessionalCarousel professionals={business.professionals} />
-        </Section>
-        <BusinessPolicies business={business} />
-        <Section title="Reviews">
-          <ReviewSection businessId={id} />
-        </Section>
+      <Container width="lg" className="flex flex-col gap-6 py-6">
+        <HeroGallery name={business.name} images={[business.banner_url, business.image_url, business.logo_url]} />
+        <DetailHeader business={business} isFavorite={isFavorite} onFavoriteToggle={() => toggleFavorite(id)} />
+        <SectionNav sections={sectionNav} />
+
+        <div className="grid gap-8 lg:grid-cols-[1fr_360px] lg:gap-10">
+          {/* Left: content */}
+          <div className="flex min-w-0 flex-col gap-10">
+            {business.offers && business.offers.length > 0 ? (
+              <Block id="offers" title="Offers">
+                <BusinessOffers offers={business.offers} services={business.services} />
+              </Block>
+            ) : null}
+
+            <Block id="services" title="Services">
+              <ServiceGrid services={business.services} selectedIds={selectedServiceIds} onToggle={toggleService} />
+            </Block>
+
+            {business.professionals?.length ? (
+              <Block id="professionals" title="Our team">
+                <ProfessionalCarousel professionals={business.professionals} />
+              </Block>
+            ) : null}
+
+            <section id="about" className="scroll-mt-32">
+              <BusinessAbout business={business} />
+            </section>
+
+            <Block id="reviews" title="Reviews">
+              <ReviewSection businessId={id} />
+            </Block>
+
+            <section id="policies" className="scroll-mt-32">
+              <BusinessPolicies business={business} />
+            </section>
+
+            <Block id="location" title="Where you'll be">
+              <LocationSection business={business} />
+            </Block>
+          </div>
+
+          {/* Right: sticky booking card (desktop) */}
+          <aside className="hidden lg:block">
+            <div className="sticky top-24">
+              <BookingCard
+                services={business.services}
+                selectedServices={selectedServices}
+                rating={Number(business.rating ?? 0)}
+                reviewCount={business.review_count}
+                onContinue={handleContinue}
+              />
+            </div>
+          </aside>
+        </div>
       </Container>
-      <StickyBookingFooter selectedServices={selectedServices} onContinue={handleContinue} />
+
+      {/* Mobile floating Book Now (hidden where the sticky card shows) */}
+      <div className="lg:hidden">
+        <StickyBookingFooter selectedServices={selectedServices} onContinue={handleContinue} />
+      </div>
     </>
   );
 }

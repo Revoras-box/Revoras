@@ -77,10 +77,13 @@ interface BookingData {
   notes?: string;
 }
 
+// Matches createReviewSchema. The studio and professional are derived from the
+// booking server-side (never accepted as input, so a review can't be pinned to
+// a business the reviewer never booked) — the old `studioId: number` /
+// `barberId` fields here predated that and were both wrong: studio ids are
+// UUID strings, and neither is part of the request.
 interface ReviewData {
   bookingId: string;
-  studioId: number;
-  barberId?: string;
   rating: number;
   title?: string;
   comment?: string;
@@ -446,7 +449,7 @@ export const api = {
   // ==========================================
   // Review APIs
   // ==========================================
-  createReview: async (data: ReviewData) => {
+  createReview: async (data: ReviewData): Promise<{ message?: string; error?: string }> => {
     return authFetch(`${API}/reviews`, {
       method: "POST",
       body: JSON.stringify(data)

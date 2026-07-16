@@ -163,20 +163,27 @@ export default function DesignSystemPage() {
 
       <Container width="lg" className="py-10">
         <PageHeader
-          eyebrow="Phase 3.1"
+          eyebrow="Design System v1 · Terra Jade"
           title="Revoras Design System"
-          description="Every primitive, layout, feedback, data, and booking component built for Phase 3.1, rendered live against the real token system — toggle the theme above to check both."
+          description="The frozen v1 language: jade primary + terracotta accent, on the Material-3-style token layer. Every primitive, layout, feedback, data, and booking component renders live against the real tokens — toggle the theme above to check light and dark."
         />
 
         {/* ---------------- Foundations ---------------- */}
-        <Section id="foundations" title="Design tokens" description="The existing Material-3-style token system, unchanged — this page just proves every component reads from it correctly.">
-          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4">
-            <Swatch name="Primary" varName="--primary" />
-            <Swatch name="Secondary" varName="--secondary" />
+        <Section id="foundations" title="Design tokens" description="Terra Jade (2026-07-15): jade brand primary, terracotta accent, warm-cream light / deep-forest dark surfaces. Names are frozen; only these values define the palette, so every component re-themes for free.">
+          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-4 gap-4">
+            <Swatch name="Primary (jade)" varName="--primary" />
+            <Swatch name="Accent (terracotta)" varName="--accent" />
+            <Swatch name="Accent container" varName="--accent-container" />
+            <Swatch name="Secondary (success)" varName="--secondary" />
             <Swatch name="Tertiary" varName="--tertiary" />
             <Swatch name="Error" varName="--error" />
             <Swatch name="Surface" varName="--surface" />
             <Swatch name="Surface high" varName="--surface-container-high" />
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <div className="brand-gradient h-10 w-40 rounded-lg" />
+            <span className="brand-gradient-text font-headline text-2xl font-extrabold">Brand gradient</span>
           </div>
 
           <Card padding="md" className="mt-6">

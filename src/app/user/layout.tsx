@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     template: "%s | Revoras",
     default: "Discover | Revoras",
   },
-  description: "Your personalized grooming experience with Revoras.",
+  description: "Discover and book trusted salons, barbers, spas and beauty professionals near you.",
 };
 
 export default function UserLayout({ children }: { children: React.ReactNode }) {

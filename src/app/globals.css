@@ -15,52 +15,59 @@
 /*  The Revoras gold accent is shared by both themes (brand identity). */
 /* ------------------------------------------------------------------ */
 :root {
-  /* Surfaces & backgrounds — warm off-whites so white cards lift off the
-     page and the gold accent feels luxury rather than clinical. */
-  --background: #F8F7F4;
+  /* Terra Jade — light. Surfaces are a warm cream so white cards lift off
+     the page and the jade/terracotta brand pair reads premium, not clinical. */
+  --background: #FAF7F2;
   --surface: #FFFFFF;
   --card: #FFFFFF;
   --surface-container-lowest: #FFFFFF;
-  --surface-container-low: #F6F4F0;
-  --surface-container: #F1EEE8;
-  --surface-container-high: #EBE7E0;
-  --surface-container-highest: #E4DFD7;
-  --surface-variant: #E7E2DA;
-  --surface-dim: #E5E0D8;
+  --surface-container-low: #F5F1EA;
+  --surface-container: #EFEAE1;
+  --surface-container-high: #E8E2D7;
+  --surface-container-highest: #E1DACD;
+  --surface-variant: #E6E0D5;
+  --surface-dim: #E7E1D6;
   --surface-bright: #FFFFFF;
 
-  /* Text — warm near-neutral so it sits naturally on the warm surfaces */
-  --foreground: #1A1815;
-  --on-surface: #26231F;
-  --on-background: #26231F;
-  --on-surface-variant: #57534E;
-  --secondary-foreground: #57534E;
-  --muted: #78716C;
+  /* Text — a green-tinted charcoal so it sits naturally on the warm surfaces */
+  --foreground: #17211E;
+  --on-surface: #1E2A26;
+  --on-background: #1E2A26;
+  --on-surface-variant: #4B5551;
+  --secondary-foreground: #4B5551;
+  --muted: #6B746F;
 
   /* Lines */
-  --border: #E8E3DB;
-  --outline: #A8A29A;
-  --outline-variant: #E6E1D9;
+  --border: #E9E3D8;
+  --outline: #A29B8E;
+  --outline-variant: #E4DED2;
 
-  /* Primary — Revoras gold (shared brand accent) */
-  --primary: #C9A45C;
-  --primary-foreground: #402D00;
-  --primary-container: #C8A96E;
-  --on-primary: #402D00;
-  --on-primary-container: #533D0C;
-  --primary-fixed-dim: #E5C487;
+  /* Primary — Revoras jade (brand) */
+  --primary: #0E7C6B;
+  --primary-foreground: #FFFFFF;
+  --primary-container: #CBEAE1;
+  --on-primary: #FFFFFF;
+  --on-primary-container: #00382F;
+  --primary-fixed-dim: #3FA593;
 
-  /* Secondary — success / positive accent (green) */
-  --secondary: #16A34A;
+  /* Accent — terracotta (the warm brand counterpart to jade) */
+  --accent: #DC6B45;
+  --accent-foreground: #FFFFFF;
+  --on-accent: #FFFFFF;
+  --accent-container: #FBE1D5;
+  --on-accent-container: #5A2411;
+
+  /* Secondary — success / positive accent (forest green, kept distinct from jade) */
+  --secondary: #15803D;
   --on-secondary: #FFFFFF;
   --secondary-container: #DCFCE7;
   --on-secondary-container: #14532D;
   --secondary-fixed: #86EFAC;
   --secondary-fixed-dim: #4ADE80;
 
-  /* Tertiary — informational accent (indigo) */
-  --tertiary: #4F46E5;
-  --tertiary-container: #E0E7FF;
+  /* Tertiary — shares the terracotta accent so existing tertiary usages pick it up */
+  --tertiary: #DC6B45;
+  --tertiary-container: #FBE1D5;
 
   /* Error / destructive */
   --error: #DC2626;
@@ -69,8 +76,8 @@
   --on-error-container: #7F1D1D;
 
   /* Inverse (tooltips, snackbars) */
-  --inverse-surface: #1F2937;
-  --inverse-on-surface: #F9FAFB;
+  --inverse-surface: #17211E;
+  --inverse-on-surface: #F2F5F3;
 
   /* Elevation — soft, cool-tinted shadows for a premium light UI */
   --elevation-sm: 0 1px 2px 0 rgba(16, 24, 40, 0.05);
@@ -80,51 +87,59 @@
 }
 
 .dark {
-  /* Surfaces & backgrounds — existing Revoras dark palette */
-  --background: #0E0E0F;
-  --surface: #171717;
-  --card: #1D1D1D;
-  --surface-container-lowest: #0E0E0E;
-  --surface-container-low: #1C1B1B;
-  --surface-container: #201F1F;
-  --surface-container-high: #2A2A2A;
-  --surface-container-highest: #353534;
-  --surface-variant: #353534;
-  --surface-dim: #131313;
-  --surface-bright: #3A3939;
+  /* Terra Jade — dark. Deep forest-charcoal (not pure black) so the bright
+     jade + clay accents glow and the surface feels premium at night. */
+  --background: #0C1A17;
+  --surface: #10221D;
+  --card: #12241F;
+  --surface-container-lowest: #0A1613;
+  --surface-container-low: #132520;
+  --surface-container: #162A24;
+  --surface-container-high: #1C332C;
+  --surface-container-highest: #243D35;
+  --surface-variant: #243D35;
+  --surface-dim: #0B1815;
+  --surface-bright: #294138;
 
   /* Text */
-  --foreground: #FFFFFF;
-  --on-surface: #E5E2E1;
-  --on-background: #E5E2E1;
-  --on-surface-variant: #D0C5B5;
-  --secondary-foreground: #B5B5B5;
-  --muted: #8A8A8A;
+  --foreground: #F2F5F3;
+  --on-surface: #E4EBE7;
+  --on-background: #E4EBE7;
+  --on-surface-variant: #B4C4BD;
+  --secondary-foreground: #9DB0A8;
+  --muted: #7E938B;
 
   /* Lines */
-  --border: rgba(201, 164, 92, 0.18);
-  --outline: #998F81;
-  --outline-variant: #4D463A;
+  --border: rgba(52, 211, 181, 0.14);
+  --outline: #5E7469;
+  --outline-variant: #2E4139;
 
-  /* Primary — Revoras gold */
-  --primary: #C9A45C;
-  --primary-foreground: #402D00;
-  --primary-container: #C8A96E;
-  --on-primary: #402D00;
-  --on-primary-container: #533D0C;
-  --primary-fixed-dim: #E5C487;
+  /* Primary — bright jade */
+  --primary: #34D3B5;
+  --primary-foreground: #00312A;
+  --primary-container: #0E5F52;
+  --on-primary: #00312A;
+  --on-primary-container: #A7F0E0;
+  --primary-fixed-dim: #34D3B5;
+
+  /* Accent — clay / warm terracotta */
+  --accent: #FF8A5B;
+  --accent-foreground: #3A1608;
+  --on-accent: #3A1608;
+  --accent-container: #7A3418;
+  --on-accent-container: #FFD8C6;
 
   /* Secondary — success / positive accent (green) */
-  --secondary: #8AD7A4;
-  --on-secondary: #00391E;
-  --secondary-container: #015D35;
-  --on-secondary-container: #86D3A0;
+  --secondary: #4ADE80;
+  --on-secondary: #00391A;
+  --secondary-container: #0C5A2E;
+  --on-secondary-container: #A7F3C4;
   --secondary-fixed: #A5F4BF;
-  --secondary-fixed-dim: #8AD7A4;
+  --secondary-fixed-dim: #4ADE80;
 
-  /* Tertiary — informational accent */
-  --tertiary: #BAC7F2;
-  --tertiary-container: #9FACD5;
+  /* Tertiary — shares the clay accent */
+  --tertiary: #FF8A5B;
+  --tertiary-container: #7A3418;
 
   /* Error / destructive */
   --error: #FFB4AB;
@@ -133,10 +148,10 @@
   --on-error-container: #FFDAD6;
 
   /* Inverse */
-  --inverse-surface: #E5E2E1;
-  --inverse-on-surface: #313030;
+  --inverse-surface: #E4EBE7;
+  --inverse-on-surface: #17211E;
 
-  /* Elevation — deep shadows preserving the existing Revoras dark look */
+  /* Elevation — deep shadows for the dark forest surface */
   --elevation-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
   --elevation-md: 0 8px 24px -4px rgba(0, 0, 0, 0.5);
   --elevation-lg: 0 20px 40px -8px rgba(0, 0, 0, 0.45);
@@ -178,6 +193,12 @@
   --color-on-primary: var(--on-primary);
   --color-on-primary-container: var(--on-primary-container);
   --color-primary-fixed-dim: var(--primary-fixed-dim);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-on-accent: var(--on-accent);
+  --color-accent-container: var(--accent-container);
+  --color-on-accent-container: var(--on-accent-container);
 
   --color-secondary: var(--secondary);
   --color-on-secondary: var(--on-secondary);
@@ -238,9 +259,10 @@
   /* Motion — durations pair with the easing already used by the theme
      transition below; components pick the duration that matches their
      size (micro-interactions fast, sheets/modals slower). */
-  --duration-fast: 120ms;
-  --duration-base: 200ms;
-  --duration-slow: 320ms;
+  /* Design System v1 frozen motion scale: fast 150 / normal 250 / slow 400. */
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-slow: 400ms;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 }
@@ -299,15 +321,33 @@
   .barber-stripe {
     background: repeating-linear-gradient(
       45deg,
-      rgba(200, 169, 110, 0.05),
-      rgba(200, 169, 110, 0.05) 40px,
+      rgba(14, 124, 107, 0.05),
+      rgba(14, 124, 107, 0.05) 40px,
       transparent 40px,
       transparent 80px
     );
   }
 
   .premium-gradient {
-    background: linear-gradient(45deg, #e5c487, #c8a96e);
+    background: linear-gradient(120deg, #0E7C6B, #3FA593);
+  }
+
+  /* The Revoras brand duo — jade → terracotta. Used for hero accents, CTAs,
+     and text-gradient headlines. Fixed hues so it reads the same in both themes. */
+  .brand-gradient {
+    background: linear-gradient(120deg, #0E7C6B 0%, #17A891 45%, #DC6B45 100%);
+  }
+  .brand-gradient-text {
+    background: linear-gradient(120deg, #0E7C6B 0%, #17A891 45%, #DC6B45 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .dark .brand-gradient-text {
+    background: linear-gradient(120deg, #34D3B5 0%, #5FE9CE 45%, #FF8A5B 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
 
   .icon-filled {
@@ -369,10 +409,26 @@
   to { transform: translateY(0); }
 }
 
+/* Booking-success celebration. Scoped to that one moment, not a general token:
+   the confetti piece falls and drifts, the seal pops once. Both are also gated
+   in JS on prefers-reduced-motion, because the reduce block below zeroes
+   animation-duration - which would freeze confetti mid-air rather than remove
+   it. */
+@keyframes confetti-fall {
+  0% { transform: translate3d(0, -12vh, 0) rotate(0deg); opacity: 1; }
+  100% { transform: translate3d(var(--drift, 0px), 104vh, 0) rotate(var(--spin, 540deg)); opacity: 0; }
+}
+@keyframes success-pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  60% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
 @layer utilities {
   .animate-drawer-right { animation: drawer-in-right var(--duration-slow) var(--ease-out); }
   .animate-drawer-left { animation: drawer-in-left var(--duration-slow) var(--ease-out); }
   .animate-drawer-bottom { animation: drawer-in-bottom var(--duration-slow) var(--ease-out); }
+  .animate-success-pop { animation: success-pop var(--duration-slow) var(--ease-out) both; }
 }
 
 @media (prefers-reduced-motion: reduce) {

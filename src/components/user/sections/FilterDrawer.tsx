@@ -77,16 +77,12 @@ function ChipGroup({ options, selected, onToggle }: { options: string[]; selecte
   );
 }
 
-export interface FilterDrawerProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  value: AdvancedFilters;
-  onChange: (next: AdvancedFilters) => void;
-  onClear: () => void;
-  resultCount?: number;
-}
-
-export function FilterDrawer({ open, onOpenChange, value, onChange, onClear, resultCount }: FilterDrawerProps) {
+/**
+ * The filter controls, shared by the desktop sticky sidebar and the mobile
+ * bottom-sheet (FilterDrawer). Pure controls — no surrounding chrome — so both
+ * hosts render exactly the same fields and stay in sync automatically.
+ */
+export function FilterControls({ value, onChange }: { value: AdvancedFilters; onChange: (next: AdvancedFilters) => void }) {
   const { data: serviceCategoriesData } = useCategories("service");
   const serviceCategoryOptions = [
     { value: "", label: "Any service" },
@@ -96,22 +92,7 @@ export function FilterDrawer({ open, onOpenChange, value, onChange, onClear, res
   const patch = (p: Partial<AdvancedFilters>) => onChange({ ...value, ...p });
 
   return (
-    <Drawer
-      open={open}
-      onOpenChange={onOpenChange}
-      title="Filters"
-      description="Narrow down studios to exactly what you need."
-      side="right"
-      footer={
-        <>
-          <Button intent="ghost" onClick={onClear}>
-            Clear all
-          </Button>
-          <Button onClick={() => onOpenChange(false)}>{resultCount != null ? `Show ${resultCount} results` : "Apply"}</Button>
-        </>
-      }
-    >
-      <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-2">
           <div className="text-sm font-semibold text-on-surface">Availability</div>
           <Checkbox label="Open today" checked={value.openToday} onCheckedChange={(v) => patch({ openToday: v })} />
@@ -207,7 +188,38 @@ export function FilterDrawer({ open, onOpenChange, value, onChange, onClear, res
           <div className="text-sm font-semibold text-on-surface">Languages</div>
           <ChipGroup options={LANGUAGE_OPTIONS} selected={value.languages} onToggle={(v) => patch({ languages: toggle(value.languages, v) })} />
         </div>
-      </div>
+    </div>
+  );
+}
+
+export interface FilterDrawerProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  value: AdvancedFilters;
+  onChange: (next: AdvancedFilters) => void;
+  onClear: () => void;
+  resultCount?: number;
+}
+
+/** Mobile bottom-sheet host for FilterControls (desktop uses the sticky sidebar). */
+export function FilterDrawer({ open, onOpenChange, value, onChange, onClear, resultCount }: FilterDrawerProps) {
+  return (
+    <Drawer
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Filters"
+      description="Narrow down studios to exactly what you need."
+      side="bottom"
+      footer={
+        <>
+          <Button intent="ghost" onClick={onClear}>
+            Clear all
+          </Button>
+          <Button onClick={() => onOpenChange(false)}>{resultCount != null ? `Show ${resultCount} results` : "Apply"}</Button>
+        </>
+      }
+    >
+      <FilterControls value={value} onChange={onChange} />
     </Drawer>
   );
 }

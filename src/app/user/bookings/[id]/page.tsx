@@ -3,13 +3,14 @@
 import { use, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CalendarPlus, MapPin, Phone, QrCode } from "lucide-react";
-import { Container, Card, Badge, Button, Avatar, ErrorState, Section } from "@/components/ui";
+import { CalendarPlus, MapPin, Phone, QrCode, ChevronLeft, Clock, CalendarClock } from "lucide-react";
+import { Container, Card, Badge, Button, Avatar, ErrorState } from "@/components/ui";
 import { useBooking, useBookingTimeline } from "@/lib/hooks";
-import { STATUS_LABEL, STATUS_TONE, buildICS, directionsUrl } from "@/lib/bookings";
-import { formatBookingDateLabel, formatTimeLabel } from "@/components/user/sections/utils";
+import { STATUS_LABEL, STATUS_TONE, buildICS, directionsUrl, bookingStartDate } from "@/lib/bookings";
+import { formatTimeLabel } from "@/components/user/sections/utils";
 import BookingTimeline from "@/components/user/sections/BookingTimeline";
 import CancelBookingModal from "@/components/user/sections/CancelBookingModal";
+import RescheduleBookingModal from "@/components/user/sections/RescheduleBookingModal";
 
 const inr = (n: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
 
@@ -18,6 +19,7 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
   const router = useRouter();
   const [version, setVersion] = useState(0);
   const [showCancel, setShowCancel] = useState(false);
+  const [showReschedule, setShowReschedule] = useState(false);
 
   const { data, loading, error, refetch } = useBooking(id);
   const { data: timelineData } = useBookingTimeline(id, version);
@@ -44,6 +46,7 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
   const total = Number(booking.total_amount);
   const canReschedule = booking.status === "pending" || booking.status === "confirmed";
   const canCancel = (booking.allowedNextStatuses ?? []).includes("cancelled");
+  const start = bookingStartDate(booking.booking_date, booking.start_time);
 
   const icsHref = buildICS({
     id: booking.id,
@@ -61,9 +64,18 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
 
   return (
     <Container className="flex flex-col gap-6 py-8">
+      <div>
+        <Link
+          href="/user/bookings"
+          className="inline-flex items-center gap-1 text-sm text-muted transition-colors duration-fast hover:text-on-surface"
+        >
+          <ChevronLeft size={16} /> All bookings
+        </Link>
+      </div>
+
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="font-headline text-2xl font-bold text-on-surface">{serviceNames}</h1>
+          <h1 className="font-headline text-3xl font-extrabold tracking-tight text-on-surface">{serviceNames}</h1>
           <p className="mt-1 text-sm text-muted">
             Reservation <span className="font-mono text-on-surface">{booking.confirmation_code}</span>
           </p>
@@ -76,28 +88,39 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
       <div className="grid gap-6 md:grid-cols-3">
         <div className="flex flex-col gap-6 md:col-span-2">
           <Card padding="lg" className="flex flex-col gap-5">
-            <div className="grid grid-cols-2 gap-5">
+            {/* The appointment, stated plainly and large — this is what the
+                customer opens the page for. */}
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
               <div>
                 <p className="text-xs uppercase tracking-wide text-muted">When</p>
-                <p className="mt-1 font-medium text-on-surface">{formatBookingDateLabel(booking.booking_date)}</p>
-                <p className="text-sm text-muted">{formatTimeLabel(booking.start_time)} · {booking.total_duration} min</p>
+                <p className="mt-1 font-headline text-2xl font-extrabold text-on-surface">
+                  {start.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+                </p>
+                <p className="inline-flex items-center gap-1.5 text-sm text-primary">
+                  <Clock size={14} /> <span className="font-semibold">{formatTimeLabel(booking.start_time)}</span>
+                  <span className="text-muted">· {booking.total_duration} min</span>
+                </p>
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs uppercase tracking-wide text-muted">Where</p>
-                <p className="mt-1 font-medium text-on-surface">{booking.studio_name}</p>
+                <Link
+                  href={`/user/business/${encodeURIComponent(booking.studio_id)}`}
+                  className="mt-1 block font-medium text-on-surface transition-colors duration-fast hover:text-primary"
+                >
+                  {booking.studio_name}
+                </Link>
                 <p className="text-sm text-muted">{booking.studio_address}</p>
               </div>
             </div>
 
-            {booking.member_designation || booking.member_image ? (
-              <div className="flex items-center gap-3 border-t border-border pt-4">
-                <Avatar name={booking.member_designation ?? "Professional"} src={booking.member_image ?? undefined} size="md" />
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-muted">Your professional</p>
-                  <p className="font-medium text-on-surface">{booking.member_designation ?? "Professional"}</p>
-                </div>
+            <div className="flex items-center gap-3 border-t border-border pt-4">
+              <Avatar name={booking.member_name} src={booking.member_image ?? undefined} size="md" />
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted">Your professional</p>
+                <p className="font-medium text-on-surface">{booking.member_name}</p>
+                {booking.member_designation ? <p className="text-xs text-muted">{booking.member_designation}</p> : null}
               </div>
-            ) : null}
+            </div>
 
             <div className="flex flex-wrap gap-2 border-t border-border pt-4">
               <a href={icsHref} download={`booking-${booking.confirmation_code}.ics`}>
@@ -170,9 +193,9 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
           {canReschedule || canCancel ? (
             <div className="flex flex-col gap-2">
               {canReschedule ? (
-                <Link href={`/user/book?studioId=${booking.studio_id}&barberId=${booking.business_member_id}&services=${booking.services.map((s) => s.id).join(",")}&reschedule=${booking.id}`}>
-                  <Button intent="outline" className="w-full">Reschedule</Button>
-                </Link>
+                <Button intent="outline" className="w-full" onClick={() => setShowReschedule(true)}>
+                  <CalendarClock size={15} /> Reschedule
+                </Button>
               ) : null}
               {canCancel ? (
                 <Button intent="ghost" className="w-full text-error" onClick={() => setShowCancel(true)}>
@@ -184,11 +207,17 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
         </div>
       </div>
 
-      <div>
-        <Button intent="ghost" onClick={() => router.push("/user/bookings")}>← All bookings</Button>
-      </div>
-
       {showCancel ? <CancelBookingModal bookingId={booking.id} onClose={() => setShowCancel(false)} onCancelled={afterAction} /> : null}
+      {showReschedule ? (
+        <RescheduleBookingModal
+          bookingId={booking.id}
+          studioId={booking.studio_id}
+          businessMemberId={booking.business_member_id}
+          durationMinutes={booking.total_duration}
+          onClose={() => setShowReschedule(false)}
+          onRescheduled={afterAction}
+        />
+      ) : null}
     </Container>
   );
 }

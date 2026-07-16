@@ -1,21 +1,27 @@
 import Navbar from "@/components/Navbar";
 import SplashHero from "@/components/SplashHero";
 import Footer from "@/components/Footer";
+import { LandingCategories, FeaturedStudios, HowItWorks, BecomeHost } from "@/components/landing/LandingSections";
 
 export default function SplashPage() {
   return (
-    <div className="min-h-screen flex flex-col pt-10">
-      <Navbar 
-        brandText="Revoras" // Updated brand text as per design
-        brandHref="/" // No link as per design
+    <div className="flex min-h-screen flex-col bg-background">
+      <Navbar
+        brandText="Revoras"
+        brandHref="/"
         navLinks={[
-          { href: "/services", label: "Services" },
-          { href: "/barbers", label: "Barbers" },
-          { href: "/locations", label: "Locations" },
-          { href: "/experience", label: "Experience" },
+          { href: "/user", label: "Explore" },
+          { href: "/user/search?hasOffers=true", label: "Offers" },
+          { href: "/host/signup", label: "For Business" },
         ]}
       />
-      <SplashHero />
+      <main className="flex-1">
+        <SplashHero />
+        <LandingCategories />
+        <FeaturedStudios />
+        <HowItWorks />
+        <BecomeHost />
+      </main>
       <Footer />
     </div>
   );

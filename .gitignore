@@ -29,6 +29,14 @@ yarn-error.log*
 .env
 .env*.local
 
+# Saved auth payloads from QA/scripting runs - these hold live JWTs.
+# (`undefined/` is where a script with an unset output path actually wrote them.)
+/undefined/
+*.token.json
+
+# QA/screenshot output
+/shots/
+
 # vercel
 .vercel
 
