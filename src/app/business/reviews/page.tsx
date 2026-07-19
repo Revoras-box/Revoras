@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { MessageSquare, ThumbsUp } from "lucide-react";
+import { formatRating } from "@/lib/format";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Select } from "@/components/ui/Select";
 import { Card } from "@/components/ui/Card";
@@ -75,7 +76,7 @@ export default function ReviewsPage() {
       ) : data ? (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
           <Card className="flex items-center gap-4 sm:col-span-2">
-            <span className="text-3xl font-bold text-on-surface">{data.stats.averageRating.toFixed(1)}</span>
+            <span className="text-3xl font-bold text-on-surface">{formatRating(data.stats.averageRating, "0.0")}</span>
             <div>
               <RatingDisplay value={data.stats.averageRating} count={data.stats.total} size="md" />
               <div className="text-xs text-muted mt-1">Based on {data.stats.total} reviews</div>

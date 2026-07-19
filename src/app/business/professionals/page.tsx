@@ -27,10 +27,13 @@ import { Divider } from "@/components/ui/Divider";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { hasPermission, PERMISSIONS } from "@/lib/business/permissions";
 import { useBusinessAuth } from "@/lib/business/auth";
-import { useMembers, useAddMember, useUpdateMember, useRemoveMember } from "@/lib/business/hooks/useMembers";
+import { useMembers, useUpdateMember, useRemoveMember } from "@/lib/business/hooks/useMembers";
 import { useTimeOff, useCreateTimeOff, useDeleteTimeOff } from "@/lib/business/hooks/useSettings";
 import { useServices } from "@/lib/business/hooks/useServices";
 import type { BusinessMemberRow, MemberSocialLinks } from "@/lib/business/types";
+import { formatRating } from "@/lib/format";
+import { InviteMemberModal } from "@/components/business/InviteMemberModal";
+import { PendingInvites } from "@/components/business/PendingInvites";
 
 const ROLE_PERMISSIONS: Record<string, string[]> = {
   owner: Object.values(PERMISSIONS),
@@ -66,7 +69,16 @@ export default function ProfessionalsPage() {
     },
     { key: "role", header: "Role", render: (m) => <Badge tone={m.role === "owner" ? "primary" : "neutral"}>{m.role}</Badge> },
     { key: "bookable", header: "Bookable", render: (m) => (m.provides_services ? "Yes" : "No") },
-    { key: "rating", header: "Rating", render: (m) => (m.rating > 0 ? `★ ${m.rating.toFixed(1)}` : "—") },
+    {
+      key: "rating",
+      header: "Rating",
+      // Not `m.rating ? ...`: an unrated member comes back as the string "0.00",
+      // which is truthy. formatRating owns the "is there a rating" decision.
+      render: (m) => {
+        const rating = formatRating(m.rating);
+        return rating === "—" ? rating : `★ ${rating}`;
+      },
+    },
     {
       key: "status",
       header: "Status",
@@ -88,6 +100,8 @@ export default function ProfessionalsPage() {
         }
       />
 
+      {canManageTeam ? <PendingInvites studioId={studioId} /> : null}
+
       {isError ? (
         <ErrorState onRetry={() => refetch()} description="Couldn't load your team." />
       ) : (
@@ -102,7 +116,7 @@ export default function ProfessionalsPage() {
         />
       )}
 
-      {canManageTeam ? <AddMemberModal studioId={studioId} open={addOpen} onOpenChange={setAddOpen} /> : null}
+      {canManageTeam ? <InviteMemberModal studioId={studioId} open={addOpen} onOpenChange={setAddOpen} /> : null}
 
       <MemberDrawer
         studioId={studioId}
@@ -112,82 +126,6 @@ export default function ProfessionalsPage() {
         canManage={canManageTeam}
       />
     </div>
-  );
-}
-
-function AddMemberModal({ studioId, open, onOpenChange }: { studioId: string | undefined; open: boolean; onOpenChange: (open: boolean) => void }) {
-  const addMember = useAddMember(studioId);
-  const [form, setForm] = useState({ email: "", roleKey: "staff", designation: "", providesServices: true, experienceYears: 0 });
-
-  const handleSubmit = () => {
-    if (!form.email) {
-      toast.error("Email is required");
-      return;
-    }
-    addMember.mutate(
-      {
-        email: form.email,
-        roleKey: form.roleKey as "owner" | "staff",
-        designation: form.designation || undefined,
-        providesServices: form.providesServices,
-        experienceYears: form.experienceYears,
-        specialties: [],
-      },
-      {
-        onSuccess: () => {
-          toast.success("Team member added");
-          onOpenChange(false);
-          setForm({ email: "", roleKey: "staff", designation: "", providesServices: true, experienceYears: 0 });
-        },
-        onError: (err) => toast.error(err instanceof Error ? err.message : "Couldn't add member"),
-      }
-    );
-  };
-
-  return (
-    <Modal
-      open={open}
-      onOpenChange={onOpenChange}
-      title="Add team member"
-      description="Links an existing Revoras account to your business — they must already have signed up with this email."
-      footer={
-        <>
-          <Button intent="ghost" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} loading={addMember.isPending}>
-            Add member
-          </Button>
-        </>
-      }
-    >
-      <div className="flex flex-col gap-4">
-        <Input label="Email" type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} placeholder="professional@example.com" />
-        <Select
-          label="Role"
-          value={form.roleKey}
-          onValueChange={(v) => setForm((f) => ({ ...f, roleKey: v }))}
-          options={[
-            { value: "staff", label: "Staff" },
-            { value: "owner", label: "Owner" },
-          ]}
-        />
-        <Input label="Designation" value={form.designation} onChange={(e) => setForm((f) => ({ ...f, designation: e.target.value }))} placeholder="e.g. Senior Stylist" />
-        <Switch
-          label="Provides services"
-          description="Can be booked by customers"
-          checked={form.providesServices}
-          onCheckedChange={(v) => setForm((f) => ({ ...f, providesServices: v }))}
-        />
-        <Input
-          label="Years of experience"
-          type="number"
-          min={0}
-          value={form.experienceYears}
-          onChange={(e) => setForm((f) => ({ ...f, experienceYears: Number(e.target.value) }))}
-        />
-      </div>
-    </Modal>
   );
 }
 

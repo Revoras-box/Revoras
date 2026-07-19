@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { useBusinessAuth } from "@/lib/business/auth";
 import { useMyProfile, useUpdateMyProfile } from "@/lib/business/hooks/useMyProfile";
 import { PortfolioManager } from "@/components/business/PortfolioManager";
@@ -47,7 +48,7 @@ const TABS: { key: TabKey; label: string }[] = [
 export default function MyProfilePage() {
   const { activeMembership } = useBusinessAuth();
   const studioId = activeMembership?.studioId;
-  const { data: profile, isLoading } = useMyProfile(studioId);
+  const { data: profile, isLoading, isError, refetch } = useMyProfile(studioId);
   const update = useUpdateMyProfile(studioId);
 
   const [tab, setTab] = useState<TabKey>("general");
@@ -115,7 +116,11 @@ export default function MyProfilePage() {
     );
   }
 
-  if (isLoading || !profile) return <Skeleton className="h-96 rounded-2xl" />;
+  if (isLoading) return <Skeleton className="h-96 rounded-2xl" />;
+  // Without this the error path falls through to the skeleton above and spins
+  // forever, because `profile` is undefined on failure just as it is while loading.
+  if (isError || !profile)
+    return <ErrorState onRetry={() => refetch()} description="Couldn't load your profile." />;
 
   const lockedFields = [
     { label: "Designation", value: profile.designation || "—" },

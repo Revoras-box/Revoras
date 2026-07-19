@@ -11,6 +11,8 @@ import { Switch } from "@/components/ui/Switch";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { useBusinessAuth } from "@/lib/business/auth";
 import { PermissionGate, PERMISSIONS } from "@/lib/business/permissions";
 import {
@@ -105,7 +107,7 @@ const EMPTY_FORM = {
 };
 
 function ProfileTab({ studioId }: { studioId: string | undefined }) {
-  const { data: business, isLoading } = useBusinessProfile(studioId);
+  const { data: business, isLoading, isError, refetch } = useBusinessProfile(studioId);
   const updateProfile = useUpdateBusinessProfile(studioId);
   const [form, setForm] = useState(EMPTY_FORM);
   const [social, setSocial] = useState<SocialLinks>({});
@@ -137,6 +139,11 @@ function ProfileTab({ studioId }: { studioId: string | undefined }) {
   }, [business]);
 
   if (isLoading) return <Skeleton className="h-96 rounded-2xl" />;
+  // Rendering the form on a failed load is worse than showing nothing: every
+  // field would be blank (the effect above never ran), and saving that would
+  // overwrite the owner's real profile with empty strings.
+  if (isError || !business)
+    return <ErrorState onRetry={() => refetch()} description="Couldn't load your business profile." />;
 
   const field = (key: keyof typeof EMPTY_FORM) => ({
     value: form[key],
@@ -240,7 +247,7 @@ function ProfileTab({ studioId }: { studioId: string | undefined }) {
 }
 
 function HoursTab({ studioId }: { studioId: string | undefined }) {
-  const { data, isLoading } = useWorkingHours(studioId);
+  const { data, isLoading, isError, refetch } = useWorkingHours(studioId);
   const updateHours = useUpdateWorkingHours(studioId);
   const [days, setDays] = useState<WorkingHoursDay[]>([]);
 
@@ -248,7 +255,17 @@ function HoursTab({ studioId }: { studioId: string | undefined }) {
     if (data) setDays(data);
   }, [data]);
 
-  if (isLoading || days.length === 0) return <Skeleton className="h-96 rounded-2xl" />;
+  if (isLoading) return <Skeleton className="h-96 rounded-2xl" />;
+  if (isError) return <ErrorState onRetry={() => refetch()} description="Couldn't load your working hours." />;
+  // `days.length === 0` used to be folded into the loading check, which meant a
+  // business with no hours saved yet sat on a skeleton that never resolved.
+  if (days.length === 0)
+    return (
+      <EmptyState
+        title="No working hours set"
+        description="Set your opening hours so customers know when they can book."
+      />
+    );
 
   const updateDay = (dayOfWeek: number, patch: Partial<WorkingHoursDay>) => {
     setDays((prev) => prev.map((d) => (d.dayOfWeek === dayOfWeek ? { ...d, ...patch } : d)));

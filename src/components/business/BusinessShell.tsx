@@ -15,6 +15,7 @@ import { BUSINESS_NAV_ITEMS } from "./nav";
 import { BusinessSwitcher } from "./BusinessSwitcher";
 import { UserMenu } from "./UserMenu";
 import { NotificationsBell } from "./NotificationsBell";
+import ThemeToggleButton from "@/components/ThemeToggleButton";
 import { ICON_SIZE } from "@/lib/design-tokens";
 
 export function BusinessShell({ children }: { children: React.ReactNode }) {
@@ -95,6 +96,7 @@ export function BusinessShell({ children }: { children: React.ReactNode }) {
         />
       </form>
       <div className="ml-auto flex items-center gap-2">
+        <ThemeToggleButton />
         <NotificationsBell />
         <UserMenu />
       </div>

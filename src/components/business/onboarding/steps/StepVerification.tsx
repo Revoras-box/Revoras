@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { BadgeCheck, ShieldCheck } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -8,9 +9,11 @@ import { WizardFooter } from "../WizardFooter";
 import type { WizardStepProps } from "../types";
 
 /**
- * Placeholder step. Document upload / review is built in Phase 1.5c and is not
- * required to submit in 1.5a (see onboarding.service.js STEP_DEFS: documents is
- * not a required step). We surface it so the flow is complete end to end.
+ * Verification is optional at onboarding time - `documents` is not a required
+ * step in onboarding.service.js STEP_DEFS, so nothing here blocks submission.
+ * Upload itself now exists (Phase 1.4b, /business/verification), so this step's
+ * job is to explain the badge and hand off, not to collect files: making an
+ * owner gather documents mid-wizard is what makes people abandon signup.
  */
 export function StepVerification({ goNext, goPrev, exit, saving }: WizardStepProps) {
   return (
@@ -18,7 +21,7 @@ export function StepVerification({ goNext, goPrev, exit, saving }: WizardStepPro
       <StepHeader
         eyebrow="Step 7 of 9"
         title="Verification"
-        description="Get the verified badge that helps customers trust you. Document upload is coming soon — nothing is needed from you right now."
+        description="Get the verified badge that helps customers trust you. This is optional — you can finish signing up now and add your documents whenever you're ready."
       />
 
       <div className="max-w-2xl">
@@ -29,13 +32,17 @@ export function StepVerification({ goNext, goPrev, exit, saving }: WizardStepPro
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <h3 className="font-headline text-base font-semibold text-on-surface">Verification documents</h3>
-              <Badge tone="success">
-                <BadgeCheck size={12} /> Ready
+              <Badge tone="neutral">
+                <BadgeCheck size={12} /> Optional
               </Badge>
             </div>
             <p className="mt-1 text-sm text-muted">
-              You&apos;ll be able to upload your business documents (registration, ID, address proof) here in an upcoming
-              update. You can submit your business without them for now.
+              After you finish signing up, head to{" "}
+              <Link href="/business/verification" className="font-medium text-primary hover:underline">
+                Verification
+              </Link>{" "}
+              to upload your shop licence, GST certificate, ID and address proof. Our team reviews them and your badge
+              goes live once approved.
             </p>
           </div>
         </Card>

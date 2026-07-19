@@ -24,6 +24,25 @@ export function formatINR(
   }).format(safe);
 }
 
+/**
+ * Format a star rating, e.g. 4.5 -> "4.5", "4.50" -> "4.5", 0/null -> the dash.
+ *
+ * Ratings are `decimal` columns, and node-postgres returns those as **strings**
+ * to avoid float precision loss. `rating.toFixed(1)` therefore threw
+ * "toFixed is not a function" at runtime while typechecking cleanly, because
+ * the API types declare `number`. `rating > 0` hid it further: string-to-number
+ * coercion makes that guard pass, so the crash only fired for businesses that
+ * actually had a rating.
+ */
+export function formatRating(
+  value: number | string | null | undefined,
+  emptyLabel = "—"
+): string {
+  const n = typeof value === "string" ? parseFloat(value) : value ?? 0;
+  if (!Number.isFinite(n) || (n as number) <= 0) return emptyLabel;
+  return (n as number).toFixed(1);
+}
+
 /** Format a plain number with Indian grouping, e.g. 125000 -> "1,25,000". */
 export function formatIndianNumber(value: number | string | null | undefined): string {
   const n = typeof value === "string" ? parseFloat(value) : value ?? 0;

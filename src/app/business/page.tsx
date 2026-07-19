@@ -23,7 +23,7 @@ import { useBusinessAuth } from "@/lib/business/auth";
 import { useDashboard } from "@/lib/business/hooks/useDashboard";
 import { useAnalytics } from "@/lib/business/hooks/useAnalytics";
 import { hasPermission, PERMISSIONS, type PermissionKey } from "@/lib/business/permissions";
-import { formatINR } from "@/lib/format";
+import { formatINR, formatRating } from "@/lib/format";
 import { ICON_SIZE } from "@/lib/design-tokens";
 
 const STATUS_TONE: Record<string, "neutral" | "primary" | "success" | "warning" | "danger"> = {
@@ -102,7 +102,7 @@ export default function BusinessDashboardPage() {
             <StatCard label="New customers (30d)" value={dashboard.data.newCustomersCount} icon={<Users size={ICON_SIZE.md} />} />
             <StatCard
               label="Average rating"
-              value={dashboard.data.averageRating > 0 ? dashboard.data.averageRating.toFixed(1) : "—"}
+              value={formatRating(dashboard.data.averageRating)}
               icon={<Star size={ICON_SIZE.md} />}
             />
           </div>
@@ -190,7 +190,9 @@ export default function BusinessDashboardPage() {
                           trailing={
                             <div className="text-right">
                               <div className="text-sm font-medium text-on-surface">{p.todayBookingsCount} today</div>
-                              {p.rating > 0 ? <div className="text-xs text-muted">★ {p.rating.toFixed(1)}</div> : null}
+                              {formatRating(p.rating) !== "—" ? (
+                                <div className="text-xs text-muted">★ {formatRating(p.rating)}</div>
+                              ) : null}
                             </div>
                           }
                         />

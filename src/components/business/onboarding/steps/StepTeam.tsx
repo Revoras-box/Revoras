@@ -1,18 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { toast } from "sonner";
-import { Plus, UserPlus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
-import { Switch } from "@/components/ui/Switch";
-import { Modal } from "@/components/ui/Modal";
 import { Badge } from "@/components/ui/Badge";
 import { Avatar } from "@/components/ui/Avatar";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { useMembers, useAddMember } from "@/lib/business/hooks/useMembers";
+import { useMembers } from "@/lib/business/hooks/useMembers";
+import { InviteMemberModal } from "@/components/business/InviteMemberModal";
+import { PendingInvites } from "@/components/business/PendingInvites";
 import { StepHeader } from "../StepHeader";
 import { WizardFooter } from "../WizardFooter";
 import type { WizardStepProps } from "../types";
@@ -37,6 +34,10 @@ export function StepTeam({ studioId, goNext, goPrev, exit, saving }: WizardStepP
           </Button>
         </div>
 
+        {/* Without this, inviting someone during onboarding looks like nothing
+            happened — they aren't a member yet, so the count above stays put. */}
+        <PendingInvites studioId={studioId} />
+
         {isLoading ? (
           <Skeleton className="h-32 rounded-2xl" />
         ) : (
@@ -55,7 +56,11 @@ export function StepTeam({ studioId, goNext, goPrev, exit, saving }: WizardStepP
         )}
       </div>
 
-      {adding ? <AddMemberModal studioId={studioId} onClose={() => setAdding(false)} /> : null}
+      {/* Same invite modal as the dashboard's Professionals page. It previously
+          had its own copy that could only link an existing Revoras account,
+          which dead-ended here during signup - the point at which an owner is
+          least likely to be adding people who are already on the platform. */}
+      <InviteMemberModal studioId={studioId} open={adding} onOpenChange={setAdding} />
 
       <WizardFooter
         onPrev={goPrev}
@@ -65,67 +70,5 @@ export function StepTeam({ studioId, goNext, goPrev, exit, saving }: WizardStepP
         hint="Team members are optional — you can invite them any time from your dashboard."
       />
     </div>
-  );
-}
-
-function AddMemberModal({ studioId, onClose }: { studioId: string; onClose: () => void }) {
-  const addMember = useAddMember(studioId);
-  const [form, setForm] = useState({ email: "", roleKey: "staff", designation: "", providesServices: true });
-
-  const handleSubmit = () => {
-    if (!form.email.trim()) {
-      toast.error("Email is required");
-      return;
-    }
-    addMember.mutate(
-      {
-        email: form.email.trim(),
-        roleKey: form.roleKey as "owner" | "staff",
-        designation: form.designation.trim() || undefined,
-        providesServices: form.providesServices,
-        specialties: [],
-      },
-      {
-        onSuccess: () => {
-          toast.success("Team member added");
-          onClose();
-        },
-        onError: (err) => toast.error(err instanceof Error ? err.message : "Couldn't add member"),
-      }
-    );
-  };
-
-  return (
-    <Modal
-      open
-      onOpenChange={(open) => !open && onClose()}
-      title="Add team member"
-      description="Links an existing Revoras account to your business — they must already have signed up with this email."
-      footer={
-        <>
-          <Button intent="ghost" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} loading={addMember.isPending}>
-            <UserPlus size={16} /> Add member
-          </Button>
-        </>
-      }
-    >
-      <div className="flex flex-col gap-4">
-        <Input label="Email" type="email" placeholder="professional@example.com" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
-        <Select
-          label="Role"
-          value={form.roleKey}
-          onValueChange={(v) => setForm((f) => ({ ...f, roleKey: v }))}
-          options={[
-            { value: "staff", label: "Staff" },
-            { value: "owner", label: "Owner" },
-          ]}
-        />
-        <Input label="Designation" placeholder="e.g. Senior Stylist" value={form.designation} onChange={(e) => setForm((f) => ({ ...f, designation: e.target.value }))} />
-        <Switch label="Provides services" description="Can be booked by customers" checked={form.providesServices} onCheckedChange={(v) => setForm((f) => ({ ...f, providesServices: v }))} />
-      </div>
-    </Modal>
   );
 }

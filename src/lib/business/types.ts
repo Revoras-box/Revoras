@@ -113,6 +113,32 @@ export interface Certificate {
   sort_order: number;
 }
 
+/** A pending team invite. `token_hash` is never sent by the API, so it isn't modelled. */
+export interface BusinessInviteRow {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  designation: string | null;
+  provides_services: boolean;
+  experience_years: number;
+  role_key: string;
+  invited_by_name: string | null;
+  expires_at: string;
+  created_at: string;
+}
+
+/**
+ * Create/resend additionally return the one-time link. The raw token exists only
+ * in this response - the server stores a hash - so the UI must surface it
+ * immediately rather than expect to fetch it back later.
+ */
+export interface CreatedInvite extends BusinessInviteRow {
+  invite_url: string;
+  emailed: boolean;
+  reason: string | null;
+}
+
 export interface BusinessMemberRow {
   id: string;
   user_id: string;

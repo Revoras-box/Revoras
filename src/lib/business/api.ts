@@ -254,6 +254,16 @@ export const businessApi = {
   removeMember: (studioId: string, memberId: string) =>
     request(`/business/${studioId}/members/${memberId}`, { method: "DELETE" }),
 
+  // Team invites - for professionals who don't have a Revoras account yet.
+  // addMember above still covers the case where they already do.
+  listInvites: (studioId: string) => request(`/business/${studioId}/invites`),
+  createInvite: (studioId: string, body: Record<string, unknown>) =>
+    request(`/business/${studioId}/invites`, { method: "POST", body }),
+  resendInvite: (studioId: string, inviteId: string) =>
+    request(`/business/${studioId}/invites/${inviteId}/resend`, { method: "POST" }),
+  revokeInvite: (studioId: string, inviteId: string) =>
+    request(`/business/${studioId}/invites/${inviteId}`, { method: "DELETE" }),
+
   listServices: (studioId: string, params: { activeOnly?: boolean }) =>
     request(`/business/${studioId}/services`, { params }),
   createService: (studioId: string, body: Record<string, unknown>) =>

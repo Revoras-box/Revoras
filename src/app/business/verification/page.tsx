@@ -21,6 +21,7 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Badge } from "@/components/ui/Badge";
 import { Timeline, type TimelineEvent } from "@/components/ui/Timeline";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useBusinessAuth } from "@/lib/business/auth";
 import { hasPermission, PERMISSIONS } from "@/lib/business/permissions";
@@ -38,12 +39,19 @@ import { VERIFICATION_STATUS_META } from "@/lib/business/verification-status";
 
 const STATUS_META = VERIFICATION_STATUS_META;
 
-const DOC_TYPES: { value: VerificationDocumentType; label: string }[] = [
-  { value: "business_license", label: "Business license" },
-  { value: "id_proof", label: "ID proof" },
-  { value: "address_proof", label: "Address proof" },
-  { value: "tax_document", label: "Tax document" },
-  { value: "other", label: "Other" },
+/**
+ * Labels name the documents an Indian business actually holds; the `value`s are
+ * the backend's generic types and deliberately unchanged. An owner searching for
+ * "Business license" in their drawer finds nothing - what they have is a Shop &
+ * Establishment certificate, and the hint text names the common alternatives so
+ * a trade licence or Udyam registration doesn't get filed under "Other".
+ */
+const DOC_TYPES: { value: VerificationDocumentType; label: string; hint: string }[] = [
+  { value: "business_license", label: "Shop & Establishment licence", hint: "Or trade licence / Udyam registration" },
+  { value: "id_proof", label: "Owner ID proof", hint: "Aadhaar, PAN or driving licence" },
+  { value: "address_proof", label: "Shop address proof", hint: "Electricity bill, rent agreement or property tax receipt" },
+  { value: "tax_document", label: "GST certificate", hint: "Only if you're GST registered" },
+  { value: "other", label: "Other", hint: "Anything else that proves your business is real" },
 ];
 
 const docTypeLabel = (t: string) => DOC_TYPES.find((d) => d.value === t)?.label ?? t;
@@ -54,7 +62,7 @@ export default function VerificationCenterPage() {
   const studioId = activeMembership?.studioId;
   const canManage = hasPermission(activeMembership?.permissions ?? [], PERMISSIONS.SETTINGS_MANAGE);
 
-  const { data, isLoading } = useVerification(studioId);
+  const { data, isLoading, isError, refetch } = useVerification(studioId);
   const createRequest = useCreateVerificationRequest(studioId);
   const addDocument = useAddVerificationDocument(studioId);
   const removeDocument = useRemoveVerificationDocument(studioId);
@@ -132,6 +140,11 @@ export default function VerificationCenterPage() {
           <Skeleton className="h-48" />
           <Skeleton className="h-48" />
         </div>
+      ) : isError ? (
+        // Falling through to the normal branch on failure would render the
+        // "no request yet" state, inviting the owner to start a second request
+        // when they may already have one in review.
+        <ErrorState onRetry={() => refetch()} description="Couldn't load your verification status." />
       ) : (
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Left / main column */}
@@ -197,13 +210,16 @@ export default function VerificationCenterPage() {
                   {editable && canManage ? (
                     <>
                       <div className="mt-2 flex flex-wrap items-end gap-2">
-                        <div className="w-48">
+                        <div className="w-full sm:w-64">
                           <Select
                             label="Document type"
                             value={docType}
                             onValueChange={(v) => setDocType(v as VerificationDocumentType)}
                             options={DOC_TYPES}
                           />
+                          <p className="mt-1 text-xs text-muted">
+                            {DOC_TYPES.find((d) => d.value === docType)?.hint}
+                          </p>
                         </div>
                         <input
                           ref={fileRef}

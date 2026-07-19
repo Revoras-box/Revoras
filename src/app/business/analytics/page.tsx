@@ -16,7 +16,7 @@ import { useBusinessAuth } from "@/lib/business/auth";
 import { useAnalytics } from "@/lib/business/hooks/useAnalytics";
 import { TrendAreaChart } from "@/components/business/charts/TrendAreaChart";
 import { RankedBarChart } from "@/components/business/charts/RankedBarChart";
-import { formatINR } from "@/lib/format";
+import { formatINR, formatRating } from "@/lib/format";
 import { ICON_SIZE } from "@/lib/design-tokens";
 
 interface MemberPerf {
@@ -112,7 +112,7 @@ export default function AnalyticsPage() {
           <Section title="Reviews">
             <Card>
               <div className="flex items-center gap-3 mb-4">
-                <span className="text-2xl font-bold text-on-surface">{data.reviews.avgRating.toFixed(1)}</span>
+                <span className="text-2xl font-bold text-on-surface">{formatRating(data.reviews.avgRating, "0.0")}</span>
                 <span className="text-sm text-muted">from {data.reviews.total} reviews</span>
               </div>
               <RankedBarChart
