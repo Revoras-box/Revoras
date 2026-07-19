@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -8,12 +9,12 @@ import { Tabs } from "@/components/ui/Tabs";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { ScheduleGrid, type ScheduleEvent, type ScheduleResource } from "@/components/ui/ScheduleGrid";
+import { ScheduleGrid, type ScheduleDropPayload, type ScheduleEvent, type ScheduleResource } from "@/components/ui/ScheduleGrid";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useBusinessAuth } from "@/lib/business/auth";
-import { useBookings } from "@/lib/business/hooks/useBookings";
+import { useBookings, useRescheduleBooking } from "@/lib/business/hooks/useBookings";
 import { useMembers } from "@/lib/business/hooks/useMembers";
 import { useTimeOff } from "@/lib/business/hooks/useSettings";
 import { hasPermission, PERMISSIONS } from "@/lib/business/permissions";
@@ -68,6 +69,34 @@ export default function CalendarPage() {
 
   const bookings = useBookings(studioId, { from, to, limit: 100 });
   const timeOff = useTimeOff(studioId, { from, to });
+  const reschedule = useRescheduleBooking(studioId);
+
+  const minutesToTime = (mins: number) =>
+    `${String(Math.floor(mins / 60)).padStart(2, "0")}:${String(mins % 60).padStart(2, "0")}`;
+
+  const handleEventDrop = ({ eventId, resourceId, startMinutes }: ScheduleDropPayload) => {
+    const booking = (bookings.data?.bookings || []).find((b) => b.id === eventId);
+    if (!booking) return;
+
+    const startTime = minutesToTime(startMinutes);
+    // A no-op drop (same slot, same professional) shouldn't cost a round trip.
+    if (startTime === booking.start_time.slice(0, 5) && resourceId === booking.business_member_id) return;
+
+    reschedule.mutate(
+      {
+        bookingId: eventId,
+        bookingDate: booking.booking_date.slice(0, 10),
+        startTime,
+        businessMemberId: resourceId,
+      },
+      {
+        onSuccess: () => toast.success(`${booking.customer_name} moved to ${startTime}`),
+        // The grid renders straight off query data, so a failed move simply
+        // re-renders in its original slot once the cache settles.
+        onError: (err) => toast.error(err instanceof Error ? err.message : "Couldn't reschedule"),
+      }
+    );
+  };
 
   const shiftAnchor = (delta: number) => {
     const next = new Date(anchor);
@@ -129,6 +158,7 @@ export default function CalendarPage() {
           bookings={bookings.data?.bookings || []}
           timeOff={timeOff.data || []}
           onSelect={setSelected}
+          onEventDrop={canManage ? handleEventDrop : undefined}
         />
       ) : view === "week" ? (
         <WeekView
@@ -167,11 +197,13 @@ function DayView({
   bookings,
   timeOff,
   onSelect,
+  onEventDrop,
 }: {
   resources: { id: string; name: string }[];
   bookings: BookingRow[];
   timeOff: { business_member_id: string; start_time: string | null; end_time: string | null; is_full_day: boolean }[];
   onSelect: (b: BookingRow) => void;
+  onEventDrop?: (payload: ScheduleDropPayload) => void;
 }) {
   if (resources.length === 0) {
     return <EmptyState title="No professionals yet" description="Add team members from the Professionals page to see their schedule here." />;
@@ -189,6 +221,8 @@ function DayView({
       endMinutes: timeToMinutes(b.end_time.slice(0, 5)),
       tone: STATUS_TONE[b.status],
       onClick: () => onSelect(b),
+      // Matches the drawer's rule: only a still-open booking can be moved.
+      draggable: b.status === "pending" || b.status === "confirmed",
     }));
 
   const timeOffEvents: ScheduleEvent[] = timeOff
@@ -202,7 +236,13 @@ function DayView({
       tone: "neutral",
     }));
 
-  return <ScheduleGrid resources={scheduleResources} events={[...bookingEvents, ...timeOffEvents]} />;
+  return (
+    <ScheduleGrid
+      resources={scheduleResources}
+      events={[...bookingEvents, ...timeOffEvents]}
+      onEventDrop={onEventDrop}
+    />
+  );
 }
 
 function WeekView({

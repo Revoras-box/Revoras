@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { Calendar, ClipboardList, Star, TrendingUp, Users, Wallet } from "lucide-react";
+import { CalendarPlus, ClipboardList, Scissors, Star, Tag, TrendingUp, UserPlus, Users, Wallet, Calendar } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Section } from "@/components/ui/Section";
 import { StatCard } from "@/components/ui/StatCard";
+import { QuickAction } from "@/components/ui/QuickAction";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { ListItem } from "@/components/ui/ListItem";
 import { Badge } from "@/components/ui/Badge";
@@ -15,10 +16,13 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { TrendAreaChart } from "@/components/business/charts/TrendAreaChart";
 import { RankedBarChart } from "@/components/business/charts/RankedBarChart";
+import { SubscriptionStatusCard } from "@/components/business/dashboard/SubscriptionStatusCard";
+import { VerificationStatusCard } from "@/components/business/dashboard/VerificationStatusCard";
+import { TodaySchedulePreview } from "@/components/business/dashboard/TodaySchedulePreview";
 import { useBusinessAuth } from "@/lib/business/auth";
 import { useDashboard } from "@/lib/business/hooks/useDashboard";
 import { useAnalytics } from "@/lib/business/hooks/useAnalytics";
-import { hasPermission, PERMISSIONS } from "@/lib/business/permissions";
+import { hasPermission, PERMISSIONS, type PermissionKey } from "@/lib/business/permissions";
 import { formatINR } from "@/lib/format";
 import { ICON_SIZE } from "@/lib/design-tokens";
 
@@ -30,20 +34,33 @@ const STATUS_TONE: Record<string, "neutral" | "primary" | "success" | "warning" 
   no_show: "danger",
 };
 
+/** Shortcuts to the create-flow of each area the member is allowed to manage. */
+const QUICK_ACTIONS: { label: string; description: string; href: string; icon: React.ReactNode; require: PermissionKey }[] = [
+  { label: "New appointment", description: "Book a customer in", href: "/business/appointments", icon: <CalendarPlus size={ICON_SIZE.sm} />, require: PERMISSIONS.BOOKINGS_MANAGE },
+  { label: "Add service", description: "Expand your menu", href: "/business/services", icon: <Scissors size={ICON_SIZE.sm} />, require: PERMISSIONS.SERVICES_MANAGE },
+  { label: "Add professional", description: "Grow your team", href: "/business/professionals", icon: <UserPlus size={ICON_SIZE.sm} />, require: PERMISSIONS.TEAM_MANAGE },
+  { label: "Create offer", description: "Drive more bookings", href: "/business/offers", icon: <Tag size={ICON_SIZE.sm} />, require: PERMISSIONS.OFFERS_MANAGE },
+];
+
 export default function BusinessDashboardPage() {
-  const { activeMembership } = useBusinessAuth();
+  const { user, activeMembership } = useBusinessAuth();
   const studioId = activeMembership?.studioId;
   const permissions = activeMembership?.permissions || [];
   const canViewAnalytics = hasPermission(permissions, PERMISSIONS.ANALYTICS_VIEW);
+  // Billing is a settings-level concern — a stylist shouldn't see the plan state.
+  const canSeeSubscription = hasPermission(permissions, PERMISSIONS.SETTINGS_MANAGE);
 
   const dashboard = useDashboard(studioId);
   const analytics = useAnalytics(studioId, canViewAnalytics ? { period: "month" } : undefined);
+
+  const firstName = user?.name?.split(" ")[0];
+  const quickActions = QUICK_ACTIONS.filter((a) => hasPermission(permissions, a.require));
 
   return (
     <div>
       <PageHeader
         eyebrow={activeMembership?.businessName}
-        title="Dashboard"
+        title={firstName ? `Welcome back, ${firstName}` : "Dashboard"}
         description="A live overview of today's business."
         actions={
           <Button asChild intent="outline">
@@ -53,6 +70,14 @@ export default function BusinessDashboardPage() {
           </Button>
         }
       />
+
+      {quickActions.length > 0 ? (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {quickActions.map((a) => (
+            <QuickAction key={a.href} label={a.label} description={a.description} href={a.href} icon={a.icon} />
+          ))}
+        </div>
+      ) : null}
 
       {dashboard.isLoading ? (
         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
@@ -102,6 +127,16 @@ export default function BusinessDashboardPage() {
                 </Section>
               ) : null}
 
+              <Section
+                title="Today's schedule"
+                description="Everything booked today, in order"
+                action={<Link href="/business/calendar" className="text-sm font-medium text-primary">Open calendar</Link>}
+              >
+                <Card padding="sm">
+                  <TodaySchedulePreview bookings={dashboard.data.today.bookings} />
+                </Card>
+              </Section>
+
               <Section title="Upcoming appointments" action={<Link href="/business/appointments" className="text-sm font-medium text-primary">View all</Link>}>
                 <Card padding="sm">
                   {dashboard.data.upcomingBookings.length === 0 ? (
@@ -124,6 +159,9 @@ export default function BusinessDashboardPage() {
             </div>
 
             <div className="flex flex-col gap-6">
+              {canSeeSubscription ? <SubscriptionStatusCard studioId={studioId} /> : null}
+              <VerificationStatusCard studioId={studioId} />
+
               <Section title="Popular services">
                 <Card>
                   {dashboard.data.popularServices.length === 0 ? (

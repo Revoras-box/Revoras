@@ -2,16 +2,24 @@
 
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Plus } from "lucide-react";
+import { Copy, MoreHorizontal, Pause, Pencil, Play, Plus, Trash2 } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Checkbox } from "@/components/ui/Checkbox";
+import { Tabs } from "@/components/ui/Tabs";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { Badge } from "@/components/ui/Badge";
 import { Modal } from "@/components/ui/Modal";
 import { ErrorState } from "@/components/ui/ErrorState";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/business/DropdownMenu";
 import { useBusinessAuth } from "@/lib/business/auth";
 import { useOffers, useCreateOffer, useUpdateOffer, useDeleteOffer } from "@/lib/business/hooks/useOffers";
 import { useServices } from "@/lib/business/hooks/useServices";
@@ -31,6 +39,12 @@ const discountLabel = (o: OfferRow) =>
     ? `${o.discountValue}% off${o.maxDiscountAmount != null ? ` up to ${formatINR(o.maxDiscountAmount)}` : ""}`
     : `${formatINR(o.discountValue)} off`;
 
+/** `null` = closed. `offer: null` = blank create. `duplicate` = prefill from an existing offer but create a new one. */
+type EditorState = { offer: OfferRow | null; duplicate?: boolean } | null;
+
+const FILTERS = ["all", "active", "scheduled", "inactive", "expired"] as const;
+type FilterValue = (typeof FILTERS)[number];
+
 export default function OffersPage() {
   const { activeMembership } = useBusinessAuth();
   const studioId = activeMembership?.studioId;
@@ -38,12 +52,26 @@ export default function OffersPage() {
 
   const { data: offers, isLoading, isError, refetch } = useOffers(studioId);
   const deleteOffer = useDeleteOffer(studioId);
-  const [editing, setEditing] = useState<OfferRow | "new" | null>(null);
+  const updateOffer = useUpdateOffer(studioId);
+  const [editing, setEditing] = useState<EditorState>(null);
+  const [filter, setFilter] = useState<FilterValue>("all");
 
   const sorted = useMemo(() => {
     const rank: Record<OfferStatus, number> = { active: 0, scheduled: 1, inactive: 2, expired: 3 };
     return [...(offers || [])].sort((a, b) => rank[a.status] - rank[b.status] || a.title.localeCompare(b.title));
   }, [offers]);
+
+  const counts = useMemo(() => {
+    const byStatus = { all: sorted.length } as Record<FilterValue, number>;
+    for (const f of FILTERS) if (f !== "all") byStatus[f] = 0;
+    for (const o of sorted) byStatus[o.status] += 1;
+    return byStatus;
+  }, [sorted]);
+
+  const visible = useMemo(
+    () => (filter === "all" ? sorted : sorted.filter((o) => o.status === filter)),
+    [sorted, filter]
+  );
 
   const handleDelete = (o: OfferRow) => {
     if (!window.confirm(`Delete "${o.title}"? Past bookings that used it keep their discount.`)) return;
@@ -51,6 +79,18 @@ export default function OffersPage() {
       onSuccess: () => toast.success("Offer deleted"),
       onError: (err) => toast.error(err instanceof Error ? err.message : "Couldn't delete offer"),
     });
+  };
+
+  // Pausing is just `isActive: false` — the server derives `status` from it, so a paused
+  // offer reads as `inactive` and stops applying at booking time.
+  const handleTogglePause = (o: OfferRow) => {
+    updateOffer.mutate(
+      { offerId: o.id, isActive: !o.isActive },
+      {
+        onSuccess: () => toast.success(o.isActive ? "Offer paused" : "Offer resumed"),
+        onError: (err) => toast.error(err instanceof Error ? err.message : "Couldn't update offer"),
+      }
+    );
   };
 
   const columns: DataTableColumn<OfferRow>[] = [
@@ -82,10 +122,33 @@ export default function OffersPage() {
           {
             key: "actions",
             header: "",
+            align: "right",
             render: (o: OfferRow) => (
-              <Button intent="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleDelete(o); }}>
-                Delete
-              </Button>
+              <div onClick={(e) => e.stopPropagation()}>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button intent="ghost" size="icon" aria-label={`Actions for ${o.title}`}>
+                      <MoreHorizontal size={16} />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onSelect={() => setEditing({ offer: o })}>
+                      <Pencil size={14} /> Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => setEditing({ offer: o, duplicate: true })}>
+                      <Copy size={14} /> Duplicate
+                    </DropdownMenuItem>
+                    {/* An expired offer's window is already in the past — resuming it would change nothing. */}
+                    <DropdownMenuItem disabled={o.status === "expired"} onSelect={() => handleTogglePause(o)}>
+                      {o.isActive ? <><Pause size={14} /> Pause</> : <><Play size={14} /> Resume</>}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem className="text-danger" onSelect={() => handleDelete(o)}>
+                      <Trash2 size={14} /> Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             ),
           } as DataTableColumn<OfferRow>,
         ]
@@ -100,7 +163,7 @@ export default function OffersPage() {
           description="Run discounts to attract and reward customers. The best applicable offer is applied automatically at booking."
           actions={
             canManage ? (
-              <Button onClick={() => setEditing("new")}>
+              <Button onClick={() => setEditing({ offer: null })}>
                 <Plus size={16} /> New offer
               </Button>
             ) : undefined
@@ -110,19 +173,43 @@ export default function OffersPage() {
         {isError ? (
           <ErrorState onRetry={() => refetch()} description="Couldn't load offers." />
         ) : (
-          <DataTable
-            columns={columns}
-            data={sorted}
-            rowKey={(o) => o.id}
-            loading={isLoading}
-            onRowClick={canManage ? (o) => setEditing(o) : undefined}
-            emptyTitle="No offers yet"
-            emptyDescription="Create your first offer to start attracting bookings."
-          />
+          <div>
+            <Tabs
+              value={filter}
+              onValueChange={(v) => setFilter(v as FilterValue)}
+              items={FILTERS.map((f) => ({
+                value: f,
+                label: f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1),
+                badge: counts[f] ? <Badge tone="neutral">{counts[f]}</Badge> : undefined,
+              }))}
+            >
+              {null}
+            </Tabs>
+
+            <DataTable
+              className="mt-4"
+              columns={columns}
+              data={visible}
+              rowKey={(o) => o.id}
+              loading={isLoading}
+              onRowClick={canManage ? (o) => setEditing({ offer: o }) : undefined}
+              emptyTitle={filter === "all" ? "No offers yet" : `No ${filter} offers`}
+              emptyDescription={
+                filter === "all"
+                  ? "Create your first offer to start attracting bookings."
+                  : "Try another status filter to see the rest of your offers."
+              }
+            />
+          </div>
         )}
 
         {editing ? (
-          <OfferFormModal studioId={studioId} offer={editing === "new" ? null : editing} onClose={() => setEditing(null)} />
+          <OfferFormModal
+            studioId={studioId}
+            offer={editing.offer}
+            duplicate={!!editing.duplicate}
+            onClose={() => setEditing(null)}
+          />
         ) : null}
       </div>
     </PermissionGate>
@@ -131,13 +218,27 @@ export default function OffersPage() {
 
 const toDateInput = (iso: string | null) => (iso ? new Date(iso).toISOString().slice(0, 10) : "");
 
-function OfferFormModal({ studioId, offer, onClose }: { studioId: string | undefined; offer: OfferRow | null; onClose: () => void }) {
+function OfferFormModal({
+  studioId,
+  offer,
+  duplicate = false,
+  onClose,
+}: {
+  studioId: string | undefined;
+  offer: OfferRow | null;
+  duplicate?: boolean;
+  onClose: () => void;
+}) {
   const createOffer = useCreateOffer(studioId);
   const updateOffer = useUpdateOffer(studioId);
   const { data: services } = useServices(studioId, true);
 
+  // A duplicate prefills from `offer` but saves as a new one, so everything below
+  // reads from `offer` while only `isEdit` decides create-vs-update.
+  const isEdit = !!offer && !duplicate;
+
   const [form, setForm] = useState({
-    title: offer?.title || "",
+    title: duplicate && offer ? `${offer.title} (copy)` : offer?.title || "",
     description: offer?.description || "",
     discountType: offer?.discountType || ("percentage" as "flat" | "percentage"),
     discountValue: offer?.discountValue ?? 10,
@@ -193,10 +294,10 @@ function OfferFormModal({ studioId, offer, onClose }: { studioId: string | undef
     };
 
     const opts = {
-      onSuccess: () => { toast.success(offer ? "Offer updated" : "Offer created"); onClose(); },
+      onSuccess: () => { toast.success(isEdit ? "Offer updated" : "Offer created"); onClose(); },
       onError: (err: unknown) => toast.error(err instanceof Error ? err.message : "Couldn't save offer"),
     };
-    if (offer) updateOffer.mutate({ offerId: offer.id, ...payload }, opts);
+    if (isEdit) updateOffer.mutate({ offerId: offer.id, ...payload }, opts);
     else createOffer.mutate(payload, opts);
   };
 
@@ -204,12 +305,12 @@ function OfferFormModal({ studioId, offer, onClose }: { studioId: string | undef
     <Modal
       open
       onOpenChange={(open) => !open && onClose()}
-      title={offer ? "Edit offer" : "New offer"}
+      title={isEdit ? "Edit offer" : duplicate ? "Duplicate offer" : "New offer"}
       footer={
         <>
           <Button intent="ghost" onClick={onClose}>Cancel</Button>
           <Button onClick={handleSubmit} loading={createOffer.isPending || updateOffer.isPending}>
-            {offer ? "Save changes" : "Create offer"}
+            {isEdit ? "Save changes" : "Create offer"}
           </Button>
         </>
       }

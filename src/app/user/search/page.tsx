@@ -3,13 +3,26 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Search as SearchIcon, SlidersHorizontal, LayoutGrid, List as ListIcon } from "lucide-react";
+import { Search as SearchIcon, SlidersHorizontal, LayoutGrid, List as ListIcon, Sparkles, TrendingUp, Star, Clock } from "lucide-react";
 import { Container, Input, Select, Chip, Button, BusinessCard, CardSkeleton, EmptyState, ErrorState, Pagination } from "@/components/ui";
 import { useBusinesses, useCategories } from "@/lib/hooks";
 import { useFavoriteState } from "@/lib/favorites";
 import { businessToCardProps } from "@/components/user/sections/utils";
 import DiscoveryRail from "@/components/user/sections/DiscoveryRail";
 import { FilterDrawer, FilterControls, EMPTY_FILTERS, countActiveFilters, type AdvancedFilters } from "@/components/user/sections/FilterDrawer";
+
+// Free-text searches the hero surfaces as one-tap chips. These are plain
+// keyword searches (they fill the search box), distinct from the category
+// pills below, which set the structured categoryId filter.
+const TRENDING_SEARCHES = ["Haircut", "Beard trim", "Spa", "Massage", "Facial", "Manicure", "Hair color"];
+
+// Curated rails shown in the idle "browse" state (no search/filter/category,
+// default sort) — a magazine-style landing instead of a flat recommended grid.
+const BROWSE_RAILS = [
+  { key: "trending", title: "Trending now", Icon: TrendingUp, params: { sortBy: "trending" } },
+  { key: "rating", title: "Top rated", Icon: Star, params: { sortBy: "rating" } },
+  { key: "newest", title: "New on Revoras", Icon: Clock, params: { sortBy: "newest" } },
+] as const;
 
 const SORT_OPTIONS = [
   { value: "recommended", label: "Recommended" },
@@ -120,6 +133,16 @@ function SearchPageContent() {
 
   const clearFilters = () => setFilters(EMPTY_FILTERS);
 
+  // The idle landing state: nothing has been searched, filtered, or re-sorted.
+  // Here we show curated discovery rails rather than a flat 20-tile grid; the
+  // moment the visitor engages any control we switch to real results.
+  const isBrowseMode =
+    !search.trim() && !categoryId && !openNow && activeFilterCount === 0 && sortBy === "recommended";
+
+  // Category pills mirror the header <Select> — both drive categoryId, so they
+  // stay in sync. The "All" pill clears back to every category.
+  const categoryPills = categoriesData?.categories ?? [];
+
   // One removable chip per active facet - lets a filter be lifted right from
   // the results view, not just from inside the drawer (Fresha/Booksy pattern).
   const appliedChips: { key: string; label: string; onRemove: () => void }[] = [
@@ -153,6 +176,30 @@ function SearchPageContent() {
 
   return (
     <>
+      {/* Gradient discovery hero — sets the tone and offers one-tap trending
+          searches. Kept compact so the sticky search + results stay above the
+          fold on scroll. */}
+      <div className="relative overflow-hidden border-b border-border bg-linear-to-br from-primary/12 via-surface-container to-accent/10">
+        <div className="grainy-overlay absolute inset-0" />
+        <Container width="lg" className="relative flex flex-col gap-4 py-8 sm:py-10">
+          <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
+            <Sparkles size={14} />
+            Discover
+          </div>
+          <h1 className="max-w-xl font-headline text-2xl font-bold text-on-surface sm:text-3xl">
+            Find your next great experience
+          </h1>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium uppercase tracking-widest text-muted">Trending</span>
+            {TRENDING_SEARCHES.map((term) => (
+              <Chip key={term} type="button" selected={search.trim().toLowerCase() === term.toLowerCase()} onClick={() => setSearch(term)}>
+                {term}
+              </Chip>
+            ))}
+          </div>
+        </Container>
+      </div>
+
       {/* Sticky compact search header */}
       <div className="sticky top-16 z-30 border-b border-border glass-nav">
         <Container width="lg" className="flex items-center gap-2 py-3">
@@ -178,7 +225,56 @@ function SearchPageContent() {
         </Container>
       </div>
 
+      {/* Scrollable category pills — a visual, browse-first way to set the
+          category filter (mirrors the header Select). */}
+      {categoryPills.length > 0 ? (
+        <div className="border-b border-border bg-surface">
+          <Container width="lg" className="py-3">
+            <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <Chip type="button" selected={!categoryId} onClick={() => setCategoryId("")} className="shrink-0">
+                All
+              </Chip>
+              {categoryPills.map((c) => (
+                <Chip
+                  key={c.id}
+                  type="button"
+                  selected={categoryId === c.id}
+                  onClick={() => setCategoryId(categoryId === c.id ? "" : c.id)}
+                  icon={c.icon ? <span aria-hidden="true">{c.icon}</span> : undefined}
+                  className="shrink-0"
+                >
+                  {c.name}
+                </Chip>
+              ))}
+            </div>
+          </Container>
+        </div>
+      ) : null}
+
       <Container width="lg" className="flex flex-col gap-5 py-6">
+        {isBrowseMode ? (
+          /* Idle browse mode — curated discovery rails instead of a flat grid. */
+          <div className="flex flex-col gap-10">
+            {BROWSE_RAILS.map(({ key, title, Icon, params: railParams }) => (
+              <section key={key} className="flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="flex items-center gap-2 font-headline text-xl font-semibold text-on-surface">
+                    <Icon size={18} className="text-primary" />
+                    {title}
+                  </h2>
+                  <button
+                    className="text-sm font-medium text-primary hover:underline"
+                    onClick={() => setSortBy(railParams.sortBy)}
+                  >
+                    See all
+                  </button>
+                </div>
+                <DiscoveryRail params={railParams} emptyTitle="Nothing to show yet" count={8} />
+              </section>
+            ))}
+          </div>
+        ) : (
+        <>
         {/* Results header */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -286,15 +382,22 @@ function SearchPageContent() {
             ) : (
               <div className="flex flex-col gap-8">
                 <div className={gridClass}>
-                  {businesses.map((business) => (
-                    <BusinessCard
+                  {businesses.map((business, i) => (
+                    <div
                       key={business.id}
-                      {...businessToCardProps(business)}
-                      layout={view}
-                      isFavorite={isFavorite(business.id)}
-                      onFavoriteToggle={() => toggleFavorite(business.id)}
-                      onClick={() => router.push(`/user/business/${business.id}`)}
-                    />
+                      className="animate-fade-rise"
+                      // Staggered entrance, capped so late cards don't lag — the
+                      // grid settles in as a wave rather than all at once.
+                      style={{ animationDelay: `${Math.min(i, 8) * 45}ms` }}
+                    >
+                      <BusinessCard
+                        {...businessToCardProps(business)}
+                        layout={view}
+                        isFavorite={isFavorite(business.id)}
+                        onFavoriteToggle={() => toggleFavorite(business.id)}
+                        onClick={() => router.push(`/user/business/${business.id}`)}
+                      />
+                    </div>
                   ))}
                 </div>
                 {pagination ? <Pagination page={pagination.page} pages={pagination.pages} onPageChange={setPage} /> : null}
@@ -308,6 +411,8 @@ function SearchPageContent() {
             )}
           </div>
         </div>
+        </>
+        )}
       </Container>
 
       {/* Mobile bottom-sheet filters */}

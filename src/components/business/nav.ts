@@ -13,6 +13,7 @@ import {
   IdCard,
   BadgeCheck,
   Tag,
+  Sparkles,
 } from "lucide-react";
 import { PERMISSIONS, type PermissionKey } from "@/lib/business/permissions";
 
@@ -37,6 +38,7 @@ export const BUSINESS_NAV_ITEMS: BusinessNavItem[] = [
   { label: "Analytics", href: "/business/analytics", icon: BarChart3, require: PERMISSIONS.ANALYTICS_VIEW },
   { label: "Reviews", href: "/business/reviews", icon: Star },
   { label: "Verification", href: "/business/verification", icon: BadgeCheck },
+  { label: "Subscription", href: "/business/subscription", icon: Sparkles, require: PERMISSIONS.SETTINGS_MANAGE },
   { label: "Notifications", href: "/business/notifications", icon: Bell },
   { label: "Settings", href: "/business/settings", icon: Settings, require: PERMISSIONS.SETTINGS_MANAGE },
 ];

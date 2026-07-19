@@ -30,7 +30,7 @@ export default function Navbar({
     <nav className="fixed top-0 z-1000 w-full border-b border-border glass-nav">
       <div className="mx-auto flex max-w-screen-2xl items-center justify-between gap-6 px-5 py-3.5 md:px-8">
         {/* Logo */}
-        <Link href={brandHref} className="shrink-0 font-headline text-2xl font-extrabold tracking-tight text-primary">
+        <Link href={brandHref} className="shrink-0 font-headline text-2xl font-extrabold tracking-tight text-primary dark:text-white">
           {brandText}
         </Link>
 

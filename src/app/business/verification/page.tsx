@@ -24,6 +24,8 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useBusinessAuth } from "@/lib/business/auth";
 import { hasPermission, PERMISSIONS } from "@/lib/business/permissions";
+import { useBusinessProfile } from "@/lib/business/hooks/useSettings";
+import { VerifiedBadgePreview } from "@/components/business/VerifiedBadgePreview";
 import {
   useVerification,
   useCreateVerificationRequest,
@@ -32,16 +34,9 @@ import {
   useSubmitVerificationRequest,
 } from "@/lib/business/hooks/useVerification";
 import type { VerificationDocumentType, VerificationStatus } from "@/lib/types";
+import { VERIFICATION_STATUS_META } from "@/lib/business/verification-status";
 
-const STATUS_META: Record<VerificationStatus, { label: string; tone: "neutral" | "primary" | "success" | "warning" | "danger"; blurb: string }> = {
-  draft: { label: "Draft", tone: "neutral", blurb: "Attach your documents and submit them for review." },
-  submitted: { label: "Submitted", tone: "primary", blurb: "Your request is in the queue — an admin will review it shortly." },
-  under_review: { label: "Under review", tone: "primary", blurb: "An admin is reviewing your request right now." },
-  more_info: { label: "More info needed", tone: "warning", blurb: "The reviewer needs more from you before deciding." },
-  approved: { label: "Verified", tone: "success", blurb: "Your business is verified. The Verified badge now shows on your listing." },
-  rejected: { label: "Rejected", tone: "danger", blurb: "This request was rejected. You can start a new one after addressing the reason below." },
-  suspended: { label: "Suspended", tone: "danger", blurb: "Your verification was suspended. Contact support or re-apply." },
-};
+const STATUS_META = VERIFICATION_STATUS_META;
 
 const DOC_TYPES: { value: VerificationDocumentType; label: string }[] = [
   { value: "business_license", label: "Business license" },
@@ -69,8 +64,13 @@ export default function VerificationCenterPage() {
   const [docType, setDocType] = useState<VerificationDocumentType>("business_license");
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // Only for the badge preview's name/photo — the verification flow itself
+  // doesn't need the profile, so a slow/failed load just falls back to a placeholder.
+  const { data: profile } = useBusinessProfile(studioId);
+
   const request = data?.currentRequest ?? null;
   const editable = request?.status === "draft" || request?.status === "more_info";
+  const isVerified = request?.status === "approved";
 
   const onStart = () => {
     createRequest.mutate(
@@ -307,17 +307,18 @@ export default function VerificationCenterPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>What you’ll earn</CardTitle>
+                <CardTitle>{isVerified ? "Your verified badge" : "What you’ll earn"}</CardTitle>
+                <CardDescription>
+                  Verification adds the Verified badge to your listing and increases your trust score, which lifts
+                  your position in discovery results.
+                </CardDescription>
               </CardHeader>
-              <div className="flex flex-wrap gap-2">
-                <Badge tone="success">
-                  <BadgeCheck size={13} /> Verified
-                </Badge>
-              </div>
-              <p className="mt-3 text-xs text-muted">
-                Verification adds the Verified badge to your listing and increases your trust score, which lifts your
-                position in discovery results.
-              </p>
+              <VerifiedBadgePreview
+                businessName={profile?.name || "Your business"}
+                imageUrl={profile?.image_url}
+                city={profile?.city}
+                active={isVerified}
+              />
             </Card>
           </div>
         </div>

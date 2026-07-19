@@ -11,6 +11,10 @@ const badgeVariants = cva(
         success: "bg-secondary-container text-on-secondary-container",
         warning: "bg-tertiary-container text-on-surface",
         danger: "bg-error-container text-on-error-container",
+        /* Filled chips spend brand colour; `outline` spends none. For status
+           that should read as premium//restrained rather than loud — it borrows
+           the surface's own text + hairline instead of a container fill. */
+        outline: "border border-outline-variant bg-transparent text-on-surface",
       },
     },
     defaultVariants: { tone: "neutral" },

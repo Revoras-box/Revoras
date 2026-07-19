@@ -2,8 +2,9 @@
 
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Search } from "lucide-react";
+import { KanbanSquare, Rows3, Search, X } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
@@ -18,6 +19,7 @@ import { useMembers } from "@/lib/business/hooks/useMembers";
 import { useDebouncedValue } from "@/lib/business/useDebouncedValue";
 import { hasPermission, PERMISSIONS } from "@/lib/business/permissions";
 import { BookingDetailDrawer } from "@/components/business/BookingDetailDrawer";
+import { AppointmentsBoard } from "@/components/business/AppointmentsBoard";
 import type { BookingRow } from "@/lib/business/types";
 import { formatINR } from "@/lib/format";
 
@@ -67,18 +69,42 @@ function AppointmentsPageInner() {
   const [status, setStatus] = useState("all");
   const [paymentStatus, setPaymentStatus] = useState("all");
   const [businessMemberId, setBusinessMemberId] = useState("all");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [view, setView] = useState<"table" | "board">("table");
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<BookingRow | null>(null);
 
   const members = useMembers(studioId);
 
+  // The board shows the whole pipeline at once, so it can't be paginated the way
+  // the table is — it pulls a single larger page instead.
+  const isBoard = view === "board";
+
   const filters: BookingFilters = {
     search: debouncedSearch || undefined,
-    status: status === "all" ? undefined : status,
+    // The board renders its own status columns, so a status filter would empty
+    // three of the four. It only applies to the table.
+    status: isBoard || status === "all" ? undefined : status,
     paymentStatus: paymentStatus === "all" ? undefined : paymentStatus,
     businessMemberId: businessMemberId === "all" ? undefined : businessMemberId,
-    page,
-    limit: 20,
+    from: from || undefined,
+    to: to || undefined,
+    page: isBoard ? 1 : page,
+    limit: isBoard ? 100 : 20,
+  };
+
+  const hasFilters =
+    !!search || status !== "all" || paymentStatus !== "all" || businessMemberId !== "all" || !!from || !!to;
+
+  const resetFilters = () => {
+    setSearch("");
+    setStatus("all");
+    setPaymentStatus("all");
+    setBusinessMemberId("all");
+    setFrom("");
+    setTo("");
+    setPage(1);
   };
 
   const { data, isLoading, isError, refetch } = useBookings(studioId, filters);
@@ -123,7 +149,30 @@ function AppointmentsPageInner() {
 
   return (
     <div>
-      <PageHeader title="Appointments" description="Every booking across your business, filterable and searchable." />
+      <PageHeader
+        title="Appointments"
+        description="Every booking across your business, filterable and searchable."
+        actions={
+          <div className="flex items-center gap-1 rounded-xl border border-border p-1">
+            <Button
+              intent={view === "table" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setView("table")}
+              aria-pressed={view === "table"}
+            >
+              <Rows3 size={16} /> Table
+            </Button>
+            <Button
+              intent={isBoard ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setView("board")}
+              aria-pressed={isBoard}
+            >
+              <KanbanSquare size={16} /> Board
+            </Button>
+          </div>
+        }
+      />
 
       <Card padding="sm" className="mb-4">
         <div className="flex flex-wrap gap-3">
@@ -138,15 +187,18 @@ function AppointmentsPageInner() {
             leadingIcon={<Search size={16} />}
             aria-label="Search appointments"
           />
-          <Select
-            className="w-44"
-            value={status}
-            onValueChange={(v) => {
-              setStatus(v);
-              setPage(1);
-            }}
-            options={STATUS_OPTIONS}
-          />
+          {/* Hidden on the board, which splits by status into its own columns. */}
+          {!isBoard ? (
+            <Select
+              className="w-44"
+              value={status}
+              onValueChange={(v) => {
+                setStatus(v);
+                setPage(1);
+              }}
+              options={STATUS_OPTIONS}
+            />
+          ) : null}
           <Select
             className="w-44"
             value={paymentStatus}
@@ -165,11 +217,38 @@ function AppointmentsPageInner() {
             }}
             options={[{ value: "all", label: "All professionals" }, ...(members.data || []).map((m) => ({ value: m.id, label: m.name }))]}
           />
+          <Input
+            type="date"
+            className="w-40"
+            value={from}
+            onChange={(e) => { setFrom(e.target.value); setPage(1); }}
+            aria-label="From date"
+          />
+          <Input
+            type="date"
+            className="w-40"
+            value={to}
+            onChange={(e) => { setTo(e.target.value); setPage(1); }}
+            aria-label="To date"
+          />
+          {hasFilters ? (
+            <Button intent="ghost" size="sm" onClick={resetFilters}>
+              <X size={16} /> Clear
+            </Button>
+          ) : null}
         </div>
       </Card>
 
       {isError ? (
         <ErrorState onRetry={() => refetch()} description="Couldn't load appointments." />
+      ) : isBoard ? (
+        <AppointmentsBoard
+          studioId={studioId}
+          bookings={data?.bookings || []}
+          loading={isLoading}
+          canManage={canManage}
+          onSelect={setSelected}
+        />
       ) : (
         <>
           <DataTable

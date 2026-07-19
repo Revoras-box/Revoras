@@ -21,6 +21,8 @@ export interface DashboardData {
   bookingStatusCounts: Record<string, number>;
   newCustomersCount: number;
   averageRating: number;
+  /** Reviews with no business reply yet — the Reviews page's actionable queue. */
+  reviewsAwaitingReply: number;
 }
 
 export type BookingStatus = "pending" | "confirmed" | "checked_in" | "completed" | "cancelled" | "no_show";
@@ -215,6 +217,10 @@ export interface ReviewRow {
   created_at: string;
   customer_name: string;
   customer_avatar: string | null;
+  /** The business's public reply. Null means unanswered — there is no separate status field. */
+  reply: string | null;
+  replied_at: string | null;
+  replied_by_name: string | null;
 }
 
 export interface NotificationRow {

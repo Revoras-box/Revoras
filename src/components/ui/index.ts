@@ -42,6 +42,7 @@ export * from "./Tabs";
 export * from "./Pagination";
 export * from "./DataTable";
 export * from "./StatCard";
+export * from "./QuickAction";
 export * from "./ScheduleGrid";
 export * from "./Timeline";
 

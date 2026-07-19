@@ -87,32 +87,42 @@
 }
 
 .dark {
-  /* Terra Jade — dark. Deep forest-charcoal (not pure black) so the bright
-     jade + clay accents glow and the surface feels premium at night. */
-  --background: #0C1A17;
-  --surface: #10221D;
-  --card: #12241F;
-  --surface-container-lowest: #0A1613;
-  --surface-container-low: #132520;
-  --surface-container: #162A24;
-  --surface-container-high: #1C332C;
-  --surface-container-highest: #243D35;
-  --surface-variant: #243D35;
-  --surface-dim: #0B1815;
-  --surface-bright: #294138;
+  /* Terra Jade — dark. Designed independently of the light theme rather than
+     derived from it: light is warm/cream/airy, dark is black/graphite/white.
+     Same brand, different personality.
+     Budget: ~90% black-graphite, ~8% white, ~2% jade. The surfaces are a
+     NEUTRAL ramp (zero hue) — the previous ramp was a forest-green tint on
+     every surface, which read as "the whole UI is green" rather than as a
+     premium dark UI. Jade is now an event, not a background: it appears only
+     on the CTA, focus ring, active nav, selected chip, and success. If you are
+     about to add a green surface here, that's the mistake this block exists to
+     prevent. */
+  --background: #0B0B0D;
+  --surface: #151517;
+  --card: #18181B;
+  --surface-container-lowest: #090909;
+  --surface-container-low: #141416;
+  --surface-container: #18181B;
+  --surface-container-high: #1F1F23;
+  --surface-container-highest: #26262B;
+  --surface-variant: #26262B;
+  --surface-dim: #0B0B0D;
+  --surface-bright: #2E2E34;
 
-  /* Text */
-  --foreground: #F2F5F3;
-  --on-surface: #E4EBE7;
-  --on-background: #E4EBE7;
-  --on-surface-variant: #B4C4BD;
-  --secondary-foreground: #9DB0A8;
-  --muted: #7E938B;
+  /* Text — white, then two neutral greys. No green cast. */
+  --foreground: #FFFFFF;
+  --on-surface: #FFFFFF;
+  --on-background: #FFFFFF;
+  --on-surface-variant: #CFCFCF;
+  --secondary-foreground: #CFCFCF;
+  --muted: #9B9B9B;
 
-  /* Lines */
-  --border: rgba(52, 211, 181, 0.14);
-  --outline: #5E7469;
-  --outline-variant: #2E4139;
+  /* Lines — white hairlines at low alpha (Linear/Vercel), not tinted jade.
+     Alpha rather than a solid grey so borders sit correctly on any surface
+     in the ramp. */
+  --border: rgba(255, 255, 255, 0.10);
+  --outline: #6E6E76;
+  --outline-variant: rgba(255, 255, 255, 0.14);
 
   /* Primary — bright jade */
   --primary: #34D3B5;
@@ -148,14 +158,16 @@
   --on-error-container: #FFDAD6;
 
   /* Inverse */
-  --inverse-surface: #E4EBE7;
-  --inverse-on-surface: #17211E;
+  --inverse-surface: #F4F4F5;
+  --inverse-on-surface: #18181B;
 
-  /* Elevation — deep shadows for the dark forest surface */
-  --elevation-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
-  --elevation-md: 0 8px 24px -4px rgba(0, 0, 0, 0.5);
-  --elevation-lg: 0 20px 40px -8px rgba(0, 0, 0, 0.45);
-  --elevation-xl: 0 24px 70px -12px rgba(0, 0, 0, 0.75);
+  /* Elevation — pure black. On a near-black background a shadow alone can't
+     separate a card, so depth comes from the white hairline border plus a
+     slightly lighter surface; these stay subtle on purpose. */
+  --elevation-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.6);
+  --elevation-md: 0 8px 24px -4px rgba(0, 0, 0, 0.7);
+  --elevation-lg: 0 20px 40px -8px rgba(0, 0, 0, 0.75);
+  --elevation-xl: 0 24px 70px -12px rgba(0, 0, 0, 0.85);
 }
 
 /* ------------------------------------------------------------------ */
@@ -343,8 +355,27 @@
     background-clip: text;
     color: transparent;
   }
+
+  /* Full-bleed marketing banner. Light keeps the jade→terracotta brand wash.
+     Dark deliberately does NOT: a section-sized gradient is the single largest
+     block of colour on the page, and the dark theme spends its accent budget on
+     actions, not backgrounds. Same content, charcoal + a jade glow that only
+     hints at the brand. */
+  .brand-banner {
+    background: linear-gradient(120deg, #0E7C6B 0%, #17A891 45%, #DC6B45 100%);
+  }
+  .dark .brand-banner {
+    background:
+      radial-gradient(120% 140% at 12% 15%, rgba(52, 211, 181, 0.10) 0%, rgba(52, 211, 181, 0) 55%),
+      radial-gradient(90% 120% at 92% 90%, rgba(255, 138, 91, 0.07) 0%, rgba(255, 138, 91, 0) 55%),
+      linear-gradient(160deg, #131316 0%, #0E0E10 100%);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+  }
+  /* In dark the headline resolves white → jade, not jade → terracotta: the
+     phrase starts as ordinary white text and only *lands* on the brand, so a
+     single accent closes the sentence instead of the whole line reading green. */
   .dark .brand-gradient-text {
-    background: linear-gradient(120deg, #34D3B5 0%, #5FE9CE 45%, #FF8A5B 100%);
+    background: linear-gradient(110deg, #FFFFFF 0%, #FFFFFF 25%, #34D3B5 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -359,6 +390,13 @@
   .glass-nav {
     background: color-mix(in srgb, var(--surface) 65%, transparent);
     backdrop-filter: blur(24px);
+  }
+  /* Dark nav is pinned to near-black rather than --surface: the nav should
+     read as the darkest chrome on the page, below the background it floats
+     over, with a white hairline doing the separating (Apple/Linear/Vercel). */
+  .dark .glass-nav {
+    background: color-mix(in srgb, #0A0A0A 72%, transparent);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.10);
   }
 
   .grainy-overlay {
@@ -424,11 +462,20 @@
   100% { transform: scale(1); opacity: 1; }
 }
 
+/* Results entrance. Cards fade and rise as a grid settles in — staggered via
+   an inline animation-delay per cell. The reduce block below zeroes the
+   duration, so reduced-motion users just get the final state instantly. */
+@keyframes fade-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @layer utilities {
   .animate-drawer-right { animation: drawer-in-right var(--duration-slow) var(--ease-out); }
   .animate-drawer-left { animation: drawer-in-left var(--duration-slow) var(--ease-out); }
   .animate-drawer-bottom { animation: drawer-in-bottom var(--duration-slow) var(--ease-out); }
   .animate-success-pop { animation: success-pop var(--duration-slow) var(--ease-out) both; }
+  .animate-fade-rise { animation: fade-rise var(--duration-slow) var(--ease-out) both; }
 }
 
 @media (prefers-reduced-motion: reduce) {

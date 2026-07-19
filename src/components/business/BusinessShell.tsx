@@ -7,8 +7,10 @@ import { Search, Menu, X } from "lucide-react";
 import { Sidebar, type SidebarItem } from "@/components/ui/Sidebar";
 import { AppShell } from "@/components/ui/AppShell";
 import { Input } from "@/components/ui/Input";
+import { Badge } from "@/components/ui/Badge";
 import { Drawer } from "@/components/ui/Drawer";
 import { useBusinessAuth } from "@/lib/business/auth";
+import { useDashboard } from "@/lib/business/hooks/useDashboard";
 import { BUSINESS_NAV_ITEMS } from "./nav";
 import { BusinessSwitcher } from "./BusinessSwitcher";
 import { UserMenu } from "./UserMenu";
@@ -25,11 +27,23 @@ export function BusinessShell({ children }: { children: React.ReactNode }) {
   const permissions = activeMembership?.permissions || [];
   const visibleItems = BUSINESS_NAV_ITEMS.filter((item) => !item.require || permissions.includes(item.require));
 
+  // The dashboard query is already cached by the time the shell renders on most
+  // routes, so this badge is free; on the rest it resolves in the background.
+  const dashboard = useDashboard(activeMembership?.studioId);
+  const awaitingReply = dashboard.data?.reviewsAwaitingReply ?? 0;
+
   const sidebarItems: SidebarItem[] = visibleItems.map((item) => ({
     label: item.label,
     href: item.href,
     icon: <item.icon size={ICON_SIZE.sm} />,
     active: item.href === "/business" ? pathname === "/business" : pathname.startsWith(item.href),
+    // Reviews is the one nav item with an actionable queue behind it.
+    trailing:
+      item.href === "/business/reviews" && awaitingReply > 0 ? (
+        <Badge tone="primary" aria-label={`${awaitingReply} reviews awaiting a reply`}>
+          {awaitingReply}
+        </Badge>
+      ) : undefined,
   }));
 
   const handleSearchSubmit = (e: React.FormEvent) => {

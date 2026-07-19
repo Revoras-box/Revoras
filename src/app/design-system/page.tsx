@@ -169,7 +169,7 @@ export default function DesignSystemPage() {
         />
 
         {/* ---------------- Foundations ---------------- */}
-        <Section id="foundations" title="Design tokens" description="Terra Jade (2026-07-15): jade brand primary, terracotta accent, warm-cream light / deep-forest dark surfaces. Names are frozen; only these values define the palette, so every component re-themes for free.">
+        <Section id="foundations" title="Design tokens" description="Terra Jade: jade brand primary, terracotta accent. The themes are designed independently — warm-cream light surfaces, neutral near-black dark surfaces (2026-07-17: the dark ramp was retinted from forest-green to neutral graphite, so jade reads as an action, not a background). Names are frozen; only these values define the palette, so every component re-themes for free.">
           <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-4 gap-4">
             <Swatch name="Primary (jade)" varName="--primary" />
             <Swatch name="Accent (terracotta)" varName="--accent" />

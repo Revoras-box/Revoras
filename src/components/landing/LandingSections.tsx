@@ -91,7 +91,7 @@ export function HowItWorks() {
 export function BecomeHost() {
   return (
     <section className="mx-auto max-w-screen-2xl px-5 py-10 md:px-8 md:py-14">
-      <div className="brand-gradient relative overflow-hidden rounded-3xl px-6 py-12 md:px-14 md:py-16">
+      <div className="brand-banner relative overflow-hidden rounded-3xl px-6 py-12 md:px-14 md:py-16">
         <div className="grainy-overlay absolute inset-0" />
         <div className="relative flex flex-col items-start gap-6 md:flex-row md:items-center md:justify-between">
           <div className="max-w-xl text-white">
@@ -108,7 +108,9 @@ export function BecomeHost() {
           </div>
           <Link
             href="/host/signup"
-            className="inline-flex shrink-0 items-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-bold text-on-surface shadow-floating transition-transform hover:-translate-y-0.5"
+            // bg-white is a fixed colour, so its label must be a fixed dark one.
+            // `text-on-surface` is near-white in dark → the label vanished.
+            className="inline-flex shrink-0 items-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-bold text-[#0B0B0D] shadow-floating transition-transform hover:-translate-y-0.5"
           >
             List your business
             <ArrowRight size={16} />

@@ -393,8 +393,17 @@ export const businessApi = {
       { method: "POST", body }
     ),
 
-  listReviews: (studioId: string, params: { rating?: number; sortBy?: string; page?: number; limit?: number }) =>
-    request(`/reviews/business/${studioId}`, { params }),
+  listReviews: (
+    studioId: string,
+    params: { rating?: number; sortBy?: string; awaitingReply?: boolean; page?: number; limit?: number }
+  ) => request(`/reviews/business/${studioId}`, { params }),
+
+  // Reviews are read from the public endpoint above, but the business's reply is
+  // written on the business-scoped router where reviews.respond is enforced.
+  replyToReview: (studioId: string, reviewId: string, reply: string) =>
+    request(`/business/${studioId}/reviews/${reviewId}/reply`, { method: "PUT", body: { reply } }),
+  deleteReviewReply: (studioId: string, reviewId: string) =>
+    request(`/business/${studioId}/reviews/${reviewId}/reply`, { method: "DELETE" }),
 
   listNotifications: (params: { unreadOnly?: boolean; page?: number; limit?: number }) =>
     request(`/notifications`, { params }),

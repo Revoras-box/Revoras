@@ -29,8 +29,23 @@ re-skin re-themed ~50 pages by editing one file.
 ## Color
 
 Jade **primary** (brand), terracotta **accent** (warm counterpart), green
-**secondary** = success, red **error** = destructive. Warm-cream light surfaces,
-deep-forest dark surfaces (never pure black/white).
+**secondary** = success, red **error** = destructive.
+
+**The two themes are designed independently, not derived from each other.**
+They share the brand, not the recipe:
+
+| | Light | Dark |
+|---|---|---|
+| Personality | Warm, airy, cream | Black, graphite, white |
+| Budget | ~85% light neutrals, ~10% jade, ~5% terracotta | ~90% black/graphite, ~8% white, ~2% jade/terracotta |
+| Surfaces | Warm cream (`#FAF7F2`), white cards | **Neutral** near-black — zero hue |
+
+The dark surfaces used to be a forest-green tint on every layer, which read as
+"the whole UI is tinted green" rather than as a premium dark UI. They are now a
+neutral graphite ramp, and **jade is an event, not a background**: it appears on
+the CTA, focus ring, active nav, selected chip, and success — nothing else. If
+you are reaching for a green *surface* in dark, that's the mistake this rule
+exists to prevent.
 
 | Token | Light | Dark | Use for |
 |---|---|---|---|
@@ -40,11 +55,17 @@ deep-forest dark surfaces (never pure black/white).
 | `--accent-foreground` | `#FFFFFF` | `#3A1608` | Text/icons **on** an accent fill |
 | `--secondary` | `#15803D` | `#4ADE80` | **Success only** (confirmed, paid, positive) |
 | `--error` | `#DC2626` | `#FFB4AB` | Destructive / failure only |
-| `--background` | `#FAF7F2` | `#0C1A17` | Page background |
-| `--surface` / `--card` | `#FFFFFF` | `#10221D` / `#12241F` | Cards, sheets, nav |
-| `--foreground` / `--on-surface` | `#17211E` | `#F2F5F3` / `#E4EBE7` | Body text |
-| `--muted` | `#6B746F` | `#7E938B` | Secondary/meta text |
-| `--border` | `#E9E3D8` | `jade @14%` | Hairlines, dividers |
+| `--background` | `#FAF7F2` | `#0B0B0D` | Page background |
+| `--surface` / `--card` | `#FFFFFF` | `#151517` / `#18181B` | Cards, sheets |
+| `--foreground` / `--on-surface` | `#17211E` | `#FFFFFF` | Body text |
+| `--on-surface-variant` | `#4B5551` | `#CFCFCF` | Secondary text |
+| `--muted` | `#6B746F` | `#9B9B9B` | Secondary/meta text |
+| `--border` | `#E9E3D8` | `white @10%` | Hairlines, dividers |
+
+Dark nav is pinned to `#0A0A0A @72%` + blur + a white 10% hairline (`.glass-nav`),
+deliberately *not* `--surface`: the nav reads as the darkest chrome on the page.
+Every dark pair above clears WCAG AA (worst case: `--muted` on an elevated
+card, 5.91:1).
 
 Full scale (surface-container-\*, on-\*-container, tertiary, inverse) lives in
 `globals.css`. `--tertiary` aliases the accent, so legacy tertiary usages read
@@ -52,6 +73,11 @@ terracotta.
 
 **Signature:** the brand gradient jade→terracotta. Utilities: `.brand-gradient`
 (fills — hero bands, CTAs) and `.brand-gradient-text` (headline accent words).
+Both are theme-aware in dark, where a section-sized gradient would blow the 2%
+accent budget: `.brand-gradient-text` resolves **white → jade** (the phrase lands
+on the brand instead of the whole line reading green), and `.brand-banner` (the
+full-bleed marketing band) drops the wash entirely for charcoal + a faint jade
+glow + a white hairline.
 
 **Semantic discipline:** primary = brand action; accent = warm emphasis, not a
 second CTA; secondary = success state, never decoration; error = destructive

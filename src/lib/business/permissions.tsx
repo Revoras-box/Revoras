@@ -3,7 +3,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { ICON_SIZE } from "@/lib/design-tokens";
 
 /**
- * The 6 real permission keys from db/seeds/02_permissions.js - the backend's
+ * The real permission keys from db/seeds/02_permissions.js - the backend's
  * actual DB-driven RBAC, never a hardcoded role string. Every gated action
  * in the business dashboard checks one of these via `can()`, not `role`.
  */
@@ -15,6 +15,7 @@ export const PERMISSIONS = {
   SETTINGS_MANAGE: "settings.manage",
   ANALYTICS_VIEW: "analytics.view",
   OFFERS_MANAGE: "offers.manage", // Phase 2.4 (Offers & Promotions)
+  REVIEWS_RESPOND: "reviews.respond", // Phase 3B (business replies to reviews)
 } as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
