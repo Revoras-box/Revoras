@@ -19,7 +19,7 @@ export function StepVerification({ goNext, goPrev, exit, saving }: WizardStepPro
   return (
     <div>
       <StepHeader
-        eyebrow="Step 7 of 9"
+        eyebrow="Step 8 of 10"
         title="Verification"
         description="Get the verified badge that helps customers trust you. This is optional — you can finish signing up now and add your documents whenever you're ready."
       />

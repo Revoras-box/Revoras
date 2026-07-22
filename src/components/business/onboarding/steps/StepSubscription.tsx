@@ -61,7 +61,7 @@ export function StepSubscription({ studioId, state, goPrev, jumpTo, exit }: Wiza
         description: "Revoras for Business — monthly subscription",
         order_id: order.orderId,
         prefill: { name: user?.name, email: user?.email, contact: user?.phone || undefined },
-        theme: { color: "#0E7C6B" },
+        theme: { color: "#C9A45C" },
         handler: async (response) => {
           try {
             const result = await verifyPayment.mutateAsync({
@@ -101,7 +101,7 @@ export function StepSubscription({ studioId, state, goPrev, jumpTo, exit }: Wiza
   return (
     <div>
       <StepHeader
-        eyebrow="Step 9 of 9"
+        eyebrow="Step 10 of 10"
         title="Subscription"
         description="One simple plan to go live on Revoras. Pay ₹99 to submit your business for review."
       />

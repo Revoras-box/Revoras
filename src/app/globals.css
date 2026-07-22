@@ -9,165 +9,180 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* ------------------------------------------------------------------ */
-/*  Runtime theme tokens.                                              */
-/*  :root  = Light theme (premium, clean — Apple/Stripe/Linear feel)   */
-/*  .dark  = Dark theme  (existing Revoras palette, preserved exactly) */
-/*  The Revoras gold accent is shared by both themes (brand identity). */
+/*  Runtime theme tokens — Revoras Design System v2 "Gold".            */
+/*  :root  = Light theme (warm off-white, gold accent, near-black text)*/
+/*  .dark  = Dark theme  (black/graphite, gold as an accent event only)*/
+/*  Light and dark are designed independently, not derived from each   */
+/*  other. Solid mid-tone fills (primary/secondary/error/warning) pair */
+/*  with near-black text in BOTH themes — every one of those hexes is  */
+/*  light/mid enough that white text fails WCAG AA on it; container    */
+/*  tones keep the conventional light-tint + deep-hue-text pairing.    */
 /* ------------------------------------------------------------------ */
 :root {
-  /* Terra Jade — light. Surfaces are a warm cream so white cards lift off
-     the page and the jade/terracotta brand pair reads premium, not clinical. */
-  --background: #FAF7F2;
+  --background: #F8F7F4;
   --surface: #FFFFFF;
   --card: #FFFFFF;
   --surface-container-lowest: #FFFFFF;
-  --surface-container-low: #F5F1EA;
-  --surface-container: #EFEAE1;
-  --surface-container-high: #E8E2D7;
-  --surface-container-highest: #E1DACD;
-  --surface-variant: #E6E0D5;
-  --surface-dim: #E7E1D6;
+  --surface-container-low: #F2F1EE;
+  --surface-container: #ECEBE6;
+  --surface-container-high: #E4E2DC;
+  --surface-container-highest: #DCD9D1;
+  --surface-variant: #E3E1DC;
+  --surface-dim: #E4E2DD;
   --surface-bright: #FFFFFF;
 
-  /* Text — a green-tinted charcoal so it sits naturally on the warm surfaces */
-  --foreground: #17211E;
-  --on-surface: #1E2A26;
-  --on-background: #1E2A26;
-  --on-surface-variant: #4B5551;
-  --secondary-foreground: #4B5551;
-  --muted: #6B746F;
+  /* Text — neutral, not warm/green-tinted */
+  --foreground: #1C1C1C;
+  --on-surface: #1C1C1C;
+  --on-background: #1C1C1C;
+  --on-surface-variant: #6E6E6E;
+  --secondary-foreground: #6E6E6E;
+  --muted: #979797;
 
   /* Lines */
-  --border: #E9E3D8;
-  --outline: #A29B8E;
-  --outline-variant: #E4DED2;
+  --border: rgba(0, 0, 0, 0.08);
+  --outline: rgba(0, 0, 0, 0.32);
+  --outline-variant: rgba(0, 0, 0, 0.12);
 
-  /* Primary — Revoras jade (brand) */
-  --primary: #0E7C6B;
-  --primary-foreground: #FFFFFF;
-  --primary-container: #CBEAE1;
-  --on-primary: #FFFFFF;
-  --on-primary-container: #00382F;
-  --primary-fixed-dim: #3FA593;
+  /* Primary — Revoras gold (brand) */
+  --primary: #C9A45C;
+  --primary-hover: #B98F40;
+  --primary-foreground: #1C1C1C;
+  --primary-container: #F4E8CE;
+  --on-primary: #1C1C1C;
+  --on-primary-container: #4A3410;
+  --primary-fixed-dim: #B98F40;
 
-  /* Accent — terracotta (the warm brand counterpart to jade) */
-  --accent: #DC6B45;
-  --accent-foreground: #FFFFFF;
-  --on-accent: #FFFFFF;
-  --accent-container: #FBE1D5;
-  --on-accent-container: #5A2411;
+  /* Accent — a lighter gold, for the rare case a second gold-family step
+     is needed (e.g. a badge next to a primary button). Never a second hue. */
+  --accent: #D8B876;
+  --accent-hover: #C9A45C;
+  --accent-foreground: #1C1C1C;
+  --on-accent: #1C1C1C;
+  --accent-container: #F4E7CC;
+  --on-accent-container: #4A3410;
 
-  /* Secondary — success / positive accent (forest green, kept distinct from jade) */
-  --secondary: #15803D;
-  --on-secondary: #FFFFFF;
-  --secondary-container: #DCFCE7;
-  --on-secondary-container: #14532D;
-  --secondary-fixed: #86EFAC;
-  --secondary-fixed-dim: #4ADE80;
+  /* Secondary — success */
+  --secondary: #4CAF50;
+  --on-secondary: #1C1C1C;
+  --secondary-container: #E3F5E4;
+  --on-secondary-container: #1B5E20;
+  --secondary-fixed: #8BD68F;
+  --secondary-fixed-dim: #4CAF50;
 
-  /* Tertiary — shares the terracotta accent so existing tertiary usages pick it up */
-  --tertiary: #DC6B45;
-  --tertiary-container: #FBE1D5;
+  /* Tertiary — shares the accent gold so existing tertiary usages pick it up */
+  --tertiary: #D8B876;
+  --tertiary-container: #F4E7CC;
 
   /* Error / destructive */
-  --error: #DC2626;
-  --on-error: #FFFFFF;
-  --error-container: #FEE2E2;
+  --error: #E53935;
+  --on-error: #1C1C1C;
+  --error-container: #FCE4E3;
   --on-error-container: #7F1D1D;
 
-  /* Inverse (tooltips, snackbars) */
-  --inverse-surface: #17211E;
-  --inverse-on-surface: #F2F5F3;
+  /* Warning */
+  --warning: #F4B400;
+  --on-warning: #1C1C1C;
+  --warning-container: #FEF3D6;
+  --on-warning-container: #5C4400;
 
-  /* Elevation — soft, cool-tinted shadows for a premium light UI */
-  --elevation-sm: 0 1px 2px 0 rgba(16, 24, 40, 0.05);
-  --elevation-md: 0 6px 16px -4px rgba(16, 24, 40, 0.08), 0 2px 6px -2px rgba(16, 24, 40, 0.04);
-  --elevation-lg: 0 14px 32px -8px rgba(16, 24, 40, 0.10), 0 4px 10px -4px rgba(16, 24, 40, 0.05);
-  --elevation-xl: 0 28px 60px -16px rgba(16, 24, 40, 0.14), 0 8px 20px -8px rgba(16, 24, 40, 0.06);
+  /* Inverse (tooltips, snackbars) */
+  --inverse-surface: #1C1C1C;
+  --inverse-on-surface: #F5F4F1;
+
+  /* Elevation — very soft, per spec (light: 0 8px 30px rgba(0,0,0,.06)) */
+  --elevation-sm: 0 2px 8px 0 rgba(0, 0, 0, 0.04);
+  --elevation-md: 0 8px 30px -4px rgba(0, 0, 0, 0.06);
+  --elevation-lg: 0 16px 48px -8px rgba(0, 0, 0, 0.08);
+  --elevation-xl: 0 28px 70px -16px rgba(0, 0, 0, 0.10);
 }
 
 .dark {
-  /* Terra Jade — dark. Designed independently of the light theme rather than
-     derived from it: light is warm/cream/airy, dark is black/graphite/white.
-     Same brand, different personality.
-     Budget: ~90% black-graphite, ~8% white, ~2% jade. The surfaces are a
-     NEUTRAL ramp (zero hue) — the previous ramp was a forest-green tint on
-     every surface, which read as "the whole UI is green" rather than as a
-     premium dark UI. Jade is now an event, not a background: it appears only
-     on the CTA, focus ring, active nav, selected chip, and success. If you are
-     about to add a green surface here, that's the mistake this block exists to
-     prevent. */
-  --background: #0B0B0D;
-  --surface: #151517;
-  --card: #18181B;
-  --surface-container-lowest: #090909;
-  --surface-container-low: #141416;
-  --surface-container: #18181B;
-  --surface-container-high: #1F1F23;
-  --surface-container-highest: #26262B;
-  --surface-variant: #26262B;
-  --surface-dim: #0B0B0D;
-  --surface-bright: #2E2E34;
+  /* Designed independently of the light theme, not derived from it.
+     Budget: ~90% black-graphite, ~8% white, ~2% gold. Gold is an event, not
+     a background: CTA, focus ring, active nav, selected chip. If you're about
+     to add a gold (or any hued) surface here, that's the mistake this block
+     exists to prevent. */
+  --background: #0C0C0D;
+  --surface: #171717;
+  --card: #171717;
+  --surface-container-lowest: #060606;
+  --surface-container-low: #151515;
+  --surface-container: #1D1D1F;
+  --surface-container-high: #242424;
+  --surface-container-highest: #2A2A2C;
+  --surface-variant: #242424;
+  --surface-dim: #0C0C0D;
+  --surface-bright: #2A2A2C;
 
-  /* Text — white, then two neutral greys. No green cast. */
+  /* Text — white, then two neutral greys. No hue cast. */
   --foreground: #FFFFFF;
   --on-surface: #FFFFFF;
   --on-background: #FFFFFF;
-  --on-surface-variant: #CFCFCF;
-  --secondary-foreground: #CFCFCF;
-  --muted: #9B9B9B;
+  --on-surface-variant: #B3B3B3;
+  --secondary-foreground: #B3B3B3;
+  --muted: #808080;
 
-  /* Lines — white hairlines at low alpha (Linear/Vercel), not tinted jade.
-     Alpha rather than a solid grey so borders sit correctly on any surface
-     in the ramp. */
-  --border: rgba(255, 255, 255, 0.10);
-  --outline: #6E6E76;
+  /* Lines — white hairlines at low alpha (Linear/Vercel). Alpha rather than a
+     solid grey so borders sit correctly on any surface in the ramp. */
+  --border: rgba(255, 255, 255, 0.08);
+  --outline: rgba(255, 255, 255, 0.32);
   --outline-variant: rgba(255, 255, 255, 0.14);
 
-  /* Primary — bright jade */
-  --primary: #34D3B5;
-  --primary-foreground: #00312A;
-  --primary-container: #0E5F52;
-  --on-primary: #00312A;
-  --on-primary-container: #A7F0E0;
-  --primary-fixed-dim: #34D3B5;
+  /* Primary — gold. Same hue/value as light (flat brand gold, not brightened)
+     because it pairs with near-black text in both themes, which already
+     clears AA (7.25:1) — brightening it further isn't needed here. */
+  --primary: #C9A45C;
+  --primary-hover: #DDBB78;
+  --primary-foreground: #1C1400;
+  --primary-container: #3A2E12;
+  --on-primary: #1C1400;
+  --on-primary-container: #F0DBA8;
+  --primary-fixed-dim: #C9A45C;
 
-  /* Accent — clay / warm terracotta */
-  --accent: #FF8A5B;
-  --accent-foreground: #3A1608;
-  --on-accent: #3A1608;
-  --accent-container: #7A3418;
-  --on-accent-container: #FFD8C6;
+  /* Accent — a lighter gold step, mirrors the light-theme relationship */
+  --accent: #E0C285;
+  --accent-hover: #C9A45C;
+  --accent-foreground: #1C1400;
+  --on-accent: #1C1400;
+  --accent-container: #3A2E12;
+  --on-accent-container: #F0DBA8;
 
-  /* Secondary — success / positive accent (green) */
-  --secondary: #4ADE80;
-  --on-secondary: #00391A;
-  --secondary-container: #0C5A2E;
-  --on-secondary-container: #A7F3C4;
-  --secondary-fixed: #A5F4BF;
-  --secondary-fixed-dim: #4ADE80;
+  /* Secondary — success */
+  --secondary: #59C36A;
+  --on-secondary: #0A1F0D;
+  --secondary-container: #123318;
+  --on-secondary-container: #A6E8AC;
+  --secondary-fixed: #8BD68F;
+  --secondary-fixed-dim: #59C36A;
 
-  /* Tertiary — shares the clay accent */
-  --tertiary: #FF8A5B;
-  --tertiary-container: #7A3418;
+  /* Tertiary — shares the accent gold */
+  --tertiary: #E0C285;
+  --tertiary-container: #3A2E12;
 
   /* Error / destructive */
-  --error: #FFB4AB;
-  --on-error: #690005;
-  --error-container: #93000A;
-  --on-error-container: #FFDAD6;
+  --error: #FF6B6B;
+  --on-error: #2A0808;
+  --error-container: #3A1414;
+  --on-error-container: #FFD4D4;
+
+  /* Warning */
+  --warning: #F4B400;
+  --on-warning: #241B00;
+  --warning-container: #3A2C00;
+  --on-warning-container: #FBE3A0;
 
   /* Inverse */
-  --inverse-surface: #F4F4F5;
-  --inverse-on-surface: #18181B;
+  --inverse-surface: #F5F4F1;
+  --inverse-on-surface: #1C1C1C;
 
-  /* Elevation — pure black. On a near-black background a shadow alone can't
-     separate a card, so depth comes from the white hairline border plus a
-     slightly lighter surface; these stay subtle on purpose. */
-  --elevation-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.6);
-  --elevation-md: 0 8px 24px -4px rgba(0, 0, 0, 0.7);
-  --elevation-lg: 0 20px 40px -8px rgba(0, 0, 0, 0.75);
-  --elevation-xl: 0 24px 70px -12px rgba(0, 0, 0, 0.85);
+  /* Elevation — pure black, per spec (dark: 0 10px 40px rgba(0,0,0,.45)).
+     On a near-black background a shadow alone can't separate a card, so
+     depth also comes from the white hairline border plus a lighter surface. */
+  --elevation-sm: 0 2px 10px 0 rgba(0, 0, 0, 0.35);
+  --elevation-md: 0 10px 40px -4px rgba(0, 0, 0, 0.45);
+  --elevation-lg: 0 18px 56px -8px rgba(0, 0, 0, 0.55);
+  --elevation-xl: 0 28px 80px -16px rgba(0, 0, 0, 0.65);
 }
 
 /* ------------------------------------------------------------------ */
@@ -200,6 +215,7 @@
   --color-outline-variant: var(--outline-variant);
 
   --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary-container: var(--primary-container);
   --color-on-primary: var(--on-primary);
@@ -207,6 +223,7 @@
   --color-primary-fixed-dim: var(--primary-fixed-dim);
 
   --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
   --color-accent-foreground: var(--accent-foreground);
   --color-on-accent: var(--on-accent);
   --color-accent-container: var(--accent-container);
@@ -227,20 +244,29 @@
   --color-error-container: var(--error-container);
   --color-on-error-container: var(--on-error-container);
 
+  --color-warning: var(--warning);
+  --color-on-warning: var(--on-warning);
+  --color-warning-container: var(--warning-container);
+  --color-on-warning-container: var(--on-warning-container);
+
   --color-inverse-surface: var(--inverse-surface);
   --color-inverse-on-surface: var(--inverse-on-surface);
 
-  /* Fonts (loaded via <link> in layout) */
-  --font-headline: "Epilogue", sans-serif;
+  /* Fonts (loaded via <link> in layout). One display face, one body face —
+     `label` aliases body rather than introducing a third family. */
+  --font-headline: "Hanken Grotesk", sans-serif;
   --font-body: "Manrope", sans-serif;
-  --font-label: "Space Grotesk", sans-serif;
-  --font-syne: "Syne", sans-serif;
+  --font-label: "Manrope", sans-serif;
 
-  /* Radius scale */
+  /* Radius scale. -btn/-input/-dialog are explicit sizes from the design
+     brief (16/16/28px) that don't land on the shared 4/8/12/24 scale below. */
   --radius: 0.25rem;
   --radius-lg: 0.5rem;
   --radius-xl: 0.75rem;
   --radius-2xl: 1.5rem;
+  --radius-btn: 1rem;
+  --radius-input: 1rem;
+  --radius-dialog: 1.75rem;
 }
 
 /* ------------------------------------------------------------------ */
@@ -333,49 +359,50 @@
   .barber-stripe {
     background: repeating-linear-gradient(
       45deg,
-      rgba(14, 124, 107, 0.05),
-      rgba(14, 124, 107, 0.05) 40px,
+      rgba(201, 164, 92, 0.05),
+      rgba(201, 164, 92, 0.05) 40px,
       transparent 40px,
       transparent 80px
     );
   }
 
   .premium-gradient {
-    background: linear-gradient(120deg, #0E7C6B, #3FA593);
+    background: linear-gradient(120deg, #B98F40, #C9A45C);
   }
 
-  /* The Revoras brand duo — jade → terracotta. Used for hero accents, CTAs,
-     and text-gradient headlines. Fixed hues so it reads the same in both themes. */
+  /* The Revoras brand mark — a single gold, not a two-hue duo. Used for hero
+     accents, CTAs, and text-gradient headlines. Fixed hue so it reads the
+     same in both themes; the gradient is a tonal shift (deep → bright gold),
+     not a hue shift, matching the single-accent rule for this palette. */
   .brand-gradient {
-    background: linear-gradient(120deg, #0E7C6B 0%, #17A891 45%, #DC6B45 100%);
+    background: linear-gradient(120deg, #B98F40 0%, #C9A45C 50%, #E0C285 100%);
   }
   .brand-gradient-text {
-    background: linear-gradient(120deg, #0E7C6B 0%, #17A891 45%, #DC6B45 100%);
+    background: linear-gradient(120deg, #B98F40 0%, #C9A45C 50%, #E0C285 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
 
-  /* Full-bleed marketing banner. Light keeps the jade→terracotta brand wash.
-     Dark deliberately does NOT: a section-sized gradient is the single largest
-     block of colour on the page, and the dark theme spends its accent budget on
-     actions, not backgrounds. Same content, charcoal + a jade glow that only
-     hints at the brand. */
+  /* Full-bleed marketing banner. Light keeps the gold brand wash. Dark
+     deliberately does NOT: a section-sized gradient is the single largest
+     block of colour on the page, and the dark theme spends its accent budget
+     on actions, not backgrounds. Same content, charcoal + a faint gold glow. */
   .brand-banner {
-    background: linear-gradient(120deg, #0E7C6B 0%, #17A891 45%, #DC6B45 100%);
+    background: linear-gradient(120deg, #B98F40 0%, #C9A45C 50%, #E0C285 100%);
   }
   .dark .brand-banner {
     background:
-      radial-gradient(120% 140% at 12% 15%, rgba(52, 211, 181, 0.10) 0%, rgba(52, 211, 181, 0) 55%),
-      radial-gradient(90% 120% at 92% 90%, rgba(255, 138, 91, 0.07) 0%, rgba(255, 138, 91, 0) 55%),
+      radial-gradient(120% 140% at 12% 15%, rgba(201, 164, 92, 0.10) 0%, rgba(201, 164, 92, 0) 55%),
+      radial-gradient(90% 120% at 92% 90%, rgba(224, 194, 133, 0.07) 0%, rgba(224, 194, 133, 0) 55%),
       linear-gradient(160deg, #131316 0%, #0E0E10 100%);
-    border: 1px solid rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.08);
   }
-  /* In dark the headline resolves white → jade, not jade → terracotta: the
-     phrase starts as ordinary white text and only *lands* on the brand, so a
-     single accent closes the sentence instead of the whole line reading green. */
+  /* In dark the headline resolves white → gold: the phrase starts as ordinary
+     white text and only *lands* on the brand, so a single accent closes the
+     sentence instead of the whole line reading gold. */
   .dark .brand-gradient-text {
-    background: linear-gradient(110deg, #FFFFFF 0%, #FFFFFF 25%, #34D3B5 100%);
+    background: linear-gradient(110deg, #FFFFFF 0%, #FFFFFF 25%, #C9A45C 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -396,7 +423,7 @@
      over, with a white hairline doing the separating (Apple/Linear/Vercel). */
   .dark .glass-nav {
     background: color-mix(in srgb, #0A0A0A 72%, transparent);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   .grainy-overlay {
@@ -460,6 +487,17 @@
   0% { transform: scale(0.6); opacity: 0; }
   60% { transform: scale(1.08); opacity: 1; }
   100% { transform: scale(1); opacity: 1; }
+}
+
+/* Landing marquee. The track is rendered twice and shifted by exactly -50%, so
+   the loop is seamless. Under prefers-reduced-motion the global reduce block
+   zeroes the duration, which parks the track at translateX(0) — a plain static
+   row of words, still perfectly readable. That's the intended fallback, so this
+   needs no JS gate (unlike the booking-success confetti above, which would
+   freeze mid-air). */
+@keyframes marquee-drift {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
 
 /* Results entrance. Cards fade and rise as a grid settles in — staggered via

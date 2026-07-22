@@ -1,7 +1,14 @@
 import Navbar from "@/components/Navbar";
 import SplashHero from "@/components/SplashHero";
 import Footer from "@/components/Footer";
-import { LandingCategories, FeaturedStudios, HowItWorks, BecomeHost } from "@/components/landing/LandingSections";
+import {
+  TrustBand,
+  LandingCategories,
+  FeaturedStudios,
+  HowItWorks,
+  LandingFaq,
+  BecomeHost,
+} from "@/components/landing/LandingSections";
 
 export default function SplashPage() {
   return (
@@ -17,9 +24,11 @@ export default function SplashPage() {
       />
       <main className="flex-1">
         <SplashHero />
+        <TrustBand />
         <LandingCategories />
         <FeaturedStudios />
         <HowItWorks />
+        <LandingFaq />
         <BecomeHost />
       </main>
       <Footer />

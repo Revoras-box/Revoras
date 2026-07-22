@@ -65,6 +65,31 @@ export interface OnboardingState {
   missing: string[];
 }
 
+// Phase 4A. Mirrors the backend GeocodeResult - address components already
+// mapped onto the column names the wizard uses (city/state/country/zipCode).
+export interface GeocodeResult {
+  lat: number;
+  lng: number;
+  displayName: string;
+  address: {
+    line1?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+    zipCode?: string;
+  };
+}
+
+export interface GeocodeSearchResult {
+  results: GeocodeResult[];
+  attribution: string;
+}
+
+export interface GeocodeReverseResult {
+  result: GeocodeResult | null;
+  attribution: string;
+}
+
 // Phase 1.1 - business gallery image row.
 export interface GalleryImage {
   id: string;
@@ -420,4 +445,13 @@ export const businessApi = {
   getUnreadNotificationCount: () => request<{ count: number }>(`/notifications/unread-count`),
   markNotificationRead: (id: string) => request(`/notifications/${id}/read`, { method: "PATCH" }),
   markAllNotificationsRead: () => request(`/notifications/read-all`, { method: "PATCH" }),
+
+  // Phase 4A (Explore Map - Location Foundation). Address <-> coordinate
+  // lookups for the onboarding Location step and the profile pin editor. Both
+  // hit the backend proxy (never Nominatim directly - see the backend's
+  // geocoding.service.js) and share the same JWT the rest of businessApi uses.
+  geocodeSearch: (q: string, limit?: number) =>
+    request<GeocodeSearchResult>(`/geocoding/search`, { params: { q, limit } }),
+  geocodeReverse: (lat: number, lng: number) =>
+    request<GeocodeReverseResult>(`/geocoding/reverse`, { params: { lat, lng } }),
 };

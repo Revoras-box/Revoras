@@ -30,8 +30,10 @@ export function TopNav({ logo, items = [], actions, linkComponent: LinkComp = "a
               href={item.href}
               aria-current={item.active ? "page" : undefined}
               className={cn(
-                "rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-(--duration-fast) ease-(--ease-out)",
-                item.active ? "text-primary" : "text-on-surface-variant hover:text-on-surface"
+                "relative rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-(--duration-fast) ease-(--ease-out)",
+                item.active
+                  ? "text-primary after:absolute after:-bottom-[1px] after:left-3 after:right-3 after:h-0.5 after:rounded-full after:bg-primary"
+                  : "text-on-surface-variant hover:text-on-surface"
               )}
             >
               {item.label}

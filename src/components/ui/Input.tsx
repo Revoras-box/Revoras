@@ -42,7 +42,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             aria-invalid={Boolean(error) || undefined}
             aria-describedby={hint || error ? hintId : undefined}
             className={cn(
-              "h-10 w-full rounded-lg border bg-surface px-3 text-sm text-on-surface placeholder:text-muted",
+              "h-10 w-full rounded-input border bg-surface px-3 text-sm text-on-surface placeholder:text-muted",
               "transition-colors duration-(--duration-fast) ease-(--ease-out)",
               "border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary",
               "disabled:opacity-50 disabled:pointer-events-none",

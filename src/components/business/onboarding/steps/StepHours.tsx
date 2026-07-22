@@ -42,7 +42,7 @@ export function StepHours({ studioId, goNext, goPrev, exit, saving }: WizardStep
   return (
     <div>
       <StepHeader
-        eyebrow="Step 6 of 9"
+        eyebrow="Step 7 of 10"
         title="Business hours"
         description="When are you open? Customers can only book within these hours."
       />

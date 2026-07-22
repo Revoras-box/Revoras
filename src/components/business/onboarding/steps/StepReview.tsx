@@ -32,7 +32,7 @@ export function StepReview({ studioId, state, goNext, goPrev, jumpTo, exit, savi
   return (
     <div>
       <StepHeader
-        eyebrow="Step 8 of 9"
+        eyebrow="Step 9 of 10"
         title="Review your business"
         description="Here's everything customers will see. Fix anything that isn't right before you submit."
       />

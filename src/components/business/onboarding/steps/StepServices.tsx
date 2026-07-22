@@ -34,7 +34,7 @@ export function StepServices({ studioId, goNext, goPrev, exit, saving }: WizardS
   return (
     <div>
       <StepHeader
-        eyebrow="Step 3 of 9"
+        eyebrow="Step 4 of 10"
         title="Services"
         description="What can customers book, and what does it cost? Add at least one service to continue."
       />

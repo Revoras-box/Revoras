@@ -9,7 +9,7 @@ const badgeVariants = cva(
         neutral: "bg-surface-container-high text-on-surface-variant",
         primary: "bg-primary-container text-on-primary-container",
         success: "bg-secondary-container text-on-secondary-container",
-        warning: "bg-tertiary-container text-on-surface",
+        warning: "bg-warning-container text-on-warning-container",
         danger: "bg-error-container text-on-error-container",
         /* Filled chips spend brand colour; `outline` spends none. For status
            that should read as premium//restrained rather than loud — it borrows

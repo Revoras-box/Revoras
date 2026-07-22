@@ -56,7 +56,7 @@ export function StepGallery({ studioId, goNext, goPrev, exit, saving }: WizardSt
   return (
     <div>
       <StepHeader
-        eyebrow="Step 5 of 9"
+        eyebrow="Step 6 of 10"
         title="Gallery"
         description="Show off your space. Great photos build trust — add at least one to continue. Your first photo becomes the cover."
       />

@@ -19,7 +19,7 @@ export interface DrawerProps {
 const sideClass = {
   left: "left-0 top-0 h-full w-[min(88vw,340px)] data-[state=open]:animate-drawer-left",
   right: "right-0 top-0 h-full w-[min(92vw,420px)] data-[state=open]:animate-drawer-right",
-  bottom: "left-0 bottom-0 w-full max-h-[85vh] rounded-t-2xl data-[state=open]:animate-drawer-bottom",
+  bottom: "left-0 bottom-0 w-full max-h-[85vh] rounded-t-dialog data-[state=open]:animate-drawer-bottom",
 } as const;
 
 /**

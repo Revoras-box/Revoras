@@ -1,18 +1,26 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, MapPin, Star, ShieldCheck, Sparkles } from "lucide-react";
+import { Search, MapPin, ArrowRight } from "lucide-react";
 
 const POPULAR = ["Haircut", "Hair Spa", "Facial", "Beard Trim", "Manicure", "Bridal"];
 
-const COLLAGE = [
-  "https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=800",
-  "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?q=80&w=800",
-  "https://images.unsplash.com/photo-1600948836101-f9ffda59d250?q=80&w=800",
-  "https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?q=80&w=800",
-];
+/**
+ * One full-bleed image instead of the old four-tile collage. The collage was
+ * the most template-like thing on the page — a 2x2 of stock interiors reads as
+ * filler on every marketplace homepage. A single editorial frame with the
+ * headline set over it gives the fold one subject and one voice.
+ *
+ * `priority` because this is the LCP element; the unsplash host is already
+ * allow-listed in next.config.mjs.
+ */
+const HERO_IMAGE = {
+  src: "https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=2000",
+  alt: "Barber chairs lined up in a modern studio",
+};
 
 export default function SplashHero() {
   const router = useRouter();
@@ -28,131 +36,104 @@ export default function SplashHero() {
   };
 
   return (
-    <section className="relative overflow-hidden bg-background pt-28 pb-16 md:pt-36 md:pb-24">
-      {/* Ambient brand glows */}
-      <div className="pointer-events-none absolute -top-32 -left-24 h-96 w-96 rounded-full bg-primary/10 blur-[120px]" />
-      <div className="pointer-events-none absolute top-20 right-0 h-96 w-96 rounded-full bg-accent/10 blur-[120px]" />
+    <section className="relative">
+      {/* ---------------------------------------------------------------- */}
+      {/* Frame: image + scrim + headline                                   */}
+      {/* ---------------------------------------------------------------- */}
+      <div className="relative flex min-h-[78vh] items-end overflow-hidden md:min-h-[86vh]">
+        <Image
+          src={HERO_IMAGE.src}
+          alt={HERO_IMAGE.alt}
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
 
-      <div className="relative mx-auto grid max-w-screen-2xl items-center gap-12 px-5 md:px-8 lg:grid-cols-[1.05fr_0.95fr]">
-        {/* Left: copy + search */}
-        <div>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1 text-xs font-medium text-secondary-foreground">
-            <Sparkles size={13} className="text-accent" />
-            India&apos;s beauty &amp; wellness marketplace
-          </span>
+        {/* Two scrims, not one. The vertical pass guarantees contrast for the
+            headline sitting on the bottom edge; the horizontal pass keeps the
+            left column dark enough on wide screens, where the image's own
+            bright areas drift under the text. Both are fixed blacks rather
+            than tokens — they darken a photograph, so they must not invert
+            with the theme. */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/25" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent" />
+        <div className="grainy-overlay absolute inset-0" />
 
-          <h1 className="mt-5 font-headline text-5xl font-extrabold leading-[1.05] tracking-tight text-on-surface md:text-6xl lg:text-7xl">
-            Your best look
-            <br />
-            <span className="brand-gradient-text">starts here.</span>
-          </h1>
-
-          <p className="mt-5 max-w-lg text-base text-secondary-foreground md:text-lg">
-            Discover and book trusted salons, barbers, spas and beauty professionals near you — all in one beautiful place.
-          </p>
-
-          {/* Floating search */}
-          <form
-            onSubmit={submit}
-            className="mt-8 flex flex-col gap-2 rounded-2xl border border-border bg-surface p-2 shadow-floating sm:flex-row sm:items-center sm:rounded-full"
-          >
-            <label className="flex flex-1 items-center gap-2.5 rounded-xl px-3.5 py-2.5 sm:rounded-full">
-              <Search size={18} className="shrink-0 text-muted" />
-              <input
-                value={what}
-                onChange={(e) => setWhat(e.target.value)}
-                placeholder="What are you looking for?"
-                aria-label="Service, studio or professional"
-                className="w-full bg-transparent text-sm text-on-surface outline-none placeholder:text-muted"
-              />
-            </label>
-            <span className="hidden h-6 w-px bg-border sm:block" />
-            <label className="flex flex-1 items-center gap-2.5 rounded-xl px-3.5 py-2.5 sm:rounded-full">
-              <MapPin size={18} className="shrink-0 text-muted" />
-              <input
-                value={where}
-                onChange={(e) => setWhere(e.target.value)}
-                placeholder="Location"
-                aria-label="Location"
-                className="w-full bg-transparent text-sm text-on-surface outline-none placeholder:text-muted"
-              />
-            </label>
-            <button
-              type="submit"
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-transform hover:-translate-y-0.5"
-            >
-              <Search size={16} />
-              Search
-            </button>
-          </form>
-
-          {/* Popular searches */}
-          <div className="mt-5 flex flex-wrap items-center gap-2">
-            <span className="text-xs font-medium text-muted">Popular:</span>
-            {POPULAR.map((p) => (
-              <Link
-                key={p}
-                href={`/user/search?search=${encodeURIComponent(p)}`}
-                className="rounded-full border border-border bg-surface px-3 py-1 text-xs font-medium text-secondary-foreground transition-colors hover:border-primary hover:text-primary"
-              >
-                {p}
-              </Link>
-            ))}
-          </div>
-
-          {/* Trust strip */}
-          <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-secondary-foreground">
-            <span className="inline-flex items-center gap-1.5">
-              <ShieldCheck size={16} className="text-primary" />
-              Verified studios
+        {/* Everything over the photo is fixed white — `text-on-surface` flips
+            to near-black in light theme and would vanish here. */}
+        <div className="relative mx-auto w-full max-w-screen-2xl px-5 pb-16 pt-28 md:px-8 md:pb-24">
+          <div className="max-w-4xl">
+            <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-white/70">
+              <span className="h-px w-8 bg-white/40" />
+              India&apos;s beauty &amp; wellness marketplace
             </span>
-            <span className="inline-flex items-center gap-1.5">
-              <Star size={16} className="text-accent" />
-              Real customer reviews
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <Sparkles size={16} className="text-primary" />
-              Instant booking
-            </span>
+
+            <h1 className="mt-6 font-headline text-[clamp(2.75rem,8vw,7rem)] font-extrabold leading-[0.92] tracking-[-0.03em] text-white">
+              Your best look
+              <br />
+              starts <span className="italic font-light">here.</span>
+            </h1>
+
+            <p className="mt-6 max-w-lg text-base leading-relaxed text-white/80 md:text-lg">
+              Discover and book trusted salons, barbers, spas and beauty professionals near you.
+            </p>
           </div>
         </div>
+      </div>
 
-        {/* Right: image collage */}
-        <div className="relative hidden lg:block">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="mt-10 flex flex-col gap-4">
-              {COLLAGE.slice(0, 2).map((src, i) => (
-                // eslint-disable-next-line @next/next/no-img-element -- decorative hero imagery
-                <img
-                  key={i}
-                  src={src}
-                  alt=""
-                  className="aspect-[3/4] w-full rounded-3xl border border-border object-cover shadow-elevated"
-                />
-              ))}
-            </div>
-            <div className="flex flex-col gap-4">
-              {COLLAGE.slice(2, 4).map((src, i) => (
-                // eslint-disable-next-line @next/next/no-img-element -- decorative hero imagery
-                <img
-                  key={i}
-                  src={src}
-                  alt=""
-                  className="aspect-[3/4] w-full rounded-3xl border border-border object-cover shadow-elevated"
-                />
-              ))}
-            </div>
-          </div>
-          {/* Floating rating chip */}
-          <div className="absolute -bottom-4 left-6 flex items-center gap-2.5 rounded-2xl border border-border bg-surface px-4 py-3 shadow-floating">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/15">
-              <Star size={16} className="fill-primary text-primary" />
-            </div>
-            <div className="leading-tight">
-              <p className="text-sm font-bold text-on-surface">4.8 average</p>
-              <p className="text-xs text-muted">across trusted studios</p>
-            </div>
-          </div>
+      {/* ---------------------------------------------------------------- */}
+      {/* Search: straddles the frame's bottom edge                          */}
+      {/* ---------------------------------------------------------------- */}
+      {/* Pulled up with a negative margin rather than absolutely positioned,
+          so the card still occupies layout height and can grow to two rows on
+          mobile without overlapping whatever follows. */}
+      <div className="relative z-10 mx-auto -mt-10 max-w-screen-2xl px-5 md:-mt-12 md:px-8">
+        <form
+          onSubmit={submit}
+          className="flex flex-col gap-2 rounded-2xl border border-border bg-surface p-2 shadow-floating transition-shadow focus-within:border-primary/40 sm:flex-row sm:items-center"
+        >
+          <label className="flex flex-1 items-center gap-3 rounded-xl px-4 py-3">
+            <Search size={18} className="shrink-0 text-muted" />
+            <input
+              value={what}
+              onChange={(e) => setWhat(e.target.value)}
+              placeholder="What are you looking for?"
+              aria-label="Service, studio or professional"
+              className="w-full bg-transparent text-sm text-on-surface outline-none placeholder:text-muted"
+            />
+          </label>
+          <span className="hidden h-7 w-px bg-border sm:block" />
+          <label className="flex flex-1 items-center gap-3 rounded-xl px-4 py-3">
+            <MapPin size={18} className="shrink-0 text-muted" />
+            <input
+              value={where}
+              onChange={(e) => setWhere(e.target.value)}
+              placeholder="Location"
+              aria-label="Location"
+              className="w-full bg-transparent text-sm text-on-surface outline-none placeholder:text-muted"
+            />
+          </label>
+          <button
+            type="submit"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground transition-transform hover:-translate-y-0.5"
+          >
+            Search
+            <ArrowRight size={16} />
+          </button>
+        </form>
+
+        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">Popular</span>
+          {POPULAR.map((p) => (
+            <Link
+              key={p}
+              href={`/user/search?search=${encodeURIComponent(p)}`}
+              className="text-sm text-secondary-foreground underline-offset-4 transition-colors hover:text-primary hover:underline"
+            >
+              {p}
+            </Link>
+          ))}
         </div>
       </div>
     </section>

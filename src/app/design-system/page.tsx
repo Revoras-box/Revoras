@@ -163,19 +163,19 @@ export default function DesignSystemPage() {
 
       <Container width="lg" className="py-10">
         <PageHeader
-          eyebrow="Design System v1 · Terra Jade"
+          eyebrow="Design System v2 · Gold"
           title="Revoras Design System"
-          description="The frozen v1 language: jade primary + terracotta accent, on the Material-3-style token layer. Every primitive, layout, feedback, data, and booking component renders live against the real tokens — toggle the theme above to check light and dark."
+          description="The v2 language: a single warm gold accent on a black/white/neutral base, on the Material-3-style token layer. Every primitive, layout, feedback, data, and booking component renders live against the real tokens — toggle the theme above to check light and dark."
         />
 
         {/* ---------------- Foundations ---------------- */}
-        <Section id="foundations" title="Design tokens" description="Terra Jade: jade brand primary, terracotta accent. The themes are designed independently — warm-cream light surfaces, neutral near-black dark surfaces (2026-07-17: the dark ramp was retinted from forest-green to neutral graphite, so jade reads as an action, not a background). Names are frozen; only these values define the palette, so every component re-themes for free.">
+        <Section id="foundations" title="Design tokens" description="Gold: one warm-gold brand accent, never a second hue. The themes are designed independently — warm off-white light surfaces, neutral near-black dark surfaces. Gold reads as an action (CTA, focus, active, selected), not a background — solid gold/success/error/warning fills all pair with near-black text so they clear WCAG AA. Names are frozen; only these values define the palette, so every component re-themes for free.">
           <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-4 gap-4">
-            <Swatch name="Primary (jade)" varName="--primary" />
-            <Swatch name="Accent (terracotta)" varName="--accent" />
+            <Swatch name="Primary (gold)" varName="--primary" />
+            <Swatch name="Accent (light gold)" varName="--accent" />
             <Swatch name="Accent container" varName="--accent-container" />
             <Swatch name="Secondary (success)" varName="--secondary" />
-            <Swatch name="Tertiary" varName="--tertiary" />
+            <Swatch name="Warning" varName="--warning" />
             <Swatch name="Error" varName="--error" />
             <Swatch name="Surface" varName="--surface" />
             <Swatch name="Surface high" varName="--surface-container-high" />

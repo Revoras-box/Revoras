@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import FooterExperience from "@/components/FooterExperience";
+import Footer from "@/components/Footer";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 
@@ -250,7 +250,7 @@ export default function ServicesPage() {
         <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: "radial-gradient(circle at 2px 2px, #c8a96e 1px, transparent 0)", backgroundSize: "40px 40px" }}></div>
       </section>
 
-      <FooterExperience />
+      <Footer />
     </div>
   );
 }

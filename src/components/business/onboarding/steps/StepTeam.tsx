@@ -21,7 +21,7 @@ export function StepTeam({ studioId, goNext, goPrev, exit, saving }: WizardStepP
   return (
     <div>
       <StepHeader
-        eyebrow="Step 4 of 9"
+        eyebrow="Step 5 of 10"
         title="Your team"
         description="You're already listed as the owner. Add the professionals customers can book — or invite them later."
       />

@@ -1,7 +1,8 @@
-# Revoras Design System v1 — "Terra Jade"
+# Revoras Design System v2 — "Gold"
 
-_Frozen 2026-07-15. This is the reference every screen consumes. Change these
-decisions here first, deliberately — not per-page._
+_Supersedes v1 "Terra Jade" (frozen 2026-07-15, tagged `customer-experience-v1`).
+This is the reference every screen consumes. Change these decisions here first,
+deliberately — not per-page._
 
 ## Source of truth (in priority order)
 
@@ -21,66 +22,67 @@ If this doc and the code disagree, the code wins — then update this doc.
 Token **names** are frozen; only **values** define the look. Components use
 semantic classes (`bg-surface`, `text-primary`, `bg-accent`, `text-on-surface`,
 `shadow-elevated`, `rounded-2xl`). **Never** hardcode a hex in a component — if a
-color is missing, add a token, don't inline it. This is why the Terra Jade
-re-skin re-themed ~50 pages by editing one file.
+color is missing, add a token, don't inline it. This is why the v2 gold re-skin
+re-themed ~90 files by editing one file.
 
 ---
 
 ## Color
 
-Jade **primary** (brand), terracotta **accent** (warm counterpart), green
-**secondary** = success, red **error** = destructive.
+Warm **gold** primary (brand) — a single accent, not a two-hue duo. Green
+**secondary** = success, red **error** = destructive, amber **warning** = caution.
 
 **The two themes are designed independently, not derived from each other.**
 They share the brand, not the recipe:
 
 | | Light | Dark |
 |---|---|---|
-| Personality | Warm, airy, cream | Black, graphite, white |
-| Budget | ~85% light neutrals, ~10% jade, ~5% terracotta | ~90% black/graphite, ~8% white, ~2% jade/terracotta |
-| Surfaces | Warm cream (`#FAF7F2`), white cards | **Neutral** near-black — zero hue |
+| Personality | Warm off-white, airy | Black, graphite, white |
+| Budget | ~85% light neutrals, ~15% gold | ~90% black/graphite, ~8% white, ~2% gold |
+| Surfaces | Off-white (`#F8F7F4`), white cards | **Neutral** near-black — zero hue |
 
-The dark surfaces used to be a forest-green tint on every layer, which read as
-"the whole UI is tinted green" rather than as a premium dark UI. They are now a
-neutral graphite ramp, and **jade is an event, not a background**: it appears on
-the CTA, focus ring, active nav, selected chip, and success — nothing else. If
-you are reaching for a green *surface* in dark, that's the mistake this rule
-exists to prevent.
+Gold is an **event, not a background**: it appears on the CTA, focus ring,
+active nav, and selected chip — nothing else. If you are reaching for a gold
+*surface*, that's the mistake this rule exists to prevent.
+
+Every solid mid-tone fill (`--primary`, `--secondary`, `--error`, `--warning`)
+pairs with **near-black text**, in both themes — each of those hexes is light
+enough that white text fails WCAG AA on it. Container tones (`--primary-container`
+etc.) keep the conventional light-tint + deep-hue-text pairing.
 
 | Token | Light | Dark | Use for |
 |---|---|---|---|
-| `--primary` | `#0E7C6B` | `#34D3B5` | Brand. Primary buttons, links, active nav, focus rings |
-| `--primary-foreground` | `#FFFFFF` | `#00312A` | Text/icons **on** a primary fill |
-| `--accent` | `#DC6B45` | `#FF8A5B` | Highlights, offer/deal emphasis, the "warm" beat |
-| `--accent-foreground` | `#FFFFFF` | `#3A1608` | Text/icons **on** an accent fill |
-| `--secondary` | `#15803D` | `#4ADE80` | **Success only** (confirmed, paid, positive) |
-| `--error` | `#DC2626` | `#FFB4AB` | Destructive / failure only |
-| `--background` | `#FAF7F2` | `#0B0B0D` | Page background |
-| `--surface` / `--card` | `#FFFFFF` | `#151517` / `#18181B` | Cards, sheets |
-| `--foreground` / `--on-surface` | `#17211E` | `#FFFFFF` | Body text |
-| `--on-surface-variant` | `#4B5551` | `#CFCFCF` | Secondary text |
-| `--muted` | `#6B746F` | `#9B9B9B` | Secondary/meta text |
-| `--border` | `#E9E3D8` | `white @10%` | Hairlines, dividers |
+| `--primary` | `#C9A45C` | `#C9A45C` | Brand. Primary buttons, links, active nav, focus rings |
+| `--primary-hover` | `#B98F40` | `#DDBB78` | Primary hover state |
+| `--primary-foreground` | `#1C1C1C` | `#1C1400` | Text/icons **on** a primary fill |
+| `--accent` | `#D8B876` | `#E0C285` | A second gold *step* (not a second hue) for rare double-emphasis |
+| `--secondary` | `#4CAF50` | `#59C36A` | **Success only** (confirmed, paid, positive) |
+| `--error` | `#E53935` | `#FF6B6B` | Destructive / failure only |
+| `--warning` | `#F4B400` | `#F4B400` | Caution / pending only |
+| `--background` | `#F8F7F4` | `#0C0C0D` | Page background |
+| `--surface` / `--card` | `#FFFFFF` | `#171717` | Cards, sheets |
+| `--foreground` / `--on-surface` | `#1C1C1C` | `#FFFFFF` | Body text |
+| `--on-surface-variant` | `#6E6E6E` | `#B3B3B3` | Secondary text |
+| `--muted` | `#979797` | `#808080` | Secondary/meta text |
+| `--border` | `rgba(0,0,0,.08)` | `rgba(255,255,255,.08)` | Hairlines, dividers |
 
-Dark nav is pinned to `#0A0A0A @72%` + blur + a white 10% hairline (`.glass-nav`),
+Dark nav is pinned to `#0A0A0A @72%` + blur + a white 8% hairline (`.glass-nav`),
 deliberately *not* `--surface`: the nav reads as the darkest chrome on the page.
-Every dark pair above clears WCAG AA (worst case: `--muted` on an elevated
-card, 5.91:1).
 
 Full scale (surface-container-\*, on-\*-container, tertiary, inverse) lives in
-`globals.css`. `--tertiary` aliases the accent, so legacy tertiary usages read
-terracotta.
+`globals.css`. `--tertiary` aliases `--accent`, so legacy tertiary usages read gold.
 
-**Signature:** the brand gradient jade→terracotta. Utilities: `.brand-gradient`
-(fills — hero bands, CTAs) and `.brand-gradient-text` (headline accent words).
-Both are theme-aware in dark, where a section-sized gradient would blow the 2%
-accent budget: `.brand-gradient-text` resolves **white → jade** (the phrase lands
-on the brand instead of the whole line reading green), and `.brand-banner` (the
-full-bleed marketing band) drops the wash entirely for charcoal + a faint jade
-glow + a white hairline.
+**Signature:** a single-hue gold gradient (deep → bright gold, a tonal shift, not
+a hue shift). Utilities: `.brand-gradient` (fills — hero bands, CTAs) and
+`.brand-gradient-text` (headline accent words). Both are theme-aware in dark,
+where a section-sized gradient would blow the 2% accent budget:
+`.brand-gradient-text` resolves **white → gold** (the phrase lands on the brand
+instead of the whole line reading gold), and `.brand-banner` (the full-bleed
+marketing band) drops the wash entirely for charcoal + a faint gold glow + a
+white hairline.
 
-**Semantic discipline:** primary = brand action; accent = warm emphasis, not a
-second CTA; secondary = success state, never decoration; error = destructive
+**Semantic discipline:** primary = the one brand action color; secondary =
+success state, never decoration; error = destructive only; warning = caution
 only. Don't reach for raw Tailwind palette colors (`bg-green-500`) — use tokens.
 
 ---
@@ -91,9 +93,9 @@ Loaded via `<link>` in `layout.tsx`; exposed as `font-*` utilities.
 
 | Utility | Family | Use |
 |---|---|---|
-| `font-headline` | Epilogue (700–900) | Headlines, section titles, card names, logo |
+| `font-headline` | Hanken Grotesk (500–800) | Headlines, section titles, card names, logo |
 | `font-body` | Manrope (400–600) | Body, labels, UI text (default on `<body>`) |
-| `font-label` | Space Grotesk | Mono-ish eyebrows/meta (use sparingly) |
+| `font-label` | Manrope | Buttons/eyebrows/meta — aliases body; one voice, not a third face |
 
 Scale is Tailwind's default (`text-sm … text-7xl`). Headlines are
 `font-extrabold tracking-tight`; hero display `text-5xl→text-7xl`.
@@ -118,9 +120,11 @@ Usage: `duration-(--duration-base) ease-(--ease-out)`. Hover lift =
 `hover:-translate-y-0.5` (**2px**). Image zoom = `group-hover:scale-105`. Theme
 transitions gated on `.theme-ready` (no first-paint flash).
 
-**Radius** — `--radius` 4px · `-lg` 8px · `-xl` 12px · `-2xl` 24px. Cards
-`rounded-2xl`; pills/search/chips/avatars `rounded-full`; inputs/small tiles
-`rounded-xl`.
+**Radius** — `--radius` 4px · `-lg` 8px · `-xl` 12px · `-2xl` 24px · `-btn` 16px ·
+`-input` 16px · `-dialog` 28px. Cards `rounded-2xl`; buttons `rounded-btn`;
+inputs/textarea/select `rounded-input`; dialogs/modals/bottom-sheet drawers
+`rounded-dialog`; pills/search/chips/avatars `rounded-full`; compact nested
+tiles (ProfessionalCard/ServiceCard rows) `rounded-xl`.
 
 **Elevation (theme-aware)** — `.shadow-soft` (resting card) → `.shadow-elevated`
 (hover / raised) → `.shadow-floating` (search bar, popovers, floating chips).
@@ -187,10 +191,10 @@ success | warning | danger, optional `dot`. Booking status badges mirror
 ### Signature patterns (reuse, don't reinvent)
 
 - **Floating search bar:** rounded-full surface card, `.shadow-floating`, leading
-  lucide icon + placeholder, jade Search button. On the hero it's two fields
+  lucide icon + placeholder, gold Search button. On the hero it's two fields
   (what + location); inline it's one. See `SplashHero` / `HomeHero`.
-- **Studio card:** `BusinessCard`. Has a **branded placeholder** (jade→clay wash
-  + studio monogram) when `imageUrl` is missing — always pass real data through
+- **Studio card:** `BusinessCard`. Has a **branded placeholder** (gold wash +
+  studio monogram) when `imageUrl` is missing — always pass real data through
   it; don't build a bespoke card.
 - **CTA band:** `.brand-gradient` panel with `.grainy-overlay`, white text, a
   white pill button. See the Become-a-Host band on the landing.

@@ -27,6 +27,10 @@ export interface BusinessProfile {
   state: string;
   zip_code: string;
   country: string;
+  // Phase 4A - Explore Map. Null until the owner sets a pin; required to reach
+  // ACTIVE (enforced by the onboarding `location` step's completion gate).
+  lat: number | null;
+  lng: number | null;
   phone: string;
   email: string;
   description: string | null;

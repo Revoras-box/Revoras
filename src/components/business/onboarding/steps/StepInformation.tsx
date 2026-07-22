@@ -75,7 +75,7 @@ export function StepInformation({ studioId, goNext, goPrev, exit, saving }: Wiza
   return (
     <div>
       <StepHeader
-        eyebrow="Step 2 of 9"
+        eyebrow="Step 3 of 10"
         title="Business information"
         description="Tell customers what makes you special. Everything here is optional, but a richer profile books more."
       />

@@ -7,19 +7,20 @@ import { cn } from "@/lib/utils";
 import { Spinner } from "./Spinner";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg font-label font-medium " +
-    "transition-colors duration-(--duration-fast) ease-(--ease-out) " +
-    "disabled:pointer-events-none disabled:opacity-50 " +
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-btn font-label font-medium " +
+    "transition-[background-color,border-color,box-shadow,transform] duration-(--duration-fast) ease-(--ease-out) " +
+    "hover:-translate-y-0.5 active:translate-y-0 " +
+    "disabled:pointer-events-none disabled:opacity-50 disabled:hover:translate-y-0 " +
     "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
   {
     variants: {
       intent: {
-        primary: "bg-primary text-on-primary hover:brightness-105 active:brightness-95",
+        primary: "bg-primary text-on-primary shadow-soft hover:bg-primary-hover hover:shadow-elevated active:bg-primary-hover",
         secondary:
           "bg-surface-container-high text-on-surface hover:bg-surface-container-highest",
         outline: "border border-outline-variant text-on-surface bg-transparent hover:bg-surface-container-low",
         ghost: "bg-transparent text-on-surface hover:bg-surface-container-low",
-        danger: "bg-error text-on-error hover:brightness-105 active:brightness-95",
+        danger: "bg-error text-on-error shadow-soft hover:brightness-95 hover:shadow-elevated",
       },
       size: {
         sm: "h-8 px-3 text-sm",

@@ -13,7 +13,7 @@ import type { TrustBadge } from "@/lib/types";
 const BADGE_STYLE: Record<string, { tone: NonNullable<BadgeProps["tone"]>; icon: React.ComponentType<{ size?: number }> }> = {
   verified: { tone: "success", icon: BadgeCheck },
   verified_professional: { tone: "success", icon: ShieldCheck },
-  // Premium reads as an outline chip, not a filled jade one: jade is reserved
+  // Premium reads as an outline chip, not a filled gold one: gold is reserved
   // for actions (CTA/focus/active/selected) rather than status, and a filled
   // brand chip next to the filled "Verified" chip spent the accent budget twice
   // on one card.

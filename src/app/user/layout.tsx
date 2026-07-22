@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import AuthGate from "@/components/user/AuthGate";
 import CustomerNav from "@/components/user/CustomerNav";
-import UserFooter from "@/components/user/UserFooter";
+import Footer from "@/components/Footer";
 import { FavoritesProvider } from "@/lib/favorites";
 
 export const metadata: Metadata = {
@@ -14,16 +13,15 @@ export const metadata: Metadata = {
 
 export default function UserLayout({ children }: { children: React.ReactNode }) {
   return (
-    <AuthGate>
-      {/* Phase 2.3: one favorites fetch for the whole customer area, shared by
-          every card, instead of one request per rail. */}
-      <FavoritesProvider>
-        <div className="min-h-screen bg-background text-foreground">
-          <CustomerNav />
-          <main className="pb-16 md:pb-0">{children}</main>
-          <UserFooter />
-        </div>
-      </FavoritesProvider>
-    </AuthGate>
+    // Browsing (discover, search, business/professional profiles) must not
+    // require login. Only account-specific routes gate on auth, via their
+    // own nested layout — see e.g. user/bookings/layout.tsx.
+    <FavoritesProvider>
+      <div className="min-h-screen bg-background text-foreground">
+        <CustomerNav />
+        <main className="pb-16 md:pb-0">{children}</main>
+        <Footer />
+      </div>
+    </FavoritesProvider>
   );
 }

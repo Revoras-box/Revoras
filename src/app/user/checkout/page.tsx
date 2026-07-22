@@ -339,7 +339,7 @@ function CheckoutPageContent() {
         description: selectedServices.map((s) => s.name).join(", "),
         order_id: order.orderId,
         prefill: { name: fullName.trim() || undefined, contact: mobile.trim() || undefined },
-        theme: { color: "#0E7C6B" },
+        theme: { color: "#C9A45C" },
         handler: async (response) => {
           setStage("verifying");
           try {

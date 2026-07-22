@@ -63,7 +63,7 @@ export default function SubscriptionPage() {
         description: "Revoras for Business — monthly subscription",
         order_id: order.orderId,
         prefill: { name: user?.name, email: user?.email, contact: user?.phone || undefined },
-        theme: { color: "#0E7C6B" },
+        theme: { color: "#C9A45C" },
         handler: async (response) => {
           try {
             const result = await verifyPayment.mutateAsync({

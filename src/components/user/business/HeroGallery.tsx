@@ -4,7 +4,7 @@ import { ImageIcon } from "lucide-react";
 
 /**
  * Airbnb-style hero mosaic for the business detail page: one large image + two
- * stacked, gracefully falling back to a branded jade→clay wash + monogram when a
+ * stacked, gracefully falling back to a branded gold wash + monogram when a
  * studio has no photos yet (the common case while R2 media is unavailable).
  */
 function Tile({ src, name, className }: { src?: string | null; name: string; className?: string }) {

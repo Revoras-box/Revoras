@@ -1,5 +1,10 @@
 import Link from "next/link";
 
+/**
+ * The single footer for every page — marketing, auth, and the customer app
+ * alike. Previously there were three (Footer, UserFooter, FooterExperience)
+ * with drifting links and a hardcoded "© 2024" in one of them.
+ */
 const COLUMNS: { heading: string; links: { label: string; href: string }[] }[] = [
   {
     heading: "Explore",
@@ -8,19 +13,20 @@ const COLUMNS: { heading: string; links: { label: string; href: string }[] }[] =
       { label: "Search", href: "/user/search" },
       { label: "Offers", href: "/user/search?hasOffers=true" },
       { label: "Top rated", href: "/user/search?sortBy=rating" },
+      { label: "My bookings", href: "/user/bookings" },
     ],
   },
   {
     heading: "For business",
     links: [
       { label: "List your business", href: "/host/signup" },
-      { label: "Why Revoras", href: "/host/signup" },
       { label: "Business login", href: "/login-barber" },
     ],
   },
   {
     heading: "Company",
     links: [
+      { label: "Careers", href: "#" },
       { label: "Privacy Policy", href: "#" },
       { label: "Terms of Service", href: "#" },
       { label: "Contact", href: "#" },

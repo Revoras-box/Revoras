@@ -13,6 +13,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { LocationPicker, type LocationValue } from "@/components/business/LocationPicker";
 import { useBusinessAuth } from "@/lib/business/auth";
 import { PermissionGate, PERMISSIONS } from "@/lib/business/permissions";
 import {
@@ -112,6 +113,9 @@ function ProfileTab({ studioId }: { studioId: string | undefined }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [social, setSocial] = useState<SocialLinks>({});
   const [policies, setPolicies] = useState<BusinessPolicies>({});
+  // Phase 4A - the map pin. Kept alongside `form` rather than inside it because
+  // lat/lng are numbers, not the text `field()` produces.
+  const [location, setLocation] = useState<LocationValue>({ lat: null, lng: null });
 
   useEffect(() => {
     if (business) {
@@ -135,8 +139,29 @@ function ProfileTab({ studioId }: { studioId: string | undefined }) {
       });
       setSocial(business.social_links || {});
       setPolicies(business.policies || {});
+      setLocation({
+        lat: business.lat ?? null,
+        lng: business.lng ?? null,
+        address: business.address || undefined,
+        city: business.city || undefined,
+        state: business.state || undefined,
+        zipCode: business.zip_code || undefined,
+      });
     }
   }, [business]);
+
+  // When the pin moves (drag or search), mirror the address components it
+  // resolved back into the text fields so the two views never disagree.
+  const handleLocationChange = (next: LocationValue) => {
+    setLocation(next);
+    setForm((f) => ({
+      ...f,
+      address: next.address ?? f.address,
+      city: next.city ?? f.city,
+      state: next.state ?? f.state,
+      zipCode: next.zipCode ?? f.zipCode,
+    }));
+  };
 
   if (isLoading) return <Skeleton className="h-96 rounded-2xl" />;
   // Rendering the form on a failed load is worse than showing nothing: every
@@ -160,6 +185,8 @@ function ProfileTab({ studioId }: { studioId: string | undefined }) {
         city: form.city || undefined,
         state: form.state || undefined,
         zipCode: form.zipCode || undefined,
+        lat: location.lat ?? undefined,
+        lng: location.lng ?? undefined,
         description: form.description || undefined,
         logoUrl: form.logoUrl || undefined,
         bannerUrl: form.bannerUrl || undefined,
@@ -197,6 +224,16 @@ function ProfileTab({ studioId }: { studioId: string | undefined }) {
         <Textarea label="About / description" {...field("description")} />
         <Input label="Logo URL" {...field("logoUrl")} />
         <Input label="Banner URL" {...field("bannerUrl")} />
+      </Card>
+
+      <Card className="flex flex-col gap-4">
+        <div>
+          <h3 className="font-headline text-base font-semibold text-on-surface">Location on map</h3>
+          <p className="mt-1 text-sm text-muted">
+            This pin is where customers find you on Explore. Drag it to your exact storefront.
+          </p>
+        </div>
+        <LocationPicker value={location} onChange={handleLocationChange} initialQuery={form.address} />
       </Card>
 
       <Card className="flex flex-col gap-4">

@@ -63,7 +63,7 @@ export function StepBasics({ studioId, goNext, goPrev, exit, saving }: WizardSte
   return (
     <div>
       <StepHeader
-        eyebrow="Step 1 of 9"
+        eyebrow="Step 1 of 10"
         title="Business basics"
         description="The essentials customers see first — your name, what you do, and where to find you."
       />

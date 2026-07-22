@@ -46,7 +46,7 @@ export default function CustomerNav() {
     <>
       <TopNav
         logo={
-          // Jade wordmark in light (warm cream surface carries it); white in
+          // Gold wordmark in light (warm cream surface carries it); white in
           // dark, where the nav is near-black chrome and the accent budget is
           // spent on actions rather than the logo.
           <Link href="/user" className="text-xl font-bold tracking-tighter text-primary dark:text-white font-headline">

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { useBusinessAuth } from "@/lib/business/auth";
 import { useOnboarding, useSaveOnboardingStep } from "@/lib/business/hooks/useOnboarding";
 import { StepBasics } from "./steps/StepBasics";
+import { StepLocation } from "./steps/StepLocation";
 import { StepInformation } from "./steps/StepInformation";
 import { StepServices } from "./steps/StepServices";
 import { StepTeam } from "./steps/StepTeam";
@@ -19,8 +20,12 @@ import { StepReview } from "./steps/StepReview";
 import { StepSubscription } from "./steps/StepSubscription";
 import type { WizardStepProps } from "./types";
 
+// Order MUST match STEP_DEFS in the backend onboarding.service.js - the wizard
+// resumes off the backend's step index, so a mismatch would land owners on the
+// wrong screen. StepLocation is index 1 (Phase 4A), right after Basics.
 const STEP_COMPONENTS: React.ComponentType<WizardStepProps>[] = [
   StepBasics,
+  StepLocation,
   StepInformation,
   StepServices,
   StepTeam,

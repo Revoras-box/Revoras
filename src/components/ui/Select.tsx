@@ -50,7 +50,7 @@ export function Select({
         <RadixSelect.Trigger
           aria-invalid={Boolean(error) || undefined}
           className={cn(
-            "flex h-10 w-full items-center justify-between rounded-lg border bg-surface px-3 text-sm text-on-surface",
+            "flex h-10 w-full items-center justify-between rounded-input border bg-surface px-3 text-sm text-on-surface",
             "border-outline-variant transition-colors duration-(--duration-fast) ease-(--ease-out)",
             "focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary",
             "disabled:opacity-50 disabled:pointer-events-none data-[placeholder]:text-muted",

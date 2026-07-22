@@ -29,7 +29,7 @@ export function Modal({ open, onOpenChange, title, description, children, footer
         <RadixDialog.Overlay className="fixed inset-0 z-(--z-index-modal-backdrop) bg-inverse-surface/40 backdrop-blur-sm data-[state=open]:animate-dropdown" />
         <RadixDialog.Content
           className={cn(
-            "fixed left-1/2 top-1/2 z-(--z-index-modal) w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-surface p-6 shadow-floating",
+            "fixed left-1/2 top-1/2 z-(--z-index-modal) w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 rounded-dialog bg-surface p-6 shadow-floating",
             "focus:outline-none data-[state=open]:animate-dropdown",
             sizeClass[size]
           )}

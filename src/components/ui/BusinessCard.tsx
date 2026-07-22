@@ -76,7 +76,7 @@ export function BusinessCard({
           <img src={imageUrl} alt={name} className="h-full w-full object-cover transition-transform duration-(--duration-slow) ease-(--ease-out) group-hover:scale-105" />
         ) : (
           // Branded placeholder for studios without a photo yet (also the graceful
-          // state while R2 media is unavailable) — a soft jade→clay wash + the
+          // state while R2 media is unavailable) — a soft gold wash + the
           // studio's monogram, so imageless cards still read intentional.
           <div className="flex h-full w-full items-center justify-center bg-linear-to-br from-primary/12 via-surface-container to-accent/12">
             <span aria-hidden="true" className="select-none font-headline text-5xl font-extrabold text-on-surface/15">

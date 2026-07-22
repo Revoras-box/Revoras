@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import FooterExperience from "@/components/FooterExperience";
+import Footer from "@/components/Footer";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 
@@ -181,7 +181,7 @@ export default function BarbersPage() {
         </div>
       </section>
 
-      <FooterExperience />
+      <Footer />
     </div>
   );
 }
