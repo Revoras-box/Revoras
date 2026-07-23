@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { PasswordChecklist, isStrongPassword } from "@/components/ui/PasswordChecklist";
 
 export default function BarberSignup() {
   const router = useRouter();
@@ -36,6 +37,30 @@ export default function BarberSignup() {
   const updateField = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
+
+  // Auto-submit each OTP once its 6th digit lands; track the last fired code per
+  // channel so a failed attempt doesn't loop and re-typing the same code retries.
+  const lastEmailOtp = useRef("");
+  useEffect(() => {
+    const code = otpData.emailOtp;
+    if (code.length === 6 && !loading && lastEmailOtp.current !== code) {
+      lastEmailOtp.current = code;
+      handleVerifyEmail();
+    }
+    if (code.length < 6) lastEmailOtp.current = "";
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [otpData.emailOtp, loading]);
+
+  const lastPhoneOtp = useRef("");
+  useEffect(() => {
+    const code = otpData.phoneOtp;
+    if (code.length === 6 && !loading && lastPhoneOtp.current !== code) {
+      lastPhoneOtp.current = code;
+      handleVerifyPhone();
+    }
+    if (code.length < 6) lastPhoneOtp.current = "";
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [otpData.phoneOtp, loading]);
 
   const next = () => setStep((s) => Math.min(s + 1, 7));
   const prev = () => setStep((s) => Math.max(s - 1, 1));
@@ -198,8 +223,8 @@ export default function BarberSignup() {
       toast.error("Please enter a valid PAN Card number (Format: XXXXX0000X)");
       return;
     }
-    if (!formData.password || formData.password.length < 6) {
-      toast.error("Password must be at least 6 characters");
+    if (!isStrongPassword(formData.password)) {
+      toast.error("Password must be at least 8 characters with an uppercase letter and a number");
       return;
     }
     if (formData.password !== formData.confirmPassword) {
@@ -553,13 +578,16 @@ export default function BarberSignup() {
                 </p>
               </div>
               <div className="space-y-6">
-                <Input
-                  label="Password"
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => updateField("password", e.target.value)}
-                  disabled={loading}
-                />
+                <div>
+                  <Input
+                    label="Password"
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) => updateField("password", e.target.value)}
+                    disabled={loading}
+                  />
+                  <PasswordChecklist value={formData.password} className="mt-2" />
+                </div>
                 <Input
                   label="Confirm Password"
                   type="password"
@@ -610,8 +638,8 @@ export default function BarberSignup() {
             for <span className="text-primary">Professionals.</span>
           </h2>
           <p className="text-muted max-w-sm">
-            Join thousands of elite specialists who have streamlined their
-            business with Revoras.
+            Streamline your bookings, team and schedule — all from one
+            dashboard built for grooming professionals.
           </p>
         </div>
 

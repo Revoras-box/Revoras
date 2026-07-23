@@ -19,7 +19,9 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
     <FavoritesProvider>
       <div className="min-h-screen bg-background text-foreground">
         <CustomerNav />
-        <main className="pb-16 md:pb-0">{children}</main>
+        {/* pt clears the fixed marketing navbar (~68px). The old in-app TopNav
+            was sticky/in-flow so it needed no offset; the shared Navbar is fixed. */}
+        <main className="pt-[68px] pb-16 md:pb-0">{children}</main>
         <Footer />
       </div>
     </FavoritesProvider>

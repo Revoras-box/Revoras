@@ -13,15 +13,7 @@ import {
 export default function SplashPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <Navbar
-        brandText="Revoras"
-        brandHref="/"
-        navLinks={[
-          { href: "/user", label: "Explore" },
-          { href: "/user/search?hasOffers=true", label: "Offers" },
-          { href: "/host/signup", label: "For Business" },
-        ]}
-      />
+      <Navbar brandText="Revoras" brandHref="/" />
       <main className="flex-1">
         <SplashHero />
         <TrustBand />

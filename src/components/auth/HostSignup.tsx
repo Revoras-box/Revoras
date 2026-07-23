@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, Check, Mail, Phone, Store } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { PasswordChecklist, isStrongPassword } from "@/components/ui/PasswordChecklist";
 import { api } from "@/lib/api";
 import { businessApi, businessAuthStorage } from "@/lib/business/api";
 
@@ -44,13 +45,13 @@ export function HostSignup() {
     form.businessName.trim() &&
     emailValid(form.email) &&
     form.phone.trim().length >= 7 &&
-    form.password.length >= 6 &&
+    isStrongPassword(form.password) &&
     form.password === form.confirmPassword;
 
   const startVerification = async () => {
     if (!detailsValid) {
       if (form.password !== form.confirmPassword) toast.error("Passwords don't match");
-      else if (form.password.length < 6) toast.error("Password must be at least 6 characters");
+      else if (!isStrongPassword(form.password)) toast.error("Password must be at least 8 characters with an uppercase letter and a number");
       else toast.error("Please fill in all fields with a valid email and phone");
       return;
     }
@@ -190,7 +191,10 @@ export function HostSignup() {
               <Input label="Email" type="email" value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="you@business.com" />
               <Input label="Phone" type="tel" value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+91…" />
               <div className="grid gap-4 sm:grid-cols-2">
-                <Input label="Password" type="password" value={form.password} onChange={(e) => set("password", e.target.value)} placeholder="Min 6 characters" />
+                <div className="flex flex-col gap-2">
+                  <Input label="Password" type="password" value={form.password} onChange={(e) => set("password", e.target.value)} placeholder="Create a password" />
+                  <PasswordChecklist value={form.password} />
+                </div>
                 <Input
                   label="Confirm password"
                   type="password"
@@ -263,6 +267,19 @@ function OtpStep({
   emailDone: boolean;
 }) {
   const Icon = type === "email" ? Mail : Phone;
+
+  // Auto-submit once the 6th digit lands. Track the last code we fired for so a
+  // failed attempt (value stays at 6) doesn't loop, and re-typing the same code retries.
+  const lastSubmitted = useRef<string>("");
+  useEffect(() => {
+    if (value.length === 6 && !loading && lastSubmitted.current !== value) {
+      lastSubmitted.current = value;
+      onVerify();
+    }
+    if (value.length < 6) lastSubmitted.current = "";
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, loading]);
+
   return (
     <div className="flex flex-col gap-4">
       {type === "phone" && emailDone ? (

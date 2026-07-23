@@ -1,9 +1,10 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
+import { PasswordChecklist, isStrongPassword } from "@/components/ui/PasswordChecklist";
 
 export default function SignupHero() {
     const router = useRouter();
@@ -23,6 +24,18 @@ export default function SignupHero() {
     });
 
     const [otp, setOtp] = useState("");
+
+    // Auto-submit once the 6th digit lands; track the last fired code so a failed
+    // attempt doesn't loop and re-typing the same code retries.
+    const lastSubmitted = useRef("");
+    useEffect(() => {
+        if (otp.length === 6 && !loading && lastSubmitted.current !== otp) {
+            lastSubmitted.current = otp;
+            handleVerifyEmail();
+        }
+        if (otp.length < 6) lastSubmitted.current = "";
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [otp, loading]);
 
     const updateField = (field, value) => {
         setForm((prev) => ({ ...prev, [field]: value }));
@@ -104,8 +117,8 @@ export default function SignupHero() {
             toast.error("Please fill in all fields");
             return;
         }
-        if (!form.password || form.password.length < 6) {
-            toast.error("Password must be at least 6 characters");
+        if (!isStrongPassword(form.password)) {
+            toast.error("Password must be at least 8 characters with an uppercase letter and a number");
             return;
         }
         if (form.password !== form.confirmPassword) {
@@ -364,9 +377,10 @@ export default function SignupHero() {
                                         value={form.password}
                                         onChange={(e) => updateField("password", e.target.value)}
                                         className="w-full bg-transparent border-b border-border py-3 outline-none focus:border-primary"
-                                        placeholder="Min 6 characters"
+                                        placeholder="Create a password"
                                         disabled={loading}
                                     />
+                                    <PasswordChecklist value={form.password} className="mt-2" />
                                 </div>
 
                                 <div>

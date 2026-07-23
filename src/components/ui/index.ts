@@ -11,6 +11,7 @@ export * from "./Select";
 export * from "./Checkbox";
 export * from "./RadioGroup";
 export * from "./Switch";
+export * from "./PasswordChecklist";
 export * from "./Badge";
 export * from "./Avatar";
 export * from "./Chip";

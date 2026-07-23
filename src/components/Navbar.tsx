@@ -3,28 +3,38 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, ArrowRight } from "lucide-react";
-import ThemeToggleButton from "@/components/ThemeToggleButton";
+import { Menu, X, Store, ArrowRight } from "lucide-react";
+import { useAuth } from "@/lib/auth";
+import { customerNavLinks } from "@/lib/customer-nav";
+import CustomerNavActions from "@/components/user/CustomerNavActions";
 
 interface NavbarProps {
   brandText?: string;
   brandHref?: string;
-  navLinks?: Array<{ href: string; label: string }>;
+  /**
+   * The in-app customer surface (`CustomerNav`) renders this same bar but owns
+   * mobile navigation through a bottom tab bar, so it hides this hamburger to
+   * avoid two competing mobile menus. Marketing pages leave it on (default).
+   */
+  showMobileMenu?: boolean;
 }
 
-const DEFAULT_LINKS = [
-  { href: "/user", label: "Explore" },
-  { href: "/user/search?hasOffers=true", label: "Offers" },
-  { href: "/host/signup", label: "For Business" },
-];
-
-export default function Navbar({
-  brandText = "Revoras",
-  brandHref = "/",
-  navLinks = DEFAULT_LINKS,
-}: NavbarProps) {
+/**
+ * The public / marketing navbar. It deliberately renders the SAME primary links
+ * (via `customerNavLinks`) and the SAME right-hand actions (via
+ * `CustomerNavActions`) as the in-app `CustomerNav`, so a customer who lands
+ * here logged out and then signs in doesn't see the navigation change out from
+ * under them — only the auth-dependent actions swap (log in / sign up ⇄
+ * notifications / account / Book Now). The business/owner surface keeps its own
+ * distinct dashboard nav; this parity is a customer-experience concern only.
+ */
+export default function Navbar({ brandText = "Revoras", brandHref = "/", showMobileMenu = true }: NavbarProps) {
   const pathname = usePathname();
+  const { isAuthenticated } = useAuth();
   const [open, setOpen] = useState(false);
+
+  const navLinks = customerNavLinks(isAuthenticated);
+  const isActive = (href: string) => pathname === href.split("?")[0];
 
   return (
     <nav className="fixed top-0 z-1000 w-full border-b border-border glass-nav">
@@ -37,54 +47,43 @@ export default function Navbar({
         {/* Center links */}
         <div className="hidden items-center gap-8 md:flex">
           {navLinks.map((link) => {
-            const isActive = pathname === link.href;
+            const active = isActive(link.href);
             return (
               <Link
                 key={link.label}
                 href={link.href}
                 className={`relative text-sm font-medium transition-colors ${
-                  isActive ? "text-on-surface" : "text-secondary-foreground hover:text-on-surface"
+                  active ? "text-on-surface" : "text-secondary-foreground hover:text-on-surface"
                 }`}
               >
                 {link.label}
-                {isActive && <span className="absolute -bottom-1.5 left-0 h-0.5 w-full rounded-full bg-primary" />}
+                {active && <span className="absolute -bottom-1.5 left-0 h-0.5 w-full rounded-full bg-primary" />}
               </Link>
             );
           })}
         </div>
 
-        {/* Right actions */}
+        {/* Right actions — shared with the in-app navbar, auth-aware. */}
         <div className="flex items-center gap-2 md:gap-3">
-          <ThemeToggleButton />
-          <Link
-            href="/login"
-            className="hidden rounded-full px-4 py-2 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-high sm:inline-flex"
-          >
-            Log in
-          </Link>
-          <Link
-            href="/signup"
-            className="hidden items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-soft transition-transform hover:-translate-y-0.5 sm:inline-flex"
-          >
-            Sign up
-            <ArrowRight size={15} />
-          </Link>
+          <CustomerNavActions />
 
           {/* Mobile toggle */}
-          <button
-            type="button"
-            aria-label={open ? "Close menu" : "Open menu"}
-            aria-expanded={open}
-            onClick={() => setOpen((v) => !v)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full text-on-surface transition-colors hover:bg-surface-container-high md:hidden"
-          >
-            {open ? <X size={20} /> : <Menu size={20} />}
-          </button>
+          {showMobileMenu && (
+            <button
+              type="button"
+              aria-label={open ? "Close menu" : "Open menu"}
+              aria-expanded={open}
+              onClick={() => setOpen((v) => !v)}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full text-on-surface transition-colors hover:bg-surface-container-high md:hidden"
+            >
+              {open ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          )}
         </div>
       </div>
 
       {/* Mobile panel */}
-      {open && (
+      {showMobileMenu && open && (
         // `shell` and not a bare `px-5`, so the panel's links start on the same
         // left edge as the logo directly above them.
         <div className="shell max-w-shell border-t border-border bg-surface py-4 md:hidden animate-dropdown">
@@ -100,21 +99,43 @@ export default function Navbar({
               </Link>
             ))}
           </div>
+
           <div className="mt-3 flex flex-col gap-2 border-t border-border pt-3">
-            <Link
-              href="/login"
-              onClick={() => setOpen(false)}
-              className="rounded-full px-4 py-2.5 text-center text-sm font-semibold text-on-surface ring-1 ring-border transition-colors hover:bg-surface-container-high"
-            >
-              Log in
-            </Link>
-            <Link
-              href="/signup"
-              onClick={() => setOpen(false)}
-              className="rounded-full bg-primary px-4 py-2.5 text-center text-sm font-semibold text-primary-foreground"
-            >
-              Sign up
-            </Link>
+            {isAuthenticated ? (
+              <Link
+                href="/user/book"
+                onClick={() => setOpen(false)}
+                className="rounded-full bg-primary px-4 py-2.5 text-center text-sm font-semibold text-primary-foreground"
+              >
+                Book Now
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/host/signup"
+                  onClick={() => setOpen(false)}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-center text-sm font-medium text-secondary-foreground transition-colors hover:bg-surface-container-high"
+                >
+                  <Store size={15} />
+                  For Business
+                </Link>
+                <Link
+                  href="/login"
+                  onClick={() => setOpen(false)}
+                  className="rounded-full px-4 py-2.5 text-center text-sm font-semibold text-on-surface ring-1 ring-border transition-colors hover:bg-surface-container-high"
+                >
+                  Log in
+                </Link>
+                <Link
+                  href="/signup"
+                  onClick={() => setOpen(false)}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-full bg-primary px-4 py-2.5 text-center text-sm font-semibold text-primary-foreground"
+                >
+                  Sign up
+                  <ArrowRight size={15} />
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}

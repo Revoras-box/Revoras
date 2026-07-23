@@ -2,28 +2,19 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Compass, Search as SearchIcon, CalendarClock, UserRound } from "lucide-react";
-import { TopNav, BottomNav, Badge, Button } from "@/components/ui";
+import { Home, Compass, CalendarClock, UserRound, Tag, LogIn } from "lucide-react";
+import { BottomNav } from "@/components/ui";
 import { ICON_SIZE } from "@/lib/design-tokens";
-import { useUnreadNotificationCount } from "@/lib/hooks";
-import ThemeToggleButton from "@/components/ThemeToggleButton";
-import UserMenu from "./UserMenu";
-
-const NAV_LINKS = [
-  { href: "/user", label: "Discover" },
-  { href: "/user/search", label: "Search" },
-  { href: "/user/search?hasOffers=true", label: "Offers" },
-  { href: "/user/bookings", label: "Bookings" },
-];
-
-const TAB_ITEMS = [
-  { href: "/user", label: "Discover", icon: <Compass size={ICON_SIZE.md} /> },
-  { href: "/user/search", label: "Search", icon: <SearchIcon size={ICON_SIZE.md} /> },
-  { href: "/user/bookings", label: "Bookings", icon: <CalendarClock size={ICON_SIZE.md} /> },
-  { href: "/user/profile", label: "Profile", icon: <UserRound size={ICON_SIZE.md} /> },
-];
+import { useAuth } from "@/lib/auth";
+import Navbar from "@/components/Navbar";
 
 /**
+ * The in-app customer top bar IS the marketing navbar — the same `Navbar`
+ * component the homepage renders — so the two are pixel-identical instead of a
+ * hand-copied look-alike that kept drifting (logo size, link styling, container
+ * width). Its hamburger is suppressed here because mobile navigation on the
+ * in-app surface is the `BottomNav` tab bar below, not a dropdown.
+ *
  * Focused funnel routes own the bottom of the screen. Each renders its own
  * fixed action bar (Continue / Pay), and the tab bar sits at the same
  * `bottom-0` with a far higher z-index (--z-sticky 1100 vs the bar's 40) - so
@@ -34,52 +25,46 @@ const TAB_ITEMS = [
  */
 const FUNNEL_ROUTES = ["/user/book", "/user/checkout"];
 
+// Bottom tabs mirror the top nav's first two destinations, then diverge by auth
+// state: a signed-in customer gets Bookings + Profile (account things), a
+// visitor gets Offers + Log in — so the tab bar is never a dead end that
+// bounces them to a login wall.
+const AUTHED_TABS = [
+  { href: "/user", label: "Home", icon: <Home size={ICON_SIZE.md} /> },
+  { href: "/user/search", label: "Discover", icon: <Compass size={ICON_SIZE.md} /> },
+  { href: "/user/bookings", label: "Bookings", icon: <CalendarClock size={ICON_SIZE.md} /> },
+  { href: "/user/profile", label: "Profile", icon: <UserRound size={ICON_SIZE.md} /> },
+];
+
+const GUEST_TABS = [
+  { href: "/user", label: "Home", icon: <Home size={ICON_SIZE.md} /> },
+  { href: "/user/search", label: "Discover", icon: <Compass size={ICON_SIZE.md} /> },
+  { href: "/user/search?hasOffers=true", label: "Offers", icon: <Tag size={ICON_SIZE.md} /> },
+  { href: "/login", label: "Log in", icon: <LogIn size={ICON_SIZE.md} /> },
+];
+
 export default function CustomerNav() {
   const pathname = usePathname();
-  const { data: unreadData } = useUnreadNotificationCount();
-  const unreadCount = unreadData?.count ?? 0;
+  const { isAuthenticated } = useAuth();
 
-  const isActive = (href: string) => (href === "/user" ? pathname === "/user" : pathname.startsWith(href));
+  // `/` and `/user` are prefixes of many routes (every path starts with "/",
+  // and "/user/search" starts with "/user"), so they must match exactly or they
+  // light up everywhere. Deeper routes match themselves or a sub-path segment.
+  const isActive = (href: string) => {
+    const path = href.split("?")[0];
+    if (path === "/" || path === "/user") return pathname === path;
+    return pathname === path || pathname.startsWith(`${path}/`);
+  };
   const inFunnel = FUNNEL_ROUTES.some((r) => pathname === r || pathname.startsWith(`${r}/`));
+
+  const tabItems = isAuthenticated ? AUTHED_TABS : GUEST_TABS;
 
   return (
     <>
-      <TopNav
-        logo={
-          // Gold wordmark in light (warm cream surface carries it); white in
-          // dark, where the nav is near-black chrome and the accent budget is
-          // spent on actions rather than the logo.
-          <Link href="/user" className="text-xl font-bold tracking-tighter text-primary dark:text-white font-headline">
-            Revoras
-          </Link>
-        }
-        items={NAV_LINKS.map((link) => ({ ...link, active: isActive(link.href) }))}
-        linkComponent={Link}
-        actions={
-          <>
-            <ThemeToggleButton />
-            <Link
-              href="/user/profile?tab=notifications"
-              className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-on-surface"
-              aria-label={unreadCount > 0 ? `Notifications (${unreadCount} unread)` : "Notifications"}
-            >
-              <Bell size={ICON_SIZE.md} />
-              {unreadCount > 0 ? (
-                <Badge tone="danger" className="absolute -right-0.5 -top-0.5 min-w-4 justify-center px-1 text-[10px]">
-                  {unreadCount > 9 ? "9+" : unreadCount}
-                </Badge>
-              ) : null}
-            </Link>
-            <UserMenu />
-            <Button asChild size="sm" className="hidden md:inline-flex">
-              <Link href="/user/book">Book Now</Link>
-            </Button>
-          </>
-        }
-      />
+      <Navbar brandHref="/user" showMobileMenu={false} />
       {inFunnel ? null : (
         <BottomNav
-          items={TAB_ITEMS.map((item) => ({ ...item, active: isActive(item.href) }))}
+          items={tabItems.map((item) => ({ ...item, active: isActive(item.href) }))}
           linkComponent={Link}
         />
       )}
