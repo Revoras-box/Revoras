@@ -40,14 +40,21 @@ function SectionHead({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="mb-10 border-t border-border pt-6">
-      <div className="flex flex-wrap items-end justify-between gap-6">
+    <div className="mb-10 border-t border-border pt-6 md:mb-14">
+      <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-5">
         <div className="max-w-2xl">
-          <span className="font-headline text-xs font-bold uppercase tracking-[0.2em] text-primary">{index}</span>
-          <h2 className="mt-3 font-headline text-3xl font-extrabold leading-[1.05] tracking-[-0.02em] text-on-surface md:text-5xl">
+          <span className="font-headline text-[11px] font-bold uppercase tracking-[0.2em] text-primary sm:text-xs">
+            {index}
+          </span>
+          {/* One extra step between mobile and desktop. Jumping straight from
+              3xl to 5xl at 768px meant the heading was still phone-sized on a
+              tablet and then leapt a full 20px in one breakpoint. */}
+          <h2 className="mt-3 font-headline text-[1.75rem] font-extrabold leading-[1.05] tracking-[-0.02em] text-on-surface sm:text-4xl lg:text-5xl">
             {title}
           </h2>
-          {subtitle && <p className="mt-3 max-w-md text-sm leading-relaxed text-secondary-foreground md:text-base">{subtitle}</p>}
+          {subtitle && (
+            <p className="mt-3 max-w-md text-sm leading-relaxed text-secondary-foreground md:text-base">{subtitle}</p>
+          )}
         </div>
         {action}
       </div>
@@ -55,7 +62,13 @@ function SectionHead({
   );
 }
 
-const SHELL = "mx-auto max-w-screen-2xl px-5 md:px-8";
+/**
+ * The page measure and the section rhythm. Both are utilities defined in
+ * globals.css so the nav, hero, sections and footer resolve to literally the
+ * same left edge — when this lived as a copy-pasted class string it had already
+ * drifted from the `Container` primitive the rest of the app uses.
+ */
+const SECTION = "shell max-w-shell shell-section";
 
 /* ------------------------------------------------------------------ */
 /* Marquee                                                             */
@@ -129,17 +142,27 @@ const TRUST_POINTS = [
 
 export function TrustBand() {
   return (
-    <section className={`${SHELL} py-20 md:py-28`}>
+    <section className={SECTION}>
       <SectionHead index="01 — Why Revoras" title="Booking you don't have to second-guess." />
       {/* Vertical rules between columns rather than four boxed cards: the
-          content is a set of related claims, not four separate objects. */}
+          content is a set of related claims, not four separate objects.
+
+          The divider has to be keyed to the item's position *in its row*, not
+          its position in the list, or it lands on a first column. The old rule
+          drew a left border on everything but index 0, so at the 2-column
+          breakpoint item 3 — first in the second row — carried a stray rule
+          hanging off the grid's left edge with nothing to divide. */}
       <div className="grid gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
         {TRUST_POINTS.map(({ icon: Icon, title, body }, i) => (
           <div
             key={title}
-            className={`px-0 sm:px-8 ${i === 0 ? "sm:pl-0" : "sm:border-l sm:border-border"} ${
-              i === 2 ? "lg:border-l lg:border-border" : ""
-            }`}
+            className={[
+              "sm:px-8",
+              // 2 columns: rule on the odd items only (the right-hand column).
+              i % 2 === 1 ? "sm:border-l sm:border-border" : "sm:border-l-0 sm:pl-0",
+              // 4 columns: rule on everything except the true first column.
+              i === 0 ? "lg:pl-0" : "lg:border-l lg:border-border lg:pl-8",
+            ].join(" ")}
           >
             <Icon size={22} className="text-primary" />
             <h3 className="mt-4 font-headline text-base font-bold text-on-surface">{title}</h3>
@@ -173,7 +196,7 @@ export function LandingCategories() {
   if (!loading && categories.length === 0) return null;
 
   return (
-    <section className={`${SHELL} py-20 md:py-28`}>
+    <section className={SECTION}>
       <SectionHead
         index="02 — Categories"
         title="Browse by category."
@@ -324,7 +347,7 @@ export function FeaturedStudios() {
   const [lead, ...rest] = businesses;
 
   return (
-    <section className={`${SHELL} py-20 md:py-28`}>
+    <section className={SECTION}>
       <SectionHead
         index="03 — Featured"
         title="Studios worth the trip."
@@ -387,7 +410,7 @@ const STEPS = [
  */
 export function HowItWorks() {
   return (
-    <section className={`${SHELL} py-20 md:py-28`}>
+    <section className={SECTION}>
       <SectionHead index="04 — How it works" title="Three steps from scrolling to your seat." />
       <div className="grid gap-12 md:grid-cols-3 md:gap-8">
         {STEPS.map(({ icon: Icon, title, body }, i) => (
@@ -443,7 +466,7 @@ const FAQS = [
  */
 export function LandingFaq() {
   return (
-    <section className={`${SHELL} py-20 md:py-28`}>
+    <section className={SECTION}>
       <div className="grid gap-10 border-t border-border pt-6 lg:grid-cols-5 lg:gap-16">
         <div className="lg:col-span-2">
           <span className="font-headline text-xs font-bold uppercase tracking-[0.2em] text-primary">05 — FAQ</span>
@@ -491,7 +514,7 @@ export function BecomeHost() {
   return (
     <section className="brand-banner relative mt-8 overflow-hidden">
       <div className="grainy-overlay absolute inset-0" />
-      <div className={`${SHELL} relative py-20 md:py-28`}>
+      <div className={`${SECTION} relative`}>
         <div className="flex flex-col items-start gap-10 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl text-white">
             <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-white/70">

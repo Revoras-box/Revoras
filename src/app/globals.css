@@ -508,6 +508,66 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* ------------------------------------------------------------------ */
+/*  Page shell — the one horizontal measure.                           */
+/*                                                                      */
+/*  Every full-width band on a marketing page (nav, hero, each section, */
+/*  footer) must agree on exactly one left edge, or the page reads as   */
+/*  drifting even when nothing is technically misaligned. This was      */
+/*  previously an ad-hoc `mx-auto max-w-screen-2xl px-5 md:px-8` string */
+/*  copy-pasted into four components, alongside a separate `Container`  */
+/*  on `px-4 md:px-6` — two measures, and they didn't line up.          */
+/*                                                                      */
+/*  Two things it fixes beyond de-duplication:                          */
+/*  1. The gutter now *grows* with the viewport. A flat 32px from 768px */
+/*     all the way to 1536px meant content sat almost against the glass */
+/*     on every laptop — the widths most people actually browse at.     */
+/*  2. The measure caps at 90rem, not 96rem. Past ~1280px of content a  */
+/*     headline row stops scanning as one line, and the page starts     */
+/*     looking stretched rather than composed.                          */
+/* ------------------------------------------------------------------ */
+/* The cap lives in the theme, not in `.shell`, so it compiles to a real
+   `max-w-shell` utility. Baking `max-width` into `.shell` would have made it
+   race the `max-w-3xl` that `Container`'s narrow variants set — two plain class
+   selectors in the same layer, where the winner is decided by emission order
+   rather than by anything either file states. */
+@theme {
+  --container-shell: 90rem; /* 1440px incl. gutters → ~1280px of content at xl */
+}
+
+@layer utilities {
+  .shell {
+    margin-inline: auto;
+    width: 100%;
+    padding-inline: 1.25rem; /* 20px */
+  }
+  @media (min-width: 640px) {
+    .shell { padding-inline: 2rem; } /* 32px */
+  }
+  @media (min-width: 768px) {
+    .shell { padding-inline: 2.5rem; } /* 40px */
+  }
+  @media (min-width: 1024px) {
+    .shell { padding-inline: 4rem; } /* 64px */
+  }
+  @media (min-width: 1280px) {
+    .shell { padding-inline: 5rem; } /* 80px */
+  }
+
+  /* Vertical rhythm to match. Sections were a flat `py-20 md:py-28`, which
+     is 80px of air above and below every band on a 375px phone — roughly a
+     fifth of the viewport spent on nothing, twice per section. */
+  .shell-section {
+    padding-block: 3.5rem; /* 56px */
+  }
+  @media (min-width: 640px) {
+    .shell-section { padding-block: 5rem; } /* 80px */
+  }
+  @media (min-width: 1024px) {
+    .shell-section { padding-block: 7rem; } /* 112px */
+  }
+}
+
 @layer utilities {
   .animate-drawer-right { animation: drawer-in-right var(--duration-slow) var(--ease-out); }
   .animate-drawer-left { animation: drawer-in-left var(--duration-slow) var(--ease-out); }

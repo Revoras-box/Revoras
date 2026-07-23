@@ -1,7 +1,17 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
-const containerVariants = cva("mx-auto w-full px-4 md:px-6", {
+/**
+ * Gutters come from the `shell` utility in globals.css — the same one the
+ * marketing nav, hero, sections and footer use — so a page built out of
+ * `Container` lines up with the chrome wrapped around it. They previously
+ * disagreed (`px-4 md:px-6` here against `px-5 md:px-8` there), which put the
+ * nav's logo a few pixels off the left edge of the content beneath it.
+ *
+ * `max-w-*` after `shell` intentionally overrides the utility's own 90rem cap
+ * for the narrower variants; the gutter ramp is what's being shared.
+ */
+const containerVariants = cva("shell", {
   variants: {
     width: {
       /** Customer content — reading/browsing width */

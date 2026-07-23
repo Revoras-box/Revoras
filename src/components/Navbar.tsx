@@ -28,7 +28,7 @@ export default function Navbar({
 
   return (
     <nav className="fixed top-0 z-1000 w-full border-b border-border glass-nav">
-      <div className="mx-auto flex max-w-screen-2xl items-center justify-between gap-6 px-5 py-3.5 md:px-8">
+      <div className="shell max-w-shell flex items-center justify-between gap-6 py-3.5">
         {/* Logo */}
         <Link href={brandHref} className="shrink-0 font-headline text-2xl font-extrabold tracking-tight text-primary dark:text-white">
           {brandText}
@@ -85,7 +85,9 @@ export default function Navbar({
 
       {/* Mobile panel */}
       {open && (
-        <div className="border-t border-border bg-surface px-5 py-4 md:hidden animate-dropdown">
+        // `shell` and not a bare `px-5`, so the panel's links start on the same
+        // left edge as the logo directly above them.
+        <div className="shell max-w-shell border-t border-border bg-surface py-4 md:hidden animate-dropdown">
           <div className="flex flex-col gap-1">
             {navLinks.map((link) => (
               <Link
