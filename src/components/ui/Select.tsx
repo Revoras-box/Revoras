@@ -68,7 +68,14 @@ export function Select({
             sideOffset={6}
             className="z-(--z-index-popover) overflow-hidden rounded-lg border border-outline-variant bg-surface shadow-elevated animate-dropdown"
           >
-            <RadixSelect.Viewport className="p-1">
+            <RadixSelect.Viewport
+              className="max-h-80 overflow-y-auto p-1"
+              // Never taller than the space between the trigger and the screen
+              // edge (Radix sets this var in popper mode); the max-h-80 cap keeps
+              // long lists — e.g. the 48 half-hour times in TimeSelect — from
+              // filling the whole viewport. Either way it scrolls.
+              style={{ maxHeight: "min(20rem, var(--radix-select-content-available-height))" }}
+            >
               {options.map((opt) => (
                 <RadixSelect.Item
                   key={opt.value}

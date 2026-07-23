@@ -8,6 +8,7 @@ export * from "./Spinner";
 export * from "./Input";
 export * from "./Textarea";
 export * from "./Select";
+export * from "./TimeSelect";
 export * from "./Checkbox";
 export * from "./RadioGroup";
 export * from "./Switch";

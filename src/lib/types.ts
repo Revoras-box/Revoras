@@ -705,7 +705,14 @@ export interface CancellationQuote {
   feeAmount: number;
   refundAmount: number;
   hoursUntil: number;
-  policy: { freeBeforeHours: number; feePercentAfter: number; noCancelWithinHours: number };
+  // `tiers` is the full refund schedule; `freeBeforeHours`/`feePercentAfter` are
+  // a backward-compatible single-tier summary the engine derives from it.
+  policy: {
+    tiers?: { hoursBefore: number; refundPercent: number }[];
+    freeBeforeHours: number;
+    feePercentAfter: number;
+    noCancelWithinHours: number;
+  };
   message: string;
 }
 export type PaymentStatus = "unpaid" | "pending" | "paid" | "failed" | "refunded";

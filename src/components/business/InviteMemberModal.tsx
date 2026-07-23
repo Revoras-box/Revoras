@@ -200,7 +200,10 @@ export function InviteMemberModal({
             label="Years of experience"
             type="number"
             min={0}
-            value={form.experienceYears}
+            placeholder="0"
+            // `|| ""` so a 0 shows as an empty field that can be cleared and
+            // retyped — binding the raw number kept snapping it back to "0".
+            value={form.experienceYears || ""}
             onChange={(e) => setForm((f) => ({ ...f, experienceYears: Number(e.target.value) }))}
           />
         </div>

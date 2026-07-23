@@ -99,6 +99,16 @@ export interface GalleryImage {
   is_cover: boolean;
 }
 
+// Business document (PAN/GST/other) - compulsory onboarding upload, stored in R2.
+export interface BusinessDocument {
+  id: string;
+  studio_id: string;
+  doc_type: string;
+  url: string;
+  original_name: string | null;
+  created_at: string;
+}
+
 // Phase 1.5d - ₹99/month subscription (mirrors businessSubscription.service.js).
 export interface SubscriptionPlan {
   key: string;
@@ -397,6 +407,14 @@ export const businessApi = {
     request<{ image: GalleryImage }>(`/business/${studioId}/gallery`, { method: "POST", body: form }),
   removeGalleryImage: (studioId: string, imageId: string) =>
     request<{ images: GalleryImage[] }>(`/business/${studioId}/gallery/${imageId}`, { method: "DELETE" }),
+
+  // Business documents (PAN/GST/other). Upload passes FormData ("file" + "docType").
+  listDocuments: (studioId: string) =>
+    request<{ documents: BusinessDocument[] }>(`/business/${studioId}/documents`),
+  addDocument: (studioId: string, form: FormData) =>
+    request<{ document: BusinessDocument }>(`/business/${studioId}/documents`, { method: "POST", body: form }),
+  removeDocument: (studioId: string, documentId: string) =>
+    request<{ documents: BusinessDocument[] }>(`/business/${studioId}/documents/${documentId}`, { method: "DELETE" }),
   setGalleryCover: (studioId: string, imageId: string) =>
     request<{ images: GalleryImage[] }>(`/business/${studioId}/gallery/${imageId}/cover`, { method: "PATCH" }),
   reorderGallery: (studioId: string, orderedImageIds: string[]) =>
@@ -426,6 +444,12 @@ export const businessApi = {
     request<{ message: string; verified: boolean; businessStatus: string }>(
       `/business/${studioId}/subscription/verify`,
       { method: "POST", body }
+    ),
+  // TEMPORARY: activate without payment while no gateway is live.
+  activateSubscriptionFree: (studioId: string) =>
+    request<{ message: string; active: boolean; businessStatus: string }>(
+      `/business/${studioId}/subscription/activate-free`,
+      { method: "POST" }
     ),
 
   listReviews: (

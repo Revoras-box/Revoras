@@ -218,14 +218,18 @@ function ServiceFormModal({
             label="Price (₹)"
             type="number"
             min={0}
-            value={form.price}
+            placeholder="0"
+            // `|| ""` so a 0 shows as an empty field the owner can clear and
+            // retype — binding the raw number kept snapping it back to "0".
+            value={form.price || ""}
             onChange={(e) => setForm((f) => ({ ...f, price: Number(e.target.value) }))}
           />
           <Input
             label="Duration (min)"
             type="number"
             min={5}
-            value={form.duration}
+            placeholder="30"
+            value={form.duration || ""}
             onChange={(e) => setForm((f) => ({ ...f, duration: Number(e.target.value) }))}
           />
         </div>

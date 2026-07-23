@@ -18,6 +18,23 @@ export interface BusinessPolicies {
   general?: string;
 }
 
+// The structured refund schedule the cancellation engine evaluates: cancel at
+// least `hoursBefore` ahead → earn `refundPercent` back (highest tier the
+// customer clears wins). Legacy rows may instead carry freeBeforeHours/
+// feePercentAfter; the backend normalizes both, and the form falls back to
+// sensible defaults when tiers are absent.
+export interface CancellationTier {
+  hoursBefore: number;
+  refundPercent: number;
+}
+
+export interface CancellationPolicy {
+  tiers?: CancellationTier[];
+  noCancelWithinHours?: number;
+  freeBeforeHours?: number;
+  feePercentAfter?: number;
+}
+
 export interface BusinessProfile {
   id: string;
   name: string;
@@ -44,6 +61,7 @@ export interface BusinessProfile {
   languages: string[];
   payment_methods: string[];
   policies: BusinessPolicies;
+  cancellation_policy: CancellationPolicy;
   accessibility: string[];
   house_rules: string[];
   is_active: boolean;

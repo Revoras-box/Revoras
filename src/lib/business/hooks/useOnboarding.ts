@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { businessApi, type GalleryImage, type OnboardingState } from "../api";
+import { businessApi, type BusinessDocument, type GalleryImage, type OnboardingState } from "../api";
 
 // Phase 1.5a - onboarding wizard state. Read is member-only on the backend, so
 // any active owner/staff can load it; the gate and the wizard both consume this.
@@ -83,5 +83,43 @@ export function useSetGalleryCover(studioId: string | undefined) {
   return useMutation({
     mutationFn: (imageId: string) => businessApi.setGalleryCover(studioId as string, imageId),
     onSuccess: (r) => queryClient.setQueryData<GalleryImage[]>(["business", studioId, "gallery"], r.images),
+  });
+}
+
+// ---- Documents (PAN/GST/other) — compulsory onboarding upload to R2 ----
+
+export function useDocuments(studioId: string | undefined) {
+  return useQuery({
+    queryKey: ["business", studioId, "documents"],
+    queryFn: () => businessApi.listDocuments(studioId as string).then((r) => r.documents),
+    enabled: !!studioId,
+    staleTime: 30_000,
+  });
+}
+
+export function useAddDocument(studioId: string | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ file, docType }: { file: File; docType: string }) => {
+      const form = new FormData();
+      form.append("file", file);
+      form.append("docType", docType);
+      return businessApi.addDocument(studioId as string, form);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["business", studioId, "documents"] });
+      queryClient.invalidateQueries({ queryKey: ["business", studioId, "onboarding"] });
+    },
+  });
+}
+
+export function useRemoveDocument(studioId: string | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (documentId: string) => businessApi.removeDocument(studioId as string, documentId),
+    onSuccess: (r) => {
+      queryClient.setQueryData<BusinessDocument[]>(["business", studioId, "documents"], r.documents);
+      queryClient.invalidateQueries({ queryKey: ["business", studioId, "onboarding"] });
+    },
   });
 }

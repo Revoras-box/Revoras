@@ -239,7 +239,9 @@ function MemberDrawer({
                 <div className="text-sm font-semibold text-on-surface">Personal</div>
                 <Input label="Designation" value={form.designation} onChange={(e) => setForm((f) => ({ ...f, designation: e.target.value }))} placeholder="e.g. Senior Stylist" />
                 <Textarea label="Bio" value={form.bio} onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))} placeholder="Introduce this professional…" />
-                <Input label="Years of experience" type="number" min={0} value={form.experienceYears} onChange={(e) => setForm((f) => ({ ...f, experienceYears: Number(e.target.value) }))} />
+                {/* `|| ""` so a 0 shows as an empty field that can be cleared
+                    and retyped — binding the raw number kept snapping it to "0". */}
+                <Input label="Years of experience" type="number" min={0} placeholder="0" value={form.experienceYears || ""} onChange={(e) => setForm((f) => ({ ...f, experienceYears: Number(e.target.value) }))} />
                 <Input label="Specializations" placeholder="Fades, Beard, Coloring" value={form.specialties} onChange={(e) => setForm((f) => ({ ...f, specialties: e.target.value }))} />
                 <Input label="Languages" placeholder="English, Hindi" value={form.languages} onChange={(e) => setForm((f) => ({ ...f, languages: e.target.value }))} />
               </div>

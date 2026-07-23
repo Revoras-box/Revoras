@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Lock } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { useBusinessAuth } from "@/lib/business/auth";
 import { useBusinessProfile } from "@/lib/business/hooks/useSettings";
 import { useBusinessCategories } from "@/lib/business/hooks/useServices";
 import { StepHeader } from "../StepHeader";
@@ -17,7 +19,15 @@ const EMPTY = { name: "", phone: "", email: "", categoryId: "", address: "", cit
 export function StepBasics({ studioId, goNext, goPrev, exit, saving }: WizardStepProps) {
   const { data: business, isLoading } = useBusinessProfile(studioId);
   const { data: categories } = useBusinessCategories();
+  const { user } = useBusinessAuth();
   const [form, setForm] = useState(EMPTY);
+
+  // Phone and email are the owner's verified contact from signup (both went
+  // through OTP verification), so they're locked to the account here rather than
+  // freely editable — the account is the single source of truth. They fall back
+  // to whatever the draft business already stored if the account isn't loaded.
+  const lockedPhone = user?.phone || business?.phone || "";
+  const lockedEmail = user?.email || business?.email || "";
 
   useEffect(() => {
     if (business) {
@@ -51,8 +61,8 @@ export function StepBasics({ studioId, goNext, goPrev, exit, saving }: WizardSte
       name: form.name.trim(),
       categoryId: form.categoryId,
       address: form.address.trim(),
-      phone: form.phone.trim() || undefined,
-      email: form.email.trim() || undefined,
+      phone: lockedPhone.trim() || undefined,
+      email: lockedEmail.trim() || undefined,
       city: form.city.trim() || undefined,
       state: form.state.trim() || undefined,
       country: form.country.trim() || undefined,
@@ -82,8 +92,23 @@ export function StepBasics({ studioId, goNext, goPrev, exit, saving }: WizardSte
               options={(categories || []).map((c) => ({ value: c.id, label: c.name }))}
             />
             <div className="grid gap-4 sm:grid-cols-2">
-              <Input label="Phone" placeholder="+91…" {...field("phone")} />
-              <Input label="Email" type="email" placeholder="hello@business.com" {...field("email")} />
+              <Input
+                label="Phone"
+                value={lockedPhone}
+                readOnly
+                trailingIcon={<Lock size={14} />}
+                hint="From your account"
+                className="cursor-not-allowed bg-surface-container text-on-surface-variant"
+              />
+              <Input
+                label="Email"
+                type="email"
+                value={lockedEmail}
+                readOnly
+                trailingIcon={<Lock size={14} />}
+                hint="From your account"
+                className="cursor-not-allowed bg-surface-container text-on-surface-variant"
+              />
             </div>
           </Card>
 

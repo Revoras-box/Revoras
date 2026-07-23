@@ -6,6 +6,8 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Tabs, TabsPanel } from "@/components/ui/Tabs";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
+import { TimeSelect } from "@/components/ui/TimeSelect";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { Textarea } from "@/components/ui/Textarea";
 import { Switch } from "@/components/ui/Switch";
 import { Button } from "@/components/ui/Button";
@@ -283,13 +285,25 @@ function ProfileTab({ studioId }: { studioId: string | undefined }) {
   );
 }
 
+const hhmm = (t?: string | null) => t?.slice(0, 5) || "";
+// Every open day shares one open+close time — the signal for "same for all".
+const isUniformHours = (list: WorkingHoursDay[]) => {
+  const open = list.filter((d) => !d.isClosed);
+  return open.length > 1 && open.every((d) => hhmm(d.openTime) === hhmm(open[0].openTime) && hhmm(d.closeTime) === hhmm(open[0].closeTime));
+};
+
 function HoursTab({ studioId }: { studioId: string | undefined }) {
   const { data, isLoading, isError, refetch } = useWorkingHours(studioId);
   const updateHours = useUpdateWorkingHours(studioId);
   const [days, setDays] = useState<WorkingHoursDay[]>([]);
+  // When on, one control drives every open day and the per-day pickers lock.
+  const [sameForAll, setSameForAll] = useState(false);
 
   useEffect(() => {
-    if (data) setDays(data);
+    if (data) {
+      setDays(data);
+      setSameForAll(isUniformHours(data));
+    }
   }, [data]);
 
   if (isLoading) return <Skeleton className="h-96 rounded-2xl" />;
@@ -308,8 +322,37 @@ function HoursTab({ studioId }: { studioId: string | undefined }) {
     setDays((prev) => prev.map((d) => (d.dayOfWeek === dayOfWeek ? { ...d, ...patch } : d)));
   };
 
+  const openDays = days.filter((d) => !d.isClosed);
+  const masterOpen = hhmm(openDays[0]?.openTime) || "09:00";
+  const masterClose = hhmm(openDays[0]?.closeTime) || "18:00";
+
+  const setAllTimes = (patch: Partial<WorkingHoursDay>) =>
+    setDays((prev) => prev.map((d) => (d.isClosed ? d : { ...d, ...patch })));
+
+  const toggleSameForAll = (on: boolean) => {
+    setSameForAll(on);
+    if (on) setAllTimes({ openTime: masterOpen, closeTime: masterClose });
+  };
+
   return (
     <Card className="max-w-2xl flex flex-col gap-3">
+      <div className="flex flex-col gap-3 border-b border-border pb-3">
+        <Checkbox
+          checked={sameForAll}
+          onCheckedChange={toggleSameForAll}
+          label="Use the same hours for every open day"
+          description="Set one open and close time that applies to all days you're open. Turn this off to set each day individually."
+        />
+        {sameForAll ? (
+          <div className="flex items-center gap-2">
+            <span className="w-28 shrink-0 text-sm font-medium text-on-surface">All open days</span>
+            <TimeSelect className="w-32" value={masterOpen} onChange={(v) => setAllTimes({ openTime: v })} />
+            <span className="text-muted text-sm">to</span>
+            <TimeSelect className="w-32" value={masterClose} onChange={(v) => setAllTimes({ closeTime: v })} />
+          </div>
+        ) : null}
+      </div>
+
       {days
         .slice()
         .sort((a, b) => a.dayOfWeek - b.dayOfWeek)
@@ -318,13 +361,19 @@ function HoursTab({ studioId }: { studioId: string | undefined }) {
             <span className="w-28 text-sm font-medium text-on-surface shrink-0">{DAY_LABELS[day.dayOfWeek]}</span>
             <Switch
               checked={!day.isClosed}
-              onCheckedChange={(open) => updateDay(day.dayOfWeek, { isClosed: !open, openTime: day.openTime || "09:00", closeTime: day.closeTime || "18:00" })}
+              onCheckedChange={(open) =>
+                updateDay(day.dayOfWeek, {
+                  isClosed: !open,
+                  openTime: sameForAll ? masterOpen : day.openTime || "09:00",
+                  closeTime: sameForAll ? masterClose : day.closeTime || "18:00",
+                })
+              }
             />
             {!day.isClosed ? (
               <>
-                <Input type="time" className="w-32" value={day.openTime?.slice(0, 5) || ""} onChange={(e) => updateDay(day.dayOfWeek, { openTime: e.target.value })} />
+                <TimeSelect className="w-32" disabled={sameForAll} value={day.openTime || ""} onChange={(v) => updateDay(day.dayOfWeek, { openTime: v })} />
                 <span className="text-muted text-sm">to</span>
-                <Input type="time" className="w-32" value={day.closeTime?.slice(0, 5) || ""} onChange={(e) => updateDay(day.dayOfWeek, { closeTime: e.target.value })} />
+                <TimeSelect className="w-32" disabled={sameForAll} value={day.closeTime || ""} onChange={(v) => updateDay(day.dayOfWeek, { closeTime: v })} />
               </>
             ) : (
               <span className="text-sm text-muted">Closed</span>

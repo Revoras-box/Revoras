@@ -27,3 +27,15 @@ export function useVerifySubscriptionPayment(studioId: string | undefined) {
     },
   });
 }
+
+// TEMPORARY: finish onboarding without a payment while no gateway is live.
+export function useActivateSubscriptionFree(studioId: string | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => businessApi.activateSubscriptionFree(studioId as string),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["business", studioId, "subscription"] });
+      queryClient.invalidateQueries({ queryKey: ["business", studioId, "onboarding"] });
+    },
+  });
+}

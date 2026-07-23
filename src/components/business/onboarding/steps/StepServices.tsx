@@ -159,8 +159,10 @@ function AddServiceModal({
           options={categories.map((c) => ({ value: c.id, label: c.name }))}
         />
         <div className="grid grid-cols-2 gap-3">
-          <Input label="Price (₹)" type="number" min={0} value={form.price} onChange={(e) => setForm((f) => ({ ...f, price: Number(e.target.value) }))} />
-          <Input label="Duration (min)" type="number" min={5} value={form.duration} onChange={(e) => setForm((f) => ({ ...f, duration: Number(e.target.value) }))} />
+          {/* `|| ""` so a 0 shows as an empty field that can be cleared and
+              retyped — binding the raw number kept snapping it back to "0". */}
+          <Input label="Price (₹)" type="number" min={0} placeholder="0" value={form.price || ""} onChange={(e) => setForm((f) => ({ ...f, price: Number(e.target.value) }))} />
+          <Input label="Duration (min)" type="number" min={5} placeholder="30" value={form.duration || ""} onChange={(e) => setForm((f) => ({ ...f, duration: Number(e.target.value) }))} />
         </div>
       </div>
     </Modal>

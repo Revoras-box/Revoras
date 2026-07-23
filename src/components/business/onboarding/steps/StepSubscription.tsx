@@ -9,7 +9,12 @@ import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { openRazorpayCheckout } from "@/lib/razorpay";
 import { useBusinessAuth } from "@/lib/business/auth";
-import { useSubscription, useCreateSubscriptionOrder, useVerifySubscriptionPayment } from "@/lib/business/hooks/useSubscription";
+import {
+  useSubscription,
+  useCreateSubscriptionOrder,
+  useVerifySubscriptionPayment,
+  useActivateSubscriptionFree,
+} from "@/lib/business/hooks/useSubscription";
 import { useSubmitOnboarding } from "@/lib/business/hooks/useOnboarding";
 import { StepHeader } from "../StepHeader";
 import { WizardFooter } from "../WizardFooter";
@@ -38,6 +43,7 @@ export function StepSubscription({ studioId, state, goPrev, jumpTo, exit }: Wiza
   const submitOnboarding = useSubmitOnboarding(studioId);
   const createOrder = useCreateSubscriptionOrder(studioId);
   const verifyPayment = useVerifySubscriptionPayment(studioId);
+  const activateFree = useActivateSubscriptionFree(studioId);
   const [paying, setPaying] = useState(false);
 
   const canSubmit = state.canSubmit;
@@ -50,6 +56,16 @@ export function StepSubscription({ studioId, state, goPrev, jumpTo, exit }: Wiza
     try {
       if (!alreadySubmitted) {
         await submitOnboarding.mutateAsync();
+      }
+
+      // TEMPORARY: no payment gateway is live yet, so finish onboarding by
+      // activating the subscription without charging. Swaps back to the real
+      // Razorpay flow automatically once `configured` is true.
+      if (!configured) {
+        await activateFree.mutateAsync();
+        toast.success("Your business is now live and listed!");
+        setPaying(false);
+        return;
       }
 
       const order = await createOrder.mutateAsync();
@@ -73,7 +89,7 @@ export function StepSubscription({ studioId, state, goPrev, jumpTo, exit }: Wiza
               toast.error("Payment could not be verified.");
               return;
             }
-            toast.success("Payment successful — your business is submitted for review!");
+            toast.success("Payment successful — your business is now live and listed!");
           } catch (err) {
             toast.error(err instanceof Error ? err.message : "Payment verification failed.");
           } finally {
@@ -136,8 +152,8 @@ export function StepSubscription({ studioId, state, goPrev, jumpTo, exit }: Wiza
             <div>
               <h3 className="font-headline text-base font-semibold text-on-surface">Payments aren&apos;t live yet</h3>
               <p className="mt-1 text-sm text-muted">
-                Your business setup is otherwise complete{alreadySubmitted ? " and already submitted" : ""}. Once payments
-                are switched on, come back here to pay and finish submitting for review.
+                Billing isn&apos;t switched on yet, so there&apos;s nothing to pay for now — submitting lists your business
+                right away at no charge. We&apos;ll add the ₹99 subscription later.
               </p>
             </div>
           </Card>
@@ -162,12 +178,14 @@ export function StepSubscription({ studioId, state, goPrev, jumpTo, exit }: Wiza
           <Card className="flex items-center justify-between gap-4 border-secondary-container bg-secondary-container/20">
             <div>
               <p className="text-sm font-medium text-on-surface">
-                {alreadySubmitted ? "Your business is submitted — complete payment to finish" : "Ready to go"}
+                {alreadySubmitted ? "Almost there — complete payment to go live" : "Ready to go"}
               </p>
               <p className="mt-0.5 text-xs text-muted">
                 {alreadySubmitted
-                  ? "Payment wasn't completed last time. Pay ₹99 to move into review."
-                  : "Everything required is complete. Paying submits your business for review."}
+                  ? "Payment wasn't completed last time. Pay ₹99 to list your business."
+                  : configured
+                    ? "Everything required is complete. Paying ₹99 lists your business right away."
+                    : "Everything required is complete. Submitting lists your business right away."}
               </p>
             </div>
             <Badge tone="primary">
@@ -181,10 +199,16 @@ export function StepSubscription({ studioId, state, goPrev, jumpTo, exit }: Wiza
         onPrev={goPrev}
         onNext={handlePay}
         onExit={exit}
-        nextLabel={`Pay ₹99 & submit`}
-        nextDisabled={!configured || (!canSubmit && !alreadySubmitted)}
-        nextLoading={paying || submitOnboarding.isPending || createOrder.isPending || verifyPayment.isPending}
-        hint={!configured ? "Payments aren't configured on this server yet." : undefined}
+        nextLabel={configured ? "Pay ₹99 & go live" : "Submit & go live"}
+        nextDisabled={!canSubmit && !alreadySubmitted}
+        nextLoading={
+          paying ||
+          submitOnboarding.isPending ||
+          createOrder.isPending ||
+          verifyPayment.isPending ||
+          activateFree.isPending
+        }
+        hint={!configured ? "Billing isn't live yet — submitting is free for now." : undefined}
       />
     </div>
   );
