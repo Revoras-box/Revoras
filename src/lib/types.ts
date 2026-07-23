@@ -444,6 +444,17 @@ export interface BusinessDetail {
   badges?: TrustBadge[];
   // Phase 2.4 - live offers for this business.
   offers?: PublicOffer[];
+  // Photos uploaded through the business dashboard's gallery manager - the
+  // actual source of truth for storefront photos (banner_url/image_url/logo_url
+  // are separate, often-unpopulated legacy fields).
+  gallery?: GalleryImage[];
+}
+
+export interface GalleryImage {
+  id: string;
+  url: string;
+  sort_order: number;
+  is_cover: boolean;
 }
 
 export interface BusinessResponse {

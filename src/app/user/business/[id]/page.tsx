@@ -74,6 +74,20 @@ export default function BusinessDetailPage({ params }: BusinessDetailPageProps) 
     [business, selectedServiceIds]
   );
 
+  // Uploaded gallery photos are the real source of truth; banner/image/logo
+  // are legacy fields most businesses (like ones set up before the gallery
+  // manager existed) never populated.
+  const heroImages = useMemo(() => {
+    if (!business) return [];
+    const gallery = business.gallery ?? [];
+    if (gallery.length > 0) {
+      return [...gallery]
+        .sort((a, b) => (b.is_cover ? 1 : 0) - (a.is_cover ? 1 : 0) || a.sort_order - b.sort_order)
+        .map((g) => g.url);
+    }
+    return [business.banner_url, business.image_url, business.logo_url];
+  }, [business]);
+
   const sectionNav = useMemo(() => {
     if (!business) return [];
     const items = [{ id: "services", label: "Services" }];
@@ -102,7 +116,7 @@ export default function BusinessDetailPage({ params }: BusinessDetailPageProps) 
   return (
     <>
       <Container width="lg" className="flex flex-col gap-6 py-6">
-        <HeroGallery name={business.name} images={[business.banner_url, business.image_url, business.logo_url]} />
+        <HeroGallery name={business.name} images={heroImages} />
         <DetailHeader business={business} isFavorite={isFavorite} onFavoriteToggle={() => toggleFavorite(id)} />
         <SectionNav sections={sectionNav} />
 
