@@ -1,57 +1,38 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
 import { Search } from "lucide-react";
+import { useBusinesses } from "@/lib/hooks";
+import type { Business } from "@/lib/types";
 
-const locations = [
-  {
-    id: "classic-cuts",
-    name: "Classic Cuts Studio",
-    area: "Lower Manhattan",
-    description: "Lower Manhattan's premier grooming lounge featuring bespoke hair design and classic straight-razor finishes.",
-    rating: 4.9,
-    activeBarbers: 8,
-    status: "Open Now",
-    coords: [40.7128, -74.006] as [number, number],
-  },
-  {
-    id: "fade-room",
-    name: "The Fade Room",
-    area: "Midtown East",
-    description: "Modern precision and urban style. Specializing in technical fades and artisanal beard sculpting.",
-    rating: 4.8,
-    activeBarbers: 6,
-    status: "Open Now",
-    coords: [40.7549, -73.9840] as [number, number],
-  },
-  {
-    id: "obsidian-parlor",
-    name: "Obsidian Parlor",
-    area: "Upper West Side",
-    description: "The pinnacle of luxury. Private suites and executive grooming services for the discerning professional.",
-    rating: 4.9,
-    activeBarbers: 10,
-    status: "Open Now",
-    coords: [40.7870, -73.9754] as [number, number],
-  },
-];
+function ratingOf(b: Business): string | null {
+  // `rating` arrives as a pg decimal, which the driver hands back as a string.
+  const n = b.rating ? Number(b.rating) : 0;
+  return n > 0 ? n.toFixed(1) : null;
+}
 
 export default function LocationsPage() {
+  const { data, loading } = useBusinesses({ limit: "20" });
+  const businesses = (data?.businesses ?? []).filter((b) => b.lat != null && b.lng != null);
+
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const mapRef = useRef<any>(null);
+  const markersRef = useRef<any[]>([]);
 
+  // Map init runs once on mount, independent of business data arriving later.
   useEffect(() => {
-    let map: any = null;
+    let cancelled = false;
 
     const initMap = async () => {
       const L = (await import("leaflet")).default;
-      
-      const mapContainer = document.getElementById("map") as HTMLDivElement | null;
-      if (!mapContainer || (mapContainer as any)._leaflet_id) return;
 
-      map = L.map("map", {
-        center: [40.7549, -73.9840],
+      const mapContainer = document.getElementById("map") as HTMLDivElement | null;
+      if (!mapContainer || (mapContainer as any)._leaflet_id || cancelled) return;
+
+      const map = L.map("map", {
+        center: [40.7549, -73.984],
         zoom: 12,
         zoomControl: false,
       });
@@ -61,6 +42,34 @@ export default function LocationsPage() {
         subdomains: "abcd",
         maxZoom: 19,
       }).addTo(map);
+
+      mapRef.current = map;
+      setMapLoaded(true);
+    };
+
+    initMap();
+
+    return () => {
+      cancelled = true;
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+    };
+  }, []);
+
+  // Markers are re-synced whenever the real business list changes.
+  useEffect(() => {
+    if (!mapLoaded || !mapRef.current) return;
+
+    let disposed = false;
+
+    (async () => {
+      const L = (await import("leaflet")).default;
+      if (disposed || !mapRef.current) return;
+
+      markersRef.current.forEach((m) => m.remove());
+      markersRef.current = [];
 
       const customIcon = L.divIcon({
         className: "custom-marker",
@@ -78,31 +87,33 @@ export default function LocationsPage() {
         iconAnchor: [14, 14],
       });
 
-      locations.forEach((location, index) => {
-        const marker = L.marker(location.coords, { icon: customIcon }).addTo(map);
-        
+      businesses.forEach((business, index) => {
+        const marker = L.marker([business.lat as number, business.lng as number], { icon: customIcon }).addTo(mapRef.current);
+
         marker.on("click", () => {
           setSelectedIndex(index);
         });
 
-        marker.bindTooltip(location.name, {
+        marker.bindTooltip(business.name, {
           direction: "top",
           offset: [0, -15],
           className: "custom-tooltip",
         });
+
+        markersRef.current.push(marker);
       });
 
-      setMapLoaded(true);
-    };
-
-    initMap();
+      if (businesses.length > 0) {
+        const bounds = L.latLngBounds(businesses.map((b) => [b.lat as number, b.lng as number]));
+        mapRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+      }
+    })();
 
     return () => {
-      if (map) {
-        map.remove();
-      }
+      disposed = true;
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapLoaded, JSON.stringify(businesses.map((b) => b.id))]);
 
   return (
     <div className="min-h-screen flex bg-background">
@@ -122,23 +133,18 @@ export default function LocationsPage() {
         )}
 
         {/* Bottom Floating Badge */}
-        <div className="absolute bottom-6 left-6 bg-background/90 backdrop-blur-xl px-6 py-3 rounded-full border border-white/10 flex items-center gap-3 z-1000">
-          <div className="flex -space-x-2">
-            <img className="w-8 h-8 rounded-full border border-background"
-              src="https://i.pravatar.cc/40?img=1" />
-            <img className="w-8 h-8 rounded-full border border-background"
-              src="https://i.pravatar.cc/40?img=2" />
+        {!loading && (
+          <div className="absolute bottom-6 left-6 bg-background/90 backdrop-blur-xl px-6 py-3 rounded-full border border-white/10 flex items-center gap-3 z-1000">
+            <div className="text-sm">
+              <span className="text-primary font-semibold">
+                {businesses.length}
+              </span>
+              <span className="text-muted ml-2">
+                {businesses.length === 1 ? "Studio Found" : "Studios Found"}
+              </span>
+            </div>
           </div>
-
-          <div className="text-sm">
-            <span className="text-primary font-semibold">
-              124 Barbers
-            </span>
-            <span className="text-muted ml-2">
-              Active in Manhattan
-            </span>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Right Sidebar */}
@@ -165,60 +171,68 @@ export default function LocationsPage() {
 
         {/* Location Cards */}
         <div className="space-y-6">
-          {locations.map((location, index) => (
-            <div
-              key={location.id}
-              onClick={() => setSelectedIndex(index)}
-              className={`bg-background rounded-2xl p-6 space-y-4 border cursor-pointer transition-all ${
-                selectedIndex === index
-                  ? "border-primary shadow-lg shadow-primary/10"
-                  : "border-white/5 hover:border-white/10"
-              }`}
-            >
-              <div className="flex justify-between items-center">
-                <h3 className="font-semibold">
-                  {location.name}
-                </h3>
+          {loading && (
+            <p className="text-muted text-sm">Loading studios...</p>
+          )}
 
-                <span className="text-green-400 text-xs bg-green-400/10 px-2 py-1 rounded-full">
-                  LIVE
-                </span>
+          {!loading && businesses.length === 0 && (
+            <p className="text-muted text-sm">No studios found yet. Check back soon.</p>
+          )}
+
+          {businesses.map((business, index) => {
+            const rating = ratingOf(business);
+            return (
+              <div
+                key={business.id}
+                onClick={() => setSelectedIndex(index)}
+                className={`bg-background rounded-2xl p-6 space-y-4 border cursor-pointer transition-all ${
+                  selectedIndex === index
+                    ? "border-primary shadow-lg shadow-primary/10"
+                    : "border-white/5 hover:border-white/10"
+                }`}
+              >
+                <div className="flex justify-between items-center">
+                  <h3 className="font-semibold">
+                    {business.name}
+                  </h3>
+                </div>
+
+                <div className="text-sm text-muted">
+                  {rating && <>⭐ {rating} • </>}
+                  {business.city ?? business.address}
+                </div>
+
+                <p className="text-secondary-foreground text-sm line-clamp-2">
+                  {business.address}
+                </p>
+
+                <div className="flex items-center justify-between pt-2">
+                  <span className="text-xs text-secondary-foreground">
+                    {business.category_name ?? "Studio"}
+                  </span>
+                  <Link
+                    href={`/user/business/${business.id}`}
+                    className="bg-primary text-primary-foreground text-sm px-4 py-2 rounded-lg font-semibold hover:bg-primary/90 transition"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    View Studio
+                  </Link>
+                </div>
               </div>
-
-              <div className="text-sm text-muted">
-                ⭐ {location.rating} • {location.area}
-              </div>
-
-              <p className="text-secondary-foreground text-sm line-clamp-2">
-                {location.description}
-              </p>
-
-              <div className="flex items-center justify-between pt-2">
-                <span className="text-xs text-secondary-foreground">
-                  {location.activeBarbers} barbers available
-                </span>
-                <Link 
-                  href="/login"
-                  className="bg-primary text-primary-foreground text-sm px-4 py-2 rounded-lg font-semibold hover:bg-primary/90 transition"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  Book Now
-                </Link>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
       <style jsx global>{`
         @import url('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
-        
+
         #map {
           width: 100%;
           height: 100%;
           background: #0a0a0a;
         }
-        
+
         .custom-tooltip {
           background: #111 !important;
           border: 1px solid rgba(200, 169, 110, 0.3) !important;
@@ -227,11 +241,11 @@ export default function LocationsPage() {
           border-radius: 8px !important;
           font-size: 12px !important;
         }
-        
+
         .custom-tooltip::before {
           border-top-color: rgba(200, 169, 110, 0.3) !important;
         }
-        
+
         .leaflet-container {
           background: #0a0a0a !important;
           font-family: inherit !important;

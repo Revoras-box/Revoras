@@ -11,54 +11,6 @@ export const metadata: Metadata = {
 
 export const revalidate = 3600; // ISR: Revalidate every hour
 
-const services = [
-  {
-    id: "royal-cut",
-    title: "The Royal Cut",
-    description: "Our ultimate precision service including hot towel treatment, straight razor finish, and styling consultation.",
-    price: "₹1,499",
-    duration: "75 min",
-    icon: "auto_awesome",
-    featured: true,
-  },
-  {
-    id: "classic-haircut",
-    title: "Classic Haircut",
-    description: "Modern or traditional. Expertly tapered and finished with a neck shave.",
-    price: "₹799",
-    duration: "45 min",
-    icon: "content_cut",
-    featured: false,
-  },
-  {
-    id: "beard-trim",
-    title: "Precision Beard Trim",
-    description: "Sculpting, lining, and moisturizing for the modern gentleman's beard.",
-    price: "₹599",
-    duration: "30 min",
-    icon: "face",
-    featured: false,
-  },
-  {
-    id: "charcoal-facial",
-    title: "Charcoal Facial",
-    description: "Deep detoxifying treatment to clear pores and revitalize skin.",
-    price: "₹999",
-    duration: "50 min",
-    icon: "spa",
-    featured: false,
-  },
-  {
-    id: "head-massage",
-    title: "Head Massage",
-    description: "Stress-relieving Ayurvedic scalp treatment with essential oils.",
-    price: "₹499",
-    duration: "30 min",
-    icon: "self_improvement",
-    featured: false,
-  },
-];
-
 export default function ServicesPage() {
   return (
     <div className="min-h-screen flex flex-col">
@@ -89,142 +41,14 @@ export default function ServicesPage() {
 
       {/* Services Grid */}
       <section className="py-24 bg-background">
-        <div className="max-w-7xl mx-auto px-6 space-y-10">
-
-          {/* Top Featured Row */}
-          <div className="grid lg:grid-cols-3 gap-8">
-
-            {/* Featured Image Card */}
-            <div className="lg:col-span-2 relative rounded-3xl overflow-hidden group">
-
-              <img
-                src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=1920"
-                alt="The Royal Cut service"
-                className="w-full h-105 object-cover group-hover:scale-105 transition duration-700"
-              />
-
-              <div className="absolute inset-0 bg-linear-to-t from-black via-black/50 to-transparent" />
-
-              <div className="absolute bottom-6 left-6 right-6 flex justify-between items-end">
-
-                <div className="space-y-3">
-                  <div className="flex gap-3">
-
-                    <span className="bg-green-900/40 text-green-400 text-xs px-3 py-1 rounded-full">
-                      Signature
-                    </span>
-
-                    <span className="text-muted text-xs">
-                      60 Minutes
-                    </span>
-
-                  </div>
-
-                  <h3 className="text-3xl font-bold text-foreground">
-                    The Royal Cut
-                  </h3>
-
-                  <p className="text-muted max-w-md">
-                    Our ultimate precision service including hot towel
-                    treatment, straight razor finish, and styling consultation.
-                  </p>
-                </div>
-
-                <div className="text-right space-y-3">
-
-                  <div className="text-2xl font-bold text-primary">
-                    ₹1,499
-                  </div>
-
-                  <Link href="/login" className="bg-primary text-primary-foreground px-5 py-2 rounded-lg inline-block hover:bg-primary/90 transition-colors">
-                    Select
-                  </Link>
-
-                </div>
-
-              </div>
-
-            </div>
-
-
-
-            {/* Right Glass Card */}
-            <div className="bg-background/80 backdrop-blur-xl border border-white/10 rounded-3xl p-8 flex flex-col justify-between">
-
-              <div className="space-y-4">
-
-                <div className="w-12 h-12 rounded-xl bg-card flex items-center justify-center">
-                  <span className="material-symbols-outlined text-primary">
-                    content_cut
-                  </span>
-                </div>
-
-                <h3 className="text-xl font-semibold text-foreground">
-                  Classic Haircut
-                </h3>
-
-                <p className="text-muted">
-                  Modern or traditional. Expertly tapered and finished with a neck shave.
-                </p>
-
-                <div className="text-xs text-secondary-foreground uppercase">
-                  40 min • Junior/Senior
-                </div>
-
-              </div>
-
-              <div className="flex justify-between items-center">
-
-                <div className="text-xl font-bold text-foreground">
-                  ₹799
-                </div>
-
-                <Link href="/login" className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center hover:border-primary hover:text-primary transition-colors">
-                  →
-                </Link>
-
-              </div>
-
-            </div>
-
-          </div>
-
-
-
-          {/* Bottom Cards */}
-          <div className="grid md:grid-cols-3 gap-8">
-
-            {services.slice(2).map((service) => (
-              <div
-                key={service.id}
-                className="bg-background rounded-2xl p-6 border border-border"
-              >
-
-                <h4 className="text-lg font-semibold text-foreground">
-                  {service.title}
-                </h4>
-
-                <p className="text-muted text-sm mt-2">
-                  {service.description}
-                </p>
-
-                <div className="flex justify-between items-center mt-6">
-
-                  <div className="text-lg font-bold text-foreground">
-                    {service.price}
-                  </div>
-
-                  <Link href="/login" className="bg-primary text-primary-foreground px-4 py-1 rounded-md text-sm hover:bg-primary/90 transition-colors">
-                    Select
-                  </Link>
-
-                </div>
-
-              </div>
-            ))}
-
-          </div>
-
+        <div className="max-w-7xl mx-auto px-6 text-center space-y-4">
+          <p className="text-muted text-lg">
+            Our services catalog is coming soon. Browse individual studios to see what they offer today.
+          </p>
+          <Link href="/user" className="inline-flex items-center space-x-2 text-primary font-headline font-bold uppercase tracking-widest">
+            <span>Browse Studios</span>
+            <span className="material-symbols-outlined">arrow_forward</span>
+          </Link>
         </div>
       </section>
 

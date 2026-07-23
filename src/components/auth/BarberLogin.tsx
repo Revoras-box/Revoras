@@ -89,21 +89,6 @@ export default function BarberLogin() {
             Access your business dashboard. Manage your team, services, schedule, and deliver elite experiences to your clients.
           </p>
 
-          {/* Avatars */}
-          <div className="flex items-center gap-4">
-
-            <div className="flex -space-x-2">
-              <img src="https://i.pravatar.cc/40?img=1" className="w-10 h-10 rounded-full border border-background"/>
-              <img src="https://i.pravatar.cc/40?img=2" className="w-10 h-10 rounded-full border border-background"/>
-              <img src="https://i.pravatar.cc/40?img=3" className="w-10 h-10 rounded-full border border-background"/>
-            </div>
-
-            <span className="text-sm text-muted">
-              Joined by the world&apos;s finest studios
-            </span>
-
-          </div>
-
         </div>
 
 

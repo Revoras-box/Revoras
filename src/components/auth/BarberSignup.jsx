@@ -613,10 +613,6 @@ export default function BarberSignup() {
             Join thousands of elite specialists who have streamlined their
             business with Revoras.
           </p>
-          <div className="inline-flex items-center gap-2 bg-green-900/20 text-green-400 px-4 py-2 rounded-full text-xs tracking-widest">
-            <span className="w-2 h-2 bg-green-400 rounded-full"></span>
-            98% Satisfaction Rate
-          </div>
         </div>
 
         <div className="relative rounded-3xl overflow-hidden group cursor-pointer">
