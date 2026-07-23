@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { useBusinessAuth } from "@/lib/business/auth";
 import { resolveLandingPath } from "@/lib/business/resolveLandingPath";
 
-export default function BarberLogin() {
+export default function StaffLogin() {
   const router = useRouter();
   const { login } = useBusinessAuth();
   const [loading, setLoading] = useState(false);
@@ -18,8 +18,6 @@ export default function BarberLogin() {
 
   const updateField = (field: string, value: string | boolean) => {
     setForm((prev) => ({ ...prev, [field]: value }));
-    // Clear a stale error the moment the person edits a field, rather than
-    // leaving a message on screen that no longer matches what's typed.
     setFormError(null);
   };
 
@@ -50,9 +48,6 @@ export default function BarberLogin() {
     toast.loading("Authenticating...");
 
     try {
-      // Owners and staff share one login (report.md Phase 2.3 plan) - the
-      // backend resolves role/permissions per business membership, there's
-      // no separate "studio" vs "barber" login type anymore.
       const { error, memberships } = await login({
         ...(isValidEmail ? { email: form.identifier } : { phone: form.identifier }),
         password: form.password,
@@ -64,7 +59,7 @@ export default function BarberLogin() {
         toast.success("Welcome back!");
         window.location.href = resolveLandingPath(memberships ?? [], null);
       } else if (error === "Account not found" || error === "Not found") {
-        const message = "No business account found with those details. Check for typos, or register your business below.";
+        const message = "No account found with those details. Check for typos, or ask your business owner to re-send your invite.";
         setFormError(message);
         toast.error(message);
       } else if (error === "Invalid credentials" || error === "Invalid") {
@@ -98,16 +93,16 @@ export default function BarberLogin() {
         <div className="space-y-8">
 
           <div className="text-xs tracking-[0.35em] text-primary uppercase">
-            Partner Portal
+            Team Portal
           </div>
 
           <h1 className="text-5xl font-bold leading-tight">
-            Command Your <br />
-            <span className="text-primary">Business.</span>
+            See Your <br />
+            <span className="text-primary">Schedule.</span>
           </h1>
 
           <p className="text-muted max-w-lg">
-            Access your business dashboard. Manage your team, services, schedule, and deliver elite experiences to your clients.
+            Sign in to see your appointments, manage your day, and keep your profile up to date.
           </p>
 
         </div>
@@ -121,7 +116,7 @@ export default function BarberLogin() {
 
             <div>
               <h2 className="text-2xl font-semibold">
-                Business Login
+                Team Login
               </h2>
 
               <p className="text-muted text-sm">
@@ -212,22 +207,12 @@ export default function BarberLogin() {
 
 
             <div className="text-center text-sm text-muted">
-              New to the network?
+              Business owner?
               <span
                 className="text-primary ml-2 cursor-pointer"
-                onClick={() => router.push("/barber-signup")}
+                onClick={() => router.push("/login-barber")}
               >
-                Register Your Business →
-              </span>
-            </div>
-
-            <div className="text-center text-sm text-muted">
-              Team member?
-              <span
-                className="text-primary ml-2 cursor-pointer"
-                onClick={() => router.push("/login-staff")}
-              >
-                Staff login →
+                Log in here →
               </span>
             </div>
 

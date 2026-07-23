@@ -9,14 +9,22 @@ import { OnboardingGate } from "@/components/business/OnboardingGate";
 import { Spinner } from "@/components/ui/Spinner";
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, loading } = useBusinessAuth();
+  const { isAuthenticated, loading, activeMembership } = useBusinessAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !isAuthenticated) router.replace("/login-barber");
-  }, [loading, isAuthenticated, router]);
+    if (loading) return;
+    if (!isAuthenticated) {
+      router.replace("/login-barber");
+      return;
+    }
+    // This shell is owner-only; staff have their own dashboard at /staff. Depends
+    // on activeMembership (not just mount) so switching to a studio where this
+    // account is staff bounces them out mid-session too.
+    if (activeMembership?.role !== "owner") router.replace("/staff");
+  }, [loading, isAuthenticated, activeMembership, router]);
 
-  if (loading || !isAuthenticated) {
+  if (loading || !isAuthenticated || activeMembership?.role !== "owner") {
     return (
       <div className="flex h-dvh items-center justify-center bg-background">
         <Spinner size="lg" />

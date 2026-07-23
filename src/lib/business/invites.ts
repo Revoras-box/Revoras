@@ -18,11 +18,14 @@ export interface InvitePreview {
   businessCity: string | null;
   /** true when this email already has a Revoras account - they sign in rather than set a password. */
   hasAccount: boolean;
+  /** true for phone-only invites: the accept form must collect an email, since every account needs one. */
+  needsEmail: boolean;
 }
 
 const parse = async (res: Response) => {
   const body = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(body?.message || "Something went wrong");
+  // The API reports errors as `{ error }` (see errorHandler.middleware.js), not `{ message }`.
+  if (!res.ok) throw new Error(body?.error || body?.message || "Something went wrong");
   return body;
 };
 
@@ -32,11 +35,11 @@ export const fetchInvitePreview = async (token: string): Promise<InvitePreview> 
   return body.invite;
 };
 
-export const acceptInvite = async (token: string, password?: string) => {
+export const acceptInvite = async (token: string, input: { password?: string; email?: string }) => {
   const res = await fetch(`${API}/invites/${encodeURIComponent(token)}/accept`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(password ? { password } : {}),
+    body: JSON.stringify(input),
   });
   return parse(res);
 };

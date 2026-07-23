@@ -26,6 +26,7 @@ function JoinContent() {
   const [invite, setInvite] = useState<InvitePreview | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -45,6 +46,10 @@ function JoinContent() {
   const handleAccept = async () => {
     // Only a brand-new account sets a password here; an existing one signs in.
     if (!invite?.hasAccount) {
+      if (invite?.needsEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        toast.error("Enter a valid email address");
+        return;
+      }
       if (password.length < 8) {
         toast.error("Choose a password of at least 8 characters");
         return;
@@ -57,11 +62,17 @@ function JoinContent() {
 
     setSubmitting(true);
     try {
-      await acceptInvite(token, invite?.hasAccount ? undefined : password);
+      await acceptInvite(
+        token,
+        invite?.hasAccount
+          ? {}
+          : { password, ...(invite?.needsEmail ? { email } : {}) }
+      );
       toast.success(`You've joined ${invite?.businessName}`);
       // Deliberately to login, not the dashboard: accepting creates the account
       // but issues no session, so the dashboard would bounce them straight back.
-      router.push("/login-barber");
+      // Owners and staff have separate login pages/dashboards, so route by role.
+      router.push(invite?.roleKey === "owner" ? "/login-barber" : "/login-staff");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Couldn't accept the invitation");
     } finally {
@@ -129,6 +140,15 @@ function JoinContent() {
           </p>
         ) : (
           <div className="flex flex-col gap-3">
+            {invite.needsEmail ? (
+              <Input
+                label="Your email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+              />
+            ) : null}
             <Input
               label="Create a password"
               type="password"

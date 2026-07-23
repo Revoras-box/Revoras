@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
 import { businessApi, businessAuthStorage, type BusinessMembership, type BusinessUser } from "./api";
+import { resolveLoginPath } from "./resolveLandingPath";
 
 interface BusinessAuthContextType {
   user: BusinessUser | null;
@@ -10,7 +11,11 @@ interface BusinessAuthContextType {
   activeMembership: BusinessMembership | null;
   loading: boolean;
   isAuthenticated: boolean;
-  login: (credentials: { email?: string; phone?: string; password: string }) => Promise<{ error?: string }>;
+  login: (credentials: {
+    email?: string;
+    phone?: string;
+    password: string;
+  }) => Promise<{ error?: string; memberships?: BusinessMembership[] }>;
   logout: () => void;
   switchBusiness: (studioId: string) => void;
 }
@@ -40,26 +45,30 @@ export function BusinessAuthProvider({ children }: { children: ReactNode }) {
       setUser(result.user);
       setMemberships(result.memberships);
       setActiveStudioId(result.memberships[0]?.studioId || null);
-      return {};
+      // Returned directly (not just left to context state) because a caller that
+      // awaits login() and immediately needs to route by role would otherwise read
+      // a stale closure - React hasn't re-rendered this provider yet at that point.
+      return { memberships: result.memberships };
     } catch (err) {
       return { error: err instanceof Error ? err.message : "Login failed" };
     }
   }, []);
 
+  const activeMembership = memberships.find((m) => m.studioId === activeStudioId) || memberships[0] || null;
+
   const logout = useCallback(() => {
+    const loginPath = resolveLoginPath(activeMembership?.role);
     businessAuthStorage.clear();
     setUser(null);
     setMemberships([]);
     setActiveStudioId(null);
-    window.location.href = "/login-barber";
-  }, []);
+    window.location.href = loginPath;
+  }, [activeMembership]);
 
   const switchBusiness = useCallback((studioId: string) => {
     businessAuthStorage.setActiveStudioId(studioId);
     setActiveStudioId(studioId);
   }, []);
-
-  const activeMembership = memberships.find((m) => m.studioId === activeStudioId) || memberships[0] || null;
 
   const value: BusinessAuthContextType = {
     user,
