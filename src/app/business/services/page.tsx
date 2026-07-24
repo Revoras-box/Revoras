@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Search } from "lucide-react";
+import { ImagePlus, Plus, Search, X } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { Badge } from "@/components/ui/Badge";
@@ -14,6 +15,7 @@ import { Modal } from "@/components/ui/Modal";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { Card } from "@/components/ui/Card";
 import { useBusinessAuth } from "@/lib/business/auth";
+import { businessApi } from "@/lib/business/api";
 import { useServices, useServiceCategories, useCreateService, useUpdateService, useDeactivateService } from "@/lib/business/hooks/useServices";
 import { hasPermission, PERMISSIONS } from "@/lib/business/permissions";
 import { useDebouncedValue } from "@/lib/business/useDebouncedValue";
@@ -57,9 +59,17 @@ export default function ServicesPage() {
       key: "name",
       header: "Service",
       render: (s) => (
-        <div>
-          <div className="font-medium text-on-surface">{s.name}</div>
-          <div className="text-xs text-muted">{categoryName(s.category_id)}</div>
+        <div className="flex items-center gap-3">
+          {s.image_url ? (
+            <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-border bg-surface-container-low">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={s.image_url} alt="" className="h-full w-full object-cover" />
+            </div>
+          ) : null}
+          <div className="min-w-0">
+            <div className="font-medium text-on-surface">{s.name}</div>
+            <div className="text-xs text-muted">{s.custom_category || categoryName(s.category_id)}</div>
+          </div>
         </div>
       ),
     },
@@ -156,7 +166,7 @@ function ServiceFormModal({
 }: {
   studioId: string | undefined;
   service: ServiceRow | null;
-  categories: { id: string; name: string }[];
+  categories: { id: string; name: string; slug?: string }[];
   onClose: () => void;
 }) {
   const createService = useCreateService(studioId);
@@ -164,17 +174,61 @@ function ServiceFormModal({
   const [form, setForm] = useState({
     name: service?.name || "",
     categoryId: service?.category_id || categories[0]?.id || "",
+    customCategory: service?.custom_category || "",
     price: service?.price || 0,
     duration: service?.duration || 30,
     description: service?.description || "",
+    imageUrl: service?.image_url || "",
   });
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  // The catch-all "Other" category unlocks a free-text label so the owner can
+  // say what their service actually is.
+  const isOtherCategory = categories.find((c) => c.id === form.categoryId)?.slug === "other";
+
+  // Upload the chosen photo to R2 immediately (the service row may not exist yet
+  // on the Add form), then hold the returned URL to send as imageUrl on save.
+  const handleImageFile = async (file: File | undefined) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file");
+      return;
+    }
+    setUploadingImage(true);
+    try {
+      const data = new FormData();
+      data.append("file", file);
+      const { url } = await businessApi.uploadServiceImage(studioId as string, data);
+      setForm((f) => ({ ...f, imageUrl: url }));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't upload photo");
+    } finally {
+      setUploadingImage(false);
+      if (imageInputRef.current) imageInputRef.current.value = "";
+    }
+  };
 
   const handleSubmit = () => {
     if (!form.name || !form.categoryId) {
       toast.error("Name and category are required");
       return;
     }
-    const payload = { name: form.name, categoryId: form.categoryId, price: form.price, duration: form.duration, description: form.description || undefined };
+    if (isOtherCategory && !form.customCategory.trim()) {
+      toast.error("Please type the category for this service");
+      return;
+    }
+    const payload = {
+      name: form.name,
+      categoryId: form.categoryId,
+      customCategory: isOtherCategory ? form.customCategory.trim() : undefined,
+      price: form.price,
+      duration: form.duration,
+      description: form.description || undefined,
+      // url to set/keep the photo; null to clear it when editing; undefined to
+      // leave it unset on a brand-new service.
+      imageUrl: form.imageUrl || (service ? null : undefined),
+    };
 
     if (service) {
       updateService.mutate(
@@ -213,6 +267,56 @@ function ServiceFormModal({
           onValueChange={(v) => setForm((f) => ({ ...f, categoryId: v }))}
           options={categories.map((c) => ({ value: c.id, label: c.name }))}
         />
+        {isOtherCategory && (
+          <Input
+            label="Custom category"
+            value={form.customCategory}
+            maxLength={100}
+            placeholder="e.g. Piercing, Tattoo, Makeup"
+            hint="Shown to customers in place of “Other”."
+            onChange={(e) => setForm((f) => ({ ...f, customCategory: e.target.value }))}
+          />
+        )}
+        <Textarea
+          label="Description"
+          value={form.description}
+          maxLength={2000}
+          rows={3}
+          placeholder="Explain what's included, what to expect, or anything customers should know."
+          hint="Optional — a short explanation customers see for this service."
+          onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+        />
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-on-surface">Photo</label>
+          <input
+            ref={imageInputRef}
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={(e) => handleImageFile(e.target.files?.[0])}
+          />
+          {form.imageUrl ? (
+            <div className="flex items-center gap-3">
+              <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-border bg-surface-container-low">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={form.imageUrl} alt="" className="h-full w-full object-cover" />
+              </div>
+              <div className="flex flex-col items-start gap-1.5">
+                <Button type="button" intent="outline" size="sm" onClick={() => imageInputRef.current?.click()} loading={uploadingImage}>
+                  <ImagePlus size={16} /> Replace
+                </Button>
+                <Button type="button" intent="ghost" size="sm" onClick={() => setForm((f) => ({ ...f, imageUrl: "" }))}>
+                  <X size={16} /> Remove
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <Button type="button" intent="outline" size="sm" className="self-start" onClick={() => imageInputRef.current?.click()} loading={uploadingImage}>
+              <ImagePlus size={16} /> Add photo
+            </Button>
+          )}
+          <p className="text-xs text-muted">Optional — one photo customers see for this service.</p>
+        </div>
         <div className="grid grid-cols-2 gap-3">
           <Input
             label="Price (₹)"

@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useBusinessProfile, type SocialLinks, type BusinessPolicies } from "@/lib/business/hooks/useSettings";
+import { CancellationPolicyEditor } from "@/components/business/CancellationPolicyEditor";
+import { DEFAULT_REFUNDS, refundsFromPolicy, policyFromRefunds, type RefundMap } from "@/lib/business/cancellation-policy";
 import { StepHeader } from "../StepHeader";
 import { WizardFooter } from "../WizardFooter";
 import type { WizardStepProps } from "../types";
@@ -33,21 +34,6 @@ const POLICY_FIELDS: { key: keyof BusinessPolicies; label: string }[] = [
   { key: "general", label: "General policy" },
 ];
 
-// The refund schedule the owner configures: how far ahead a customer cancels →
-// how much they get back. The customer earns the best tier they clear. Windows
-// are fixed; only the percentages are chosen. Cancellations inside
-// NO_CANCEL_WITHIN_HOURS of the appointment aren't allowed at all.
-const TIER_WINDOWS = [
-  { hoursBefore: 72, label: "3 days or more before" },
-  { hoursBefore: 48, label: "2 days before" },
-  { hoursBefore: 24, label: "24 hours before" },
-  { hoursBefore: 12, label: "12 hours before" },
-  { hoursBefore: 6, label: "6 hours before" },
-];
-const REFUND_OPTIONS = [100, 75, 50, 25, 0].map((n) => ({ value: String(n), label: `${n}% refund` }));
-const DEFAULT_REFUNDS: Record<number, number> = { 72: 100, 48: 75, 24: 50, 12: 25, 6: 0 };
-const NO_CANCEL_WITHIN_HOURS = 2;
-
 const EMPTY = { description: "", website: "", amenities: "", languages: "" };
 
 export function StepInformation({ studioId, goNext, goPrev, exit, saving }: WizardStepProps) {
@@ -55,7 +41,7 @@ export function StepInformation({ studioId, goNext, goPrev, exit, saving }: Wiza
   const [form, setForm] = useState(EMPTY);
   const [social, setSocial] = useState<SocialLinks>({});
   const [policies, setPolicies] = useState<BusinessPolicies>({});
-  const [refunds, setRefunds] = useState<Record<number, number>>(DEFAULT_REFUNDS);
+  const [refunds, setRefunds] = useState<RefundMap>(DEFAULT_REFUNDS);
 
   useEffect(() => {
     if (business) {
@@ -69,14 +55,7 @@ export function StepInformation({ studioId, goNext, goPrev, exit, saving }: Wiza
       setPolicies(business.policies || {});
       // Prefill refund tiers from stored policy; keep defaults for any window
       // the stored policy doesn't cover (or when it's a legacy non-tiered row).
-      const storedTiers = business.cancellation_policy?.tiers;
-      if (storedTiers?.length) {
-        const map = { ...DEFAULT_REFUNDS };
-        storedTiers.forEach((t) => {
-          if (t.hoursBefore in map) map[t.hoursBefore] = t.refundPercent;
-        });
-        setRefunds(map);
-      }
+      setRefunds(refundsFromPolicy(business.cancellation_policy));
     }
   }, [business]);
 
@@ -93,10 +72,7 @@ export function StepInformation({ studioId, goNext, goPrev, exit, saving }: Wiza
       languages: toList(form.languages),
       socialLinks: cleanObject(social),
       policies: cleanObject(policies),
-      cancellationPolicy: {
-        tiers: TIER_WINDOWS.map((w) => ({ hoursBefore: w.hoursBefore, refundPercent: refunds[w.hoursBefore] ?? 0 })),
-        noCancelWithinHours: NO_CANCEL_WITHIN_HOURS,
-      },
+      cancellationPolicy: policyFromRefunds(refunds),
     });
 
   return (
@@ -138,28 +114,7 @@ export function StepInformation({ studioId, goNext, goPrev, exit, saving }: Wiza
             </div>
           </Card>
 
-          <Card className="flex flex-col gap-4">
-            <div>
-              <h3 className="font-headline text-base font-semibold text-on-surface">Cancellation &amp; refund policy</h3>
-              <p className="mt-1 text-sm text-muted">
-                How much a customer is refunded based on how far ahead they cancel. They get the best tier they qualify
-                for. Cancellations within {NO_CANCEL_WITHIN_HOURS} hours of the appointment aren&apos;t allowed.
-              </p>
-            </div>
-            <div className="flex flex-col divide-y divide-border">
-              {TIER_WINDOWS.map((w) => (
-                <div key={w.hoursBefore} className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
-                  <span className="text-sm text-on-surface">Cancel {w.label}</span>
-                  <Select
-                    className="w-40 shrink-0"
-                    value={String(refunds[w.hoursBefore] ?? 0)}
-                    onValueChange={(v) => setRefunds((r) => ({ ...r, [w.hoursBefore]: Number(v) }))}
-                    options={REFUND_OPTIONS}
-                  />
-                </div>
-              ))}
-            </div>
-          </Card>
+          <CancellationPolicyEditor refunds={refunds} onChange={setRefunds} />
 
           <Card className="flex flex-col gap-4">
             <h3 className="font-headline text-base font-semibold text-on-surface">Policies</h3>

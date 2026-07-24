@@ -21,6 +21,7 @@ export default function ServiceGrid({ services, selectedIds, onToggle }: Service
           description={service.description ?? undefined}
           price={Number(service.price)}
           duration={service.duration}
+          imageUrl={service.image_url}
           selected={selectedIds.includes(service.id)}
           onSelect={() => onToggle(service.id)}
         />

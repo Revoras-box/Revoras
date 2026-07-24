@@ -14,7 +14,49 @@ import { StepHeader } from "../StepHeader";
 import { WizardFooter } from "../WizardFooter";
 import type { WizardStepProps } from "../types";
 
-const EMPTY = { name: "", phone: "", email: "", categoryId: "", address: "", city: "", state: "", country: "", zipCode: "" };
+// Revoras operates in Jammu & Kashmir, so country and state are fixed choices
+// and city is picked from the region's cities/districts rather than free-typed.
+const COUNTRY_OPTIONS = [{ value: "India", label: "India" }];
+const STATE_OPTIONS = [{ value: "Jammu and Kashmir", label: "Jammu and Kashmir" }];
+const JK_CITIES = [
+  "Srinagar",
+  "Jammu",
+  "Anantnag",
+  "Baramulla",
+  "Sopore",
+  "Kathua",
+  "Udhampur",
+  "Samba",
+  "Bandipora",
+  "Ganderbal",
+  "Kulgam",
+  "Kupwara",
+  "Pulwama",
+  "Shopian",
+  "Budgam",
+  "Doda",
+  "Kishtwar",
+  "Poonch",
+  "Rajouri",
+  "Ramban",
+  "Reasi",
+];
+const CITY_OPTIONS = JK_CITIES.map((c) => ({ value: c, label: c }));
+
+const DEFAULT_COUNTRY = "India";
+const DEFAULT_STATE = "Jammu and Kashmir";
+
+const EMPTY = {
+  name: "",
+  phone: "",
+  email: "",
+  categoryId: "",
+  address: "",
+  city: "",
+  state: DEFAULT_STATE,
+  country: DEFAULT_COUNTRY,
+  zipCode: "",
+};
 
 export function StepBasics({ studioId, goNext, goPrev, exit, saving }: WizardStepProps) {
   const { data: business, isLoading } = useBusinessProfile(studioId);
@@ -38,8 +80,8 @@ export function StepBasics({ studioId, goNext, goPrev, exit, saving }: WizardSte
         categoryId: business.category_id || "",
         address: business.address || "",
         city: business.city || "",
-        state: business.state || "",
-        country: business.country || "",
+        state: business.state || DEFAULT_STATE,
+        country: business.country || DEFAULT_COUNTRY,
         zipCode: business.zip_code || "",
       });
     }
@@ -116,11 +158,27 @@ export function StepBasics({ studioId, goNext, goPrev, exit, saving }: WizardSte
             <h3 className="font-headline text-base font-semibold text-on-surface">Location</h3>
             <Input label="Address" placeholder="Street address" {...field("address")} />
             <div className="grid gap-4 sm:grid-cols-2">
-              <Input label="City" {...field("city")} />
-              <Input label="State" {...field("state")} />
+              <Select
+                label="City"
+                placeholder="Select city"
+                value={form.city}
+                onValueChange={(v) => setForm((f) => ({ ...f, city: v }))}
+                options={CITY_OPTIONS}
+              />
+              <Select
+                label="State"
+                value={form.state}
+                onValueChange={(v) => setForm((f) => ({ ...f, state: v }))}
+                options={STATE_OPTIONS}
+              />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Input label="Country" {...field("country")} />
+              <Select
+                label="Country"
+                value={form.country}
+                onValueChange={(v) => setForm((f) => ({ ...f, country: v }))}
+                options={COUNTRY_OPTIONS}
+              />
               <Input label="PIN / ZIP code" {...field("zipCode")} />
             </div>
           </Card>

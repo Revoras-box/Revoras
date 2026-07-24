@@ -18,6 +18,7 @@ import StickyBookingFooter from "@/components/user/sections/StickyBookingFooter"
 import HeroGallery from "@/components/user/business/HeroGallery";
 import BookingCard from "@/components/user/business/BookingCard";
 import { DetailHeader, SectionNav, LocationSection } from "@/components/user/business/DetailChrome";
+import { businessPhotoUrls } from "@/lib/business-photos";
 
 interface BusinessDetailPageProps {
   params: Promise<{ id: string }>;
@@ -75,18 +76,9 @@ export default function BusinessDetailPage({ params }: BusinessDetailPageProps) 
   );
 
   // Uploaded gallery photos are the real source of truth; banner/image/logo
-  // are legacy fields most businesses (like ones set up before the gallery
-  // manager existed) never populated.
-  const heroImages = useMemo(() => {
-    if (!business) return [];
-    const gallery = business.gallery ?? [];
-    if (gallery.length > 0) {
-      return [...gallery]
-        .sort((a, b) => (b.is_cover ? 1 : 0) - (a.is_cover ? 1 : 0) || a.sort_order - b.sort_order)
-        .map((g) => g.url);
-    }
-    return [business.banner_url, business.image_url, business.logo_url];
-  }, [business]);
+  // are legacy fields most businesses (set up before the gallery manager
+  // existed) never populated. Shared with the all-photos page so both agree.
+  const heroImages = useMemo(() => (business ? businessPhotoUrls(business) : []), [business]);
 
   const sectionNav = useMemo(() => {
     if (!business) return [];
@@ -116,7 +108,7 @@ export default function BusinessDetailPage({ params }: BusinessDetailPageProps) 
   return (
     <>
       <Container width="lg" className="flex flex-col gap-6 py-6">
-        <HeroGallery name={business.name} images={heroImages} />
+        <HeroGallery name={business.name} images={heroImages} href={`/user/business/${id}/photos`} />
         <DetailHeader business={business} isFavorite={isFavorite} onFavoriteToggle={() => toggleFavorite(id)} />
         <SectionNav sections={sectionNav} />
 

@@ -6,7 +6,12 @@ export function useServices(studioId: string | undefined, activeOnly = false) {
   return useQuery({
     queryKey: ["business", studioId, "services", { activeOnly }],
     queryFn: () =>
-      businessApi.listServices(studioId as string, { activeOnly }).then((r) => (r as { services: ServiceRow[] }).services),
+      businessApi
+        .listServices(studioId as string, { activeOnly })
+        // Postgres returns the `price` numeric column as a string ("50.00"). Coerce
+        // it to a real number so ServiceRow.price matches its type and the edit form
+        // re-sends a number (the API's z.number() rejects the stringy value).
+        .then((r) => (r as { services: ServiceRow[] }).services.map((s) => ({ ...s, price: Number(s.price) }))),
     enabled: !!studioId,
     staleTime: 30_000,
   });
@@ -15,7 +20,7 @@ export function useServices(studioId: string | undefined, activeOnly = false) {
 export function useServiceCategories() {
   return useQuery({
     queryKey: ["categories", "service"],
-    queryFn: () => businessApi.listCategories("service").then((r) => (r as { categories: { id: string; name: string }[] }).categories),
+    queryFn: () => businessApi.listCategories("service").then((r) => (r as { categories: { id: string; name: string; slug: string }[] }).categories),
     staleTime: 5 * 60_000,
   });
 }

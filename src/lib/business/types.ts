@@ -169,6 +169,9 @@ export interface ServiceRow {
   description: string | null;
   category_id: string;
   category_name?: string;
+  category_slug?: string;
+  /** Free-text label the owner typed when the category is "Other". */
+  custom_category?: string | null;
   price: number;
   duration: number;
   image_url: string | null;

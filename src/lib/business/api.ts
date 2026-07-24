@@ -307,6 +307,10 @@ export const businessApi = {
     request(`/business/${studioId}/services/${serviceId}`, { method: "PATCH", body }),
   deactivateService: (studioId: string, serviceId: string) =>
     request(`/business/${studioId}/services/${serviceId}`, { method: "DELETE" }),
+  // Uploads a service photo (FormData "file") and returns its URL; the form then
+  // sends that url as `imageUrl` on createService/updateService.
+  uploadServiceImage: (studioId: string, form: FormData) =>
+    request<{ url: string }>(`/business/${studioId}/services/image`, { method: "POST", body: form }),
   listCategories: (type: "service" | "business" = "service") => request(`/categories`, { params: { type } }),
 
   // Phase 2.4 (Offers & Promotions)

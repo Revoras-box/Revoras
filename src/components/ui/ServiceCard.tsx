@@ -9,6 +9,8 @@ export interface ServiceCardProps {
   price: number;
   /** Minutes. */
   duration: number;
+  /** Optional showcase photo shown as a thumbnail on the left. */
+  imageUrl?: string | null;
   currency?: string;
   selected?: boolean;
   onSelect?: () => void;
@@ -19,7 +21,7 @@ const formatPrice = (price: number, currency: string) =>
   new Intl.NumberFormat("en-IN", { style: "currency", currency, maximumFractionDigits: 0 }).format(price);
 
 /** One line item in a business's service catalog and the booking-flow service picker — same shape, different `onSelect`. */
-export function ServiceCard({ name, description, price, duration, currency = "INR", selected, onSelect, className }: ServiceCardProps) {
+export function ServiceCard({ name, description, price, duration, imageUrl, currency = "INR", selected, onSelect, className }: ServiceCardProps) {
   return (
     <div
       className={cn(
@@ -28,7 +30,13 @@ export function ServiceCard({ name, description, price, duration, currency = "IN
         className
       )}
     >
-      <div className="min-w-0">
+      {imageUrl ? (
+        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-border bg-surface-container-low">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={imageUrl} alt="" className="h-full w-full object-cover" />
+        </div>
+      ) : null}
+      <div className="min-w-0 flex-1">
         <h4 className="text-sm font-semibold text-on-surface truncate">{name}</h4>
         {description ? <p className="text-xs text-muted mt-0.5 line-clamp-2">{description}</p> : null}
         <div className="flex items-center gap-3 mt-1.5 text-xs text-muted">

@@ -13,6 +13,10 @@ const GENDER_OPTIONS = [
   { value: "prefer_not_to_say", label: "Prefer not to say" },
 ];
 
+// The select values that aren't free-text. Anything the backend returns that
+// isn't one of these is a custom value the user typed under "Other".
+const PRESET_GENDERS = new Set(["male", "female", "prefer_not_to_say"]);
+
 export default function ProfileSettingsTab() {
   const { data, loading, refetch } = useProfile();
   const { mutate: updateProfile, loading: saving } = useMutation(api.updateProfile);
@@ -21,13 +25,22 @@ export default function ProfileSettingsTab() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [gender, setGender] = useState("");
+  const [genderOther, setGenderOther] = useState("");
   const [notifications, setNotifications] = useState({ email: true, push: true, sms: false, marketing: false });
 
   useEffect(() => {
     if (!data?.user) return;
     setName(data.user.name ?? "");
     setPhone(data.user.phone ?? "");
-    setGender(data.user.gender ?? "");
+    const savedGender = data.user.gender ?? "";
+    if (savedGender && !PRESET_GENDERS.has(savedGender)) {
+      // A custom value the user typed previously — reselect "Other" and refill it.
+      setGender("other");
+      setGenderOther(savedGender === "other" ? "" : savedGender);
+    } else {
+      setGender(savedGender);
+      setGenderOther("");
+    }
     setNotifications({
       email: data.user.notification_settings?.email ?? true,
       push: data.user.notification_settings?.push ?? true,
@@ -37,7 +50,10 @@ export default function ProfileSettingsTab() {
   }, [data]);
 
   const handleSaveProfile = async () => {
-    const result = await updateProfile({ name, phone, gender });
+    // Under "Other", the typed value is what we persist (falling back to the
+    // literal "other" if they left it blank).
+    const genderValue = gender === "other" ? genderOther.trim() || "other" : gender;
+    const result = await updateProfile({ name, phone, gender: genderValue });
     if (result.success) {
       toast.success("Profile updated");
       refetch();
@@ -63,6 +79,15 @@ export default function ProfileSettingsTab() {
           <Input label="Full name" value={name} onChange={(e) => setName(e.target.value)} />
           <Input label="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
           <Select label="Gender" options={GENDER_OPTIONS} value={gender} onValueChange={setGender} placeholder="Select" />
+          {gender === "other" && (
+            <Input
+              label="Please specify"
+              value={genderOther}
+              maxLength={20}
+              placeholder="Type your gender"
+              onChange={(e) => setGenderOther(e.target.value)}
+            />
+          )}
         </div>
         <div>
           <Button loading={saving} onClick={handleSaveProfile}>

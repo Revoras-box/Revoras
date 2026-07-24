@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { ImagePlus, Star, Trash2 } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Tabs, TabsPanel } from "@/components/ui/Tabs";
 import { Card } from "@/components/ui/Card";
@@ -11,11 +12,14 @@ import { Checkbox } from "@/components/ui/Checkbox";
 import { Textarea } from "@/components/ui/Textarea";
 import { Switch } from "@/components/ui/Switch";
 import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { LocationPicker, type LocationValue } from "@/components/business/LocationPicker";
+import { CancellationPolicyEditor } from "@/components/business/CancellationPolicyEditor";
+import { DEFAULT_REFUNDS, refundsFromPolicy, policyFromRefunds, type RefundMap } from "@/lib/business/cancellation-policy";
 import { useBusinessAuth } from "@/lib/business/auth";
 import { PermissionGate, PERMISSIONS } from "@/lib/business/permissions";
 import {
@@ -28,6 +32,12 @@ import {
   type SocialLinks,
   type BusinessPolicies,
 } from "@/lib/business/hooks/useSettings";
+import {
+  useGallery,
+  useAddGalleryImage,
+  useRemoveGalleryImage,
+  useSetGalleryCover,
+} from "@/lib/business/hooks/useOnboarding";
 
 const DAY_LABELS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -52,10 +62,10 @@ const SOCIAL_FIELDS: { key: keyof SocialLinks; label: string; placeholder: strin
   { key: "whatsapp", label: "WhatsApp", placeholder: "phone number" },
 ];
 
+// Cancellation & refund is now the structured tier editor (below); only the
+// prose policies stay as free text here, matching the onboarding step.
 const POLICY_FIELDS: { key: keyof BusinessPolicies; label: string }[] = [
-  { key: "cancellation", label: "Cancellation policy" },
   { key: "rescheduling", label: "Rescheduling policy" },
-  { key: "refund", label: "Refund policy" },
   { key: "general", label: "General policy" },
 ];
 
@@ -70,6 +80,7 @@ export default function SettingsPage() {
         <Tabs
           items={[
             { value: "profile", label: "Profile" },
+            { value: "photos", label: "Photos" },
             { value: "hours", label: "Business hours" },
             { value: "danger", label: "Danger zone" },
           ]}
@@ -77,6 +88,9 @@ export default function SettingsPage() {
         >
           <TabsPanel value="profile">
             <ProfileTab studioId={activeMembership?.studioId} />
+          </TabsPanel>
+          <TabsPanel value="photos">
+            <PhotosTab studioId={activeMembership?.studioId} />
           </TabsPanel>
           <TabsPanel value="hours">
             <HoursTab studioId={activeMembership?.studioId} />
@@ -115,6 +129,7 @@ function ProfileTab({ studioId }: { studioId: string | undefined }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [social, setSocial] = useState<SocialLinks>({});
   const [policies, setPolicies] = useState<BusinessPolicies>({});
+  const [refunds, setRefunds] = useState<RefundMap>(DEFAULT_REFUNDS);
   // Phase 4A - the map pin. Kept alongside `form` rather than inside it because
   // lat/lng are numbers, not the text `field()` produces.
   const [location, setLocation] = useState<LocationValue>({ lat: null, lng: null });
@@ -141,6 +156,7 @@ function ProfileTab({ studioId }: { studioId: string | undefined }) {
       });
       setSocial(business.social_links || {});
       setPolicies(business.policies || {});
+      setRefunds(refundsFromPolicy(business.cancellation_policy));
       setLocation({
         lat: business.lat ?? null,
         lng: business.lng ?? null,
@@ -200,6 +216,7 @@ function ProfileTab({ studioId }: { studioId: string | undefined }) {
         houseRules: toLines(form.houseRules),
         socialLinks: cleanObject(social),
         policies: cleanObject(policies),
+        cancellationPolicy: policyFromRefunds(refunds),
       },
       {
         onSuccess: () => toast.success("Business profile updated"),
@@ -263,6 +280,8 @@ function ProfileTab({ studioId }: { studioId: string | undefined }) {
         </div>
       </Card>
 
+      <CancellationPolicyEditor refunds={refunds} onChange={setRefunds} />
+
       <Card className="flex flex-col gap-4">
         <h3 className="font-headline text-base font-semibold text-on-surface">Policies &amp; house rules</h3>
         {POLICY_FIELDS.map(({ key, label }) => (
@@ -282,6 +301,111 @@ function ProfileTab({ studioId }: { studioId: string | undefined }) {
         </Button>
       </div>
     </div>
+  );
+}
+
+// The photos owners uploaded during onboarding (business_gallery_images) had no
+// post-onboarding home until now - this tab lets them view/add/remove and pick
+// the cover after the wizard is done. It reuses the exact same gallery hooks the
+// onboarding StepGallery uses, so both surfaces stay in sync. The cover photo is
+// what customers see as the business's card image on Discover.
+function PhotosTab({ studioId }: { studioId: string | undefined }) {
+  const { data: images, isLoading, isError, refetch } = useGallery(studioId);
+  const addImage = useAddGalleryImage(studioId);
+  const removeImage = useRemoveGalleryImage(studioId);
+  const setCover = useSetGalleryCover(studioId);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const gallery = images || [];
+  const hasImage = gallery.length > 0;
+
+  const handleFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    try {
+      for (const file of Array.from(files)) {
+        if (!file.type.startsWith("image/")) {
+          toast.error(`${file.name} isn't an image`);
+          continue;
+        }
+        await addImage.mutateAsync(file);
+      }
+      toast.success("Photos uploaded");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setUploading(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  };
+
+  if (isLoading) return <Skeleton className="h-96 rounded-2xl" />;
+  if (isError) return <ErrorState onRetry={() => refetch()} description="Couldn't load your photos." />;
+
+  return (
+    <Card className="max-w-2xl flex flex-col gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h3 className="font-headline text-base font-semibold text-on-surface">Photos</h3>
+          <p className="mt-1 text-sm text-muted">
+            These appear on your public page. The cover photo is shown on your business card across Discover.
+          </p>
+        </div>
+        {hasImage ? (
+          <Button intent="outline" size="sm" onClick={() => inputRef.current?.click()} loading={uploading}>
+            <ImagePlus size={16} /> Add photos
+          </Button>
+        ) : null}
+      </div>
+
+      <input ref={inputRef} type="file" accept="image/*" multiple hidden onChange={(e) => handleFiles(e.target.files)} />
+
+      {!hasImage ? (
+        <EmptyState
+          icon={<ImagePlus size={28} />}
+          title="No photos yet"
+          description="Upload photos of your business so customers know what to expect. Your first photo becomes the cover."
+          action={
+            <Button onClick={() => inputRef.current?.click()} loading={uploading}>
+              <ImagePlus size={16} /> Upload photos
+            </Button>
+          }
+        />
+      ) : (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {gallery.map((img) => (
+            <div key={img.id} className="group relative aspect-square overflow-hidden rounded-xl border border-border bg-surface-container-low">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={img.url} alt="" className="h-full w-full object-cover" />
+              {img.is_cover ? (
+                <Badge tone="primary" className="absolute left-2 top-2">
+                  Cover
+                </Badge>
+              ) : null}
+              <div className="absolute inset-x-0 bottom-0 flex justify-end gap-1 bg-gradient-to-t from-black/60 to-transparent p-2 opacity-0 transition-opacity group-hover:opacity-100">
+                {!img.is_cover ? (
+                  <button
+                    className="rounded-lg bg-white/90 p-1.5 text-neutral-800 hover:bg-white"
+                    aria-label="Set as cover"
+                    onClick={() => setCover.mutate(img.id, { onSuccess: () => toast.success("Cover updated") })}
+                  >
+                    <Star size={14} />
+                  </button>
+                ) : null}
+                <button
+                  className="rounded-lg bg-white/90 p-1.5 text-error hover:bg-white"
+                  aria-label="Remove photo"
+                  onClick={() => removeImage.mutate(img.id, { onSuccess: () => toast.success("Photo removed") })}
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
   );
 }
 
