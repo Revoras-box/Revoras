@@ -2,7 +2,7 @@
 
 import { ChevronsUpDown, Check, Building2 } from "lucide-react";
 import { useBusinessAuth } from "@/lib/business/auth";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel } from "./DropdownMenu";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel } from "@/components/ui";
 import { ICON_SIZE } from "@/lib/design-tokens";
 
 /** Only worth rendering as a switcher when the signed-in person has more than one membership. */

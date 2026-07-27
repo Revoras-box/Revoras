@@ -334,6 +334,15 @@ export const businessApi = {
     request(`/business/${studioId}/time-off`, { method: "POST", body }),
   deleteTimeOff: (studioId: string, id: string) => request(`/business/${studioId}/time-off/${id}`, { method: "DELETE" }),
 
+  // Per-professional weekly rotas. A member with no stored days inherits the
+  // shop's hours (see member_working_hours migration).
+  getMemberWorkingHours: (studioId: string, memberId: string) =>
+    request(`/business/${studioId}/members/${memberId}/working-hours`),
+  updateMemberWorkingHours: (studioId: string, memberId: string, body: Record<string, unknown>) =>
+    request(`/business/${studioId}/members/${memberId}/working-hours`, { method: "PUT", body }),
+  getTeamAvailability: (studioId: string, params: { date: string; duration?: number }) =>
+    request(`/business/${studioId}/availability`, { params }),
+
   getBusiness: (studioId: string) => request(`/business/${studioId}`),
   updateBusiness: (studioId: string, body: Record<string, unknown>) =>
     request(`/business/${studioId}`, { method: "PATCH", body }),

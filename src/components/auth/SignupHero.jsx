@@ -1,14 +1,26 @@
 "use client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { PasswordChecklist, isStrongPassword } from "@/components/ui/PasswordChecklist";
 
+// Only same-app relative destinations are allowed, so the redirect can't bounce
+// a new member off to another origin. Mirrors the guard in LoginHeroContent.
+function safeRedirect(target) {
+    if (!target) return null;
+    if (!target.startsWith("/") || target.startsWith("//")) return null;
+    return target;
+}
+
 export default function SignupHero() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { setSession } = useAuth();
+    // Where to send the new member once their account exists — set by the login
+    // page's "Create an account" link when they arrived mid-booking.
+    const redirectTo = safeRedirect(searchParams.get("redirect")) || "/";
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [devOtp, setDevOtp] = useState(null);
@@ -148,7 +160,7 @@ export default function SignupHero() {
             } else if (result.token) {
                 setSession(result.user, result.token);
                 toast.success("Account created successfully!");
-                router.push("/");
+                router.push(redirectTo);
             }
         } catch (err) {
             toast.dismiss();
@@ -300,7 +312,7 @@ export default function SignupHero() {
 
                                 <div className="text-center text-sm text-muted">
                                     Already a member?{" "}
-                                    <span className="text-primary cursor-pointer" onClick={() => router.push("/login")}>
+                                    <span className="text-primary cursor-pointer" onClick={() => router.push(redirectTo !== "/" ? `/login?redirect=${encodeURIComponent(redirectTo)}` : "/login")}>
                                         Member Login
                                     </span>
                                 </div>
@@ -430,7 +442,7 @@ export default function SignupHero() {
 
                                 <div className="text-center text-sm text-muted">
                                     Already a member?{" "}
-                                    <span className="text-primary cursor-pointer" onClick={() => router.push("/login")}>
+                                    <span className="text-primary cursor-pointer" onClick={() => router.push(redirectTo !== "/" ? `/login?redirect=${encodeURIComponent(redirectTo)}` : "/login")}>
                                         Member Login
                                     </span>
                                 </div>

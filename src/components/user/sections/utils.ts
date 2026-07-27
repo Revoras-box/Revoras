@@ -7,21 +7,6 @@ export function formatHourRange(hour: WorkingHour): string {
   return `${hour.open_time.slice(0, 5)} - ${hour.close_time.slice(0, 5)}`;
 }
 
-/**
- * GET /bookings/availability returns a fixed 09:00-20:00 template regardless
- * of the business's actual hours (confirmed against the backend validator -
- * no working_hours join exists there). Cross-check client-side against the
- * business's real hours before showing slots to the user.
- */
-export function filterSlotsByWorkingHours(slots: string[], workingHours: WorkingHour[], dateIso: string): string[] {
-  const dayOfWeek = new Date(`${dateIso}T00:00:00`).getDay();
-  const hours = workingHours.find((h) => h.day_of_week === dayOfWeek);
-  if (!hours || hours.is_closed || !hours.open_time || !hours.close_time) return [];
-  const open = hours.open_time.slice(0, 5);
-  const close = hours.close_time.slice(0, 5);
-  return slots.filter((slot) => slot >= open && slot < close);
-}
-
 export function getOpenStatus(workingHours: WorkingHour[]): { isOpen: boolean; label: string } {
   if (workingHours.length === 0) return { isOpen: false, label: "Hours unavailable" };
   const now = new Date();

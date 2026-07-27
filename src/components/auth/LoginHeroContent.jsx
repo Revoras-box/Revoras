@@ -8,6 +8,15 @@ import { toast } from "sonner";
 const API = process.env.NEXT_PUBLIC_API_URL || "https://api.revoras.tech/api";
 
 
+// Only allow same-app relative destinations (e.g. "/user/book?..."). Anything
+// else — an absolute URL, a protocol-relative "//evil.com" — is ignored so the
+// redirect param can never bounce a user off to another origin.
+function safeRedirect(target) {
+  if (!target) return null;
+  if (!target.startsWith("/") || target.startsWith("//")) return null;
+  return target;
+}
+
 export default function LoginHeroContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -18,6 +27,10 @@ export default function LoginHeroContent() {
     email: "",
     password: "",
   });
+
+  // Where to send the user once they're in. Set by the booking gate (AuthGate)
+  // as `?redirect=`, defaulting to the customer home when they came here directly.
+  const redirectTo = safeRedirect(searchParams.get("redirect")) || "/user";
 
   useEffect(() => {
     const error = searchParams.get("error");
@@ -36,7 +49,11 @@ export default function LoginHeroContent() {
         const user = JSON.parse(decodeURIComponent(userData));
         setSession(user, token);
         toast.success("Welcome back!");
-        router.push("/");
+        // The Google round-trip drops our query params, so the intended
+        // destination was stashed before redirecting out (see handleGoogleLogin).
+        const stashed = safeRedirect(sessionStorage.getItem("postLoginRedirect"));
+        sessionStorage.removeItem("postLoginRedirect");
+        router.push(stashed || "/");
       } catch (e) {
         toast.error("Failed to process login. Please try again.");
         router.replace("/login");
@@ -60,7 +77,7 @@ export default function LoginHeroContent() {
 
       if (res.token) {
         toast.success("Welcome back!");
-        router.push("/user");
+        router.push(redirectTo);
       } else if (res === "User not found") {
         toast.error("User not found. Please check your credentials.");
       } else if (res === "Invalid credentials") {
@@ -79,6 +96,11 @@ export default function LoginHeroContent() {
   const handleGoogleLogin = () => {
     setGoogleLoading(true);
     toast.loading("Redirecting to Google...");
+    // Stash the destination — the OAuth round-trip returns to /login without our
+    // query, so we can't rely on the `redirect` param surviving it.
+    if (redirectTo && redirectTo !== "/user") {
+      sessionStorage.setItem("postLoginRedirect", redirectTo);
+    }
     window.location.href = `${API}/auth/google`;
   };
 
@@ -262,7 +284,13 @@ export default function LoginHeroContent() {
               New to Revoras?{" "}
               <span
                 className="text-primary cursor-pointer hover:opacity-80 font-semibold"
-                onClick={() => router.push("/signup/customer")}
+                onClick={() =>
+                  router.push(
+                    redirectTo && redirectTo !== "/user"
+                      ? `/signup/customer?redirect=${encodeURIComponent(redirectTo)}`
+                      : "/signup/customer"
+                  )
+                }
               >
                 Create an account
               </span>

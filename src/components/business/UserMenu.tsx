@@ -4,7 +4,7 @@ import { LogOut, Settings, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useBusinessAuth } from "@/lib/business/auth";
 import { Avatar } from "@/components/ui/Avatar";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "./DropdownMenu";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui";
 import { ICON_SIZE } from "@/lib/design-tokens";
 
 export function UserMenu() {

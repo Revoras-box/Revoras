@@ -22,6 +22,8 @@ import { CertificatesManager } from "@/components/business/CertificatesManager";
 import { RowListEditor } from "@/components/business/RowListEditor";
 import { SocialLinksForm } from "@/components/business/SocialLinksForm";
 import { ProfileCompletionCard, type CompletionItem } from "@/components/business/ProfileCompletionCard";
+import { MemberScheduleEditor } from "@/components/business/MemberScheduleEditor";
+import { TimeSelect } from "@/components/ui/TimeSelect";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { Divider } from "@/components/ui/Divider";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -156,7 +158,17 @@ function MemberDrawer({
   const [social, setSocial] = useState<MemberSocialLinks>({});
   const [featuredIds, setFeaturedIds] = useState<string[]>([]);
   const [confirmRemove, setConfirmRemove] = useState(false);
-  const [timeOffForm, setTimeOffForm] = useState({ date: "", isFullDay: true, reason: "" });
+  // startTime/endTime back the partial-day case (a lunch break, a dentist
+  // appointment). They're required by the API whenever isFullDay is false -
+  // previously the form never collected them, so unticking "Full day" could
+  // only ever produce a validation error.
+  const [timeOffForm, setTimeOffForm] = useState({
+    date: "",
+    isFullDay: true,
+    startTime: "13:00",
+    endTime: "14:00",
+    reason: "",
+  });
 
   useEffect(() => {
     if (!member) return;
@@ -323,6 +335,22 @@ function MemberDrawer({
           <Divider />
 
           <div>
+            <div className="text-sm font-semibold text-on-surface mb-1">Working schedule</div>
+            <p className="text-xs text-muted mb-2">
+              Controls the slots customers see for this professional. Each team member can work different days and
+              hours.
+            </p>
+            <MemberScheduleEditor
+              studioId={studioId}
+              memberId={member.id}
+              memberName={member.name}
+              canManage={canManage}
+            />
+          </div>
+
+          <Divider />
+
+          <div>
             <div className="text-sm font-semibold text-on-surface mb-2">Time off</div>
             {timeOff.isLoading ? null : timeOff.data && timeOff.data.length > 0 ? (
               <div className="flex flex-col gap-2 mb-3">
@@ -353,6 +381,21 @@ function MemberDrawer({
                 checked={timeOffForm.isFullDay}
                 onCheckedChange={(v) => setTimeOffForm((f) => ({ ...f, isFullDay: v }))}
               />
+              {!timeOffForm.isFullDay ? (
+                <div className="flex items-center gap-2">
+                  <TimeSelect
+                    className="w-28"
+                    value={timeOffForm.startTime}
+                    onChange={(v) => setTimeOffForm((f) => ({ ...f, startTime: v }))}
+                  />
+                  <span className="text-sm text-muted">to</span>
+                  <TimeSelect
+                    className="w-28"
+                    value={timeOffForm.endTime}
+                    onChange={(v) => setTimeOffForm((f) => ({ ...f, endTime: v }))}
+                  />
+                </div>
+              ) : null}
               <Input
                 placeholder="Reason (optional)"
                 value={timeOffForm.reason}
@@ -367,12 +410,24 @@ function MemberDrawer({
                     toast.error("Pick a date");
                     return;
                   }
+                  if (!timeOffForm.isFullDay && timeOffForm.startTime >= timeOffForm.endTime) {
+                    toast.error("End time must be after start time");
+                    return;
+                  }
                   createTimeOff.mutate(
-                    { businessMemberId: member.id, date: timeOffForm.date, isFullDay: timeOffForm.isFullDay, reason: timeOffForm.reason || undefined },
+                    {
+                      businessMemberId: member.id,
+                      date: timeOffForm.date,
+                      isFullDay: timeOffForm.isFullDay,
+                      ...(timeOffForm.isFullDay
+                        ? {}
+                        : { startTime: timeOffForm.startTime, endTime: timeOffForm.endTime }),
+                      reason: timeOffForm.reason || undefined,
+                    },
                     {
                       onSuccess: () => {
                         toast.success("Time off added");
-                        setTimeOffForm({ date: "", isFullDay: true, reason: "" });
+                        setTimeOffForm({ date: "", isFullDay: true, startTime: "13:00", endTime: "14:00", reason: "" });
                       },
                       onError: (err) => toast.error(err instanceof Error ? err.message : "Couldn't add time off"),
                     }

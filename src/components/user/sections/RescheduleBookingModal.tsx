@@ -5,8 +5,7 @@ import { toast } from "sonner";
 import { CalendarClock } from "lucide-react";
 import { Modal, Button, ErrorState } from "@/components/ui";
 import { api } from "@/lib/api";
-import { useBusiness, useAvailability } from "@/lib/hooks";
-import { filterSlotsByWorkingHours } from "@/components/user/sections/utils";
+import { useAvailability } from "@/lib/hooks";
 
 /**
  * Moves an existing booking via PATCH /bookings/:id/reschedule — an IN-PLACE
@@ -60,15 +59,15 @@ export default function RescheduleBookingModal({
   const [time, setTime] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Only discoverable studios resolve here; without it we simply skip the
-  // working-hours filter rather than showing nothing.
-  const { data: bizData } = useBusiness(studioId);
-  const business = bizData?.business;
-
-  const { slots, loading, error, refetch } = useAvailability(studioId, businessMemberId, date, durationMinutes || undefined);
-  const times = useMemo(
-    () => (business ? filterSlotsByWorkingHours(slots, business.workingHours, date) : slots),
-    [slots, business, date]
+  // Authoritative: the server applies the shop's hours, this professional's own
+  // rota, their time off and their existing bookings. This used to be filtered
+  // again client-side against the studio's hours, which also meant a studio the
+  // customer couldn't load silently skipped the filter entirely.
+  const { slots: times, loading, error, refetch } = useAvailability(
+    studioId,
+    businessMemberId,
+    date,
+    durationMinutes || undefined
   );
 
   const handleSubmit = async () => {

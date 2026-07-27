@@ -65,9 +65,19 @@ const STAGE_LABEL: Record<Exclude<Stage, "idle">, string> = {
   done: "Confirmed — taking you to your booking",
 };
 
-function ProgressOverlay({ stage }: { stage: Stage }) {
+// Test mode skips the gateway entirely, so it must not narrate a payment
+// window that never opens or a signature that is never checked.
+const MOCK_STAGE_LABEL: Record<Exclude<Stage, "idle">, string> = {
+  creating: "Reserving your slot",
+  paying: "Recording test payment",
+  verifying: "Confirming your booking",
+  done: "Confirmed — taking you to your booking",
+};
+
+function ProgressOverlay({ stage, mock }: { stage: Stage; mock: boolean }) {
   if (stage === "idle") return null;
   const activeIndex = STAGE_ORDER.indexOf(stage);
+  const labels = mock ? MOCK_STAGE_LABEL : STAGE_LABEL;
   return (
     // Modal tier: above the sticky action bar, below --z-toast so a payment
     // error still surfaces over it. Razorpay's own widget stacks far higher.
@@ -92,13 +102,13 @@ function ProgressOverlay({ stage }: { stage: Stage }) {
                   {done ? <Check size={14} /> : current ? <Loader2 size={13} className="animate-spin" /> : i + 1}
                 </span>
                 <span className={`text-sm ${current || done ? "font-medium text-on-surface" : "text-muted"}`}>
-                  {STAGE_LABEL[s]}
+                  {labels[s]}
                 </span>
               </li>
             );
           })}
         </ol>
-        {stage === "paying" ? (
+        {stage === "paying" && !mock ? (
           <p className="mt-5 border-t border-border pt-4 text-xs text-muted">
             Complete the payment in the secure Razorpay window. Your slot is held while you pay.
           </p>
@@ -189,15 +199,20 @@ function OrderSummary({
  * "free until <time>" deadline is shown here. The confirmation page, where a
  * booking does exist, shows the real one.
  */
-function TrustIndicators({ business }: { business: BusinessDetail }) {
+function TrustIndicators({ business, mockPayment }: { business: BusinessDetail; mockPayment: boolean }) {
   const reviewCount = business.review_count ?? 0;
   const rating = Number(business.rating ?? 0);
   const cancellation = business.policies?.cancellation;
 
-  const items: { icon: React.ReactNode; text: string }[] = [
-    { icon: <Lock size={13} className="text-primary" />, text: "Secure payment — card details never touch our servers" },
-    { icon: <Zap size={13} className="text-primary" />, text: "Booking confirms instantly once payment succeeds" },
-  ];
+  const items: { icon: React.ReactNode; text: string }[] = mockPayment
+    ? [
+        { icon: <Zap size={13} className="text-primary" />, text: "Your slot is confirmed and held the moment you tap Confirm" },
+        { icon: <Info size={13} className="text-primary" />, text: "No card is charged in test mode — pay the studio directly" },
+      ]
+    : [
+        { icon: <Lock size={13} className="text-primary" />, text: "Secure payment — card details never touch our servers" },
+        { icon: <Zap size={13} className="text-primary" />, text: "Booking confirms instantly once payment succeeds" },
+      ];
   // Labelled, because a studio's policy field is free text and is often as
   // terse as "24h" - which says nothing on its own as a bare bullet.
   if (cancellation) items.push({ icon: <ShieldCheck size={13} className="text-primary" />, text: `Cancellation policy: ${cancellation}` });
@@ -239,6 +254,21 @@ function CheckoutPageContent() {
   const [mobile, setMobile] = useState("");
   const [notes, setNotes] = useState(noteFromBooking);
   const [stage, setStage] = useState<Stage>("idle");
+
+  // Which payment path this server offers. "mock" is a temporary stand-in that
+  // confirms the booking on click without moving money; the page says so
+  // plainly rather than showing a padlock and implying a charge. Starts null so
+  // nothing claims either path until the server has answered.
+  const [paymentMode, setPaymentMode] = useState<"mock" | "razorpay" | null>(null);
+  const isMockPayment = paymentMode === "mock";
+
+  useEffect(() => {
+    let cancelled = false;
+    api.getPaymentConfig()
+      .then((res) => { if (!cancelled) setPaymentMode(res.mode === "mock" ? "mock" : "razorpay"); })
+      .catch(() => { if (!cancelled) setPaymentMode("razorpay"); });
+    return () => { cancelled = true; };
+  }, []);
 
   // Contact defaults come from the signed-in account rather than an empty form.
   useEffect(() => {
@@ -323,6 +353,23 @@ function CheckoutPageContent() {
 
       const bookingId = result.booking.id;
       setStage("paying");
+
+      // Temporary path: no gateway, no order, no signature - the server marks
+      // the payment paid and flips the booking to confirmed in one call. The
+      // booking row is already created above, so the slot is held either way
+      // and shows as booked to everyone else from that moment.
+      if (isMockPayment) {
+        const confirmed = await api.confirmMockPayment(bookingId);
+        if (confirmed.error || !confirmed.paid) {
+          toast.error(confirmed.error || "Unable to confirm this booking.");
+          setStage("idle");
+          return;
+        }
+        setStage("done");
+        toast.success("Booking confirmed");
+        router.push(`/user/confirmation?booking=${encodeURIComponent(bookingId)}`);
+        return;
+      }
 
       const order = await api.createPaymentOrder(bookingId);
       if (order.error || !order.orderId || !order.keyId || !order.amount) {
@@ -423,7 +470,11 @@ function CheckoutPageContent() {
             <ChevronLeft size={16} /> Back
           </Link>
           <h1 className="mt-2 font-headline text-3xl font-extrabold tracking-tight text-on-surface">Checkout</h1>
-          <p className="mt-0.5 text-sm text-muted">Review your appointment and pay to confirm it.</p>
+          <p className="mt-0.5 text-sm text-muted">
+            {isMockPayment
+              ? "Review your appointment and confirm it — payment happens at the studio for now."
+              : "Review your appointment and pay to confirm it."}
+          </p>
         </div>
 
         <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
@@ -447,18 +498,33 @@ function CheckoutPageContent() {
               {/* One card because the backend has exactly one payment path.
                   UPI/card/netbanking/wallet are chosen inside Razorpay's own
                   window - listing them here as selectable would be a second,
-                  fake picker in front of the real one. */}
+                  fake picker in front of the real one. In test mode there is no
+                  gateway at all, so the card says exactly that instead of
+                  promising a secure charge that never happens. */}
               <div className="flex items-start gap-3 rounded-2xl border border-primary bg-primary/5 p-4">
                 <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
                   <Check size={12} />
                 </span>
                 <div className="min-w-0">
-                  <div className="font-headline text-sm font-semibold text-on-surface">Pay securely online</div>
+                  <div className="font-headline text-sm font-semibold text-on-surface">
+                    {isMockPayment ? "Instant confirmation (test mode)" : "Pay securely online"}
+                  </div>
                   <p className="mt-0.5 text-xs text-muted">
-                    UPI, card, netbanking or wallet — choose in the secure payment window.
+                    {isMockPayment
+                      ? "Online payments aren't live on this server yet. Confirming books the slot now — no money is charged."
+                      : "UPI, card, netbanking or wallet — choose in the secure payment window."}
                   </p>
                 </div>
               </div>
+              {isMockPayment ? (
+                <div className="mt-3 flex items-start gap-2 rounded-xl border border-warning/40 bg-warning-container/40 p-3 text-xs text-on-warning-container">
+                  <Info size={14} className="mt-0.5 shrink-0" />
+                  <span>
+                    Test mode — your appointment is booked and held, but nothing is paid. Settle the amount at the
+                    studio.
+                  </span>
+                </div>
+              ) : null}
               {cashAccepted ? (
                 <div className="mt-3 flex items-start gap-2 rounded-xl bg-surface-container-low p-3 text-xs text-muted">
                   <Info size={14} className="mt-0.5 shrink-0 text-accent" />
@@ -536,11 +602,18 @@ function CheckoutPageContent() {
                 date={bookingDate}
                 time={bookingTime ?? ""}
               />
-              <Button className="mt-4 hidden w-full lg:inline-flex" size="lg" loading={busy} disabled={busy} onClick={handlePay}>
-                <Lock size={15} /> Pay {inr(payable)}
+              <Button
+                className="mt-4 hidden w-full lg:inline-flex"
+                size="lg"
+                loading={busy}
+                disabled={busy || paymentMode === null}
+                onClick={handlePay}
+              >
+                {isMockPayment ? <Check size={15} /> : <Lock size={15} />}
+                {isMockPayment ? `Confirm booking · ${inr(payable)}` : `Pay ${inr(payable)}`}
               </Button>
               <div className="mt-4 border-t border-border pt-4">
-                <TrustIndicators business={business} />
+                <TrustIndicators business={business} mockPayment={isMockPayment} />
               </div>
             </div>
           </aside>
@@ -553,12 +626,13 @@ function CheckoutPageContent() {
           <div className="text-xs text-muted">Total</div>
           <div className="font-headline text-lg font-extrabold text-on-surface tabular-nums">{inr(payable)}</div>
         </div>
-        <Button size="lg" loading={busy} disabled={busy} onClick={handlePay}>
-          <Lock size={15} /> Pay {inr(payable)}
+        <Button size="lg" loading={busy} disabled={busy || paymentMode === null} onClick={handlePay}>
+          {isMockPayment ? <Check size={15} /> : <Lock size={15} />}
+          {isMockPayment ? "Confirm booking" : `Pay ${inr(payable)}`}
         </Button>
       </div>
 
-      <ProgressOverlay stage={stage} />
+      <ProgressOverlay stage={stage} mock={isMockPayment} />
     </>
   );
 }

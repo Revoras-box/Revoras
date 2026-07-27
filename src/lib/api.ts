@@ -36,6 +36,8 @@ import type {
   BookingQuoteResponse,
   BookingTimelineResponse,
   CancellationQuoteResponse,
+  AvailabilityResponse,
+  AvailabilityDay,
 } from "./types";
 
 // const API = "https://api.revoras.tech/api";
@@ -358,12 +360,46 @@ export const api = {
   // ==========================================
   // Booking APIs
   // ==========================================
-  getAvailability: async (_studioId: string, businessMemberId: string, date: string, duration?: number) => {
+  /**
+   * Bookable start times for one professional on one date.
+   *
+   * Prefer `serviceIds` over `duration`: the server then sums the real service
+   * durations itself, so the grid and the booking endpoint agree on how long
+   * the appointment runs and a shown slot can't be rejected for length.
+   *
+   * The server applies the shop's hours AND the professional's own rota - no
+   * client-side filtering is needed (or correct) on top of this.
+   */
+  getAvailability: async (
+    _studioId: string,
+    businessMemberId: string,
+    date: string,
+    duration?: number,
+    serviceIds?: string[]
+  ) => {
     const params = new URLSearchParams();
     params.append("businessMemberId", businessMemberId);
     params.append("date", date);
-    if (duration) params.append("duration", String(duration));
-    return authFetch<{ slots: string[]; error?: string }>(`${API}/bookings/availability?${params}`);
+    if (serviceIds?.length) params.append("serviceIds", serviceIds.join(","));
+    else if (duration) params.append("duration", String(duration));
+    return authFetch<AvailabilityResponse>(`${API}/bookings/availability?${params}`);
+  },
+
+  /** Per-day capacity across a date range, for greying out full/closed days. */
+  getAvailabilityCalendar: async (
+    businessMemberId: string,
+    from: string,
+    days: number,
+    serviceIds?: string[]
+  ) => {
+    const params = new URLSearchParams();
+    params.append("businessMemberId", businessMemberId);
+    params.append("from", from);
+    params.append("days", String(days));
+    if (serviceIds?.length) params.append("serviceIds", serviceIds.join(","));
+    return authFetch<{ days: AvailabilityDay[]; error?: string }>(
+      `${API}/bookings/availability/calendar?${params}`
+    );
   },
 
   createBooking: async (data: BookingData): Promise<{ message?: string; booking?: BookingDetail; error?: string }> => {
@@ -420,6 +456,25 @@ export const api = {
   // ==========================================
   // Payment APIs (Razorpay)
   // ==========================================
+  /**
+   * Which payment path the server offers. "mock" is the temporary
+   * instant-confirm stand-in used while the gateway has no live keys — the
+   * checkout labels its button from this rather than guessing.
+   */
+  getPaymentConfig: async () => {
+    return authFetch<{ mode?: "mock" | "razorpay"; razorpayConfigured?: boolean; error?: string }>(
+      `${API}/payments/config`
+    );
+  },
+
+  /** Temporary: confirms a booking without a gateway. Rejected unless the server is in mock mode. */
+  confirmMockPayment: async (bookingId: string | number) => {
+    return authFetch<{ message?: string; paid?: boolean; alreadyPaid?: boolean; error?: string }>(
+      `${API}/payments/mock-confirm`,
+      { method: "POST", body: JSON.stringify({ bookingId }) }
+    );
+  },
+
   createPaymentOrder: async (bookingId: string | number) => {
     return authFetch<{
       orderId?: string;

@@ -18,6 +18,7 @@ export * from "./Avatar";
 export * from "./Chip";
 export * from "./Divider";
 export * from "./Tooltip";
+export * from "./DropdownMenu";
 
 // Layout
 export * from "./Card";

@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 import { Container, Card, Avatar, Badge, TimeSlotPicker, Button, ErrorState, TrustBadges } from "@/components/ui";
 import { useProfessional, useBusiness, useAvailability } from "@/lib/hooks";
-import { filterSlotsByWorkingHours } from "@/components/user/sections/utils";
 import { SectionNav } from "@/components/user/business/DetailChrome";
 import ReviewSection from "@/components/user/sections/ReviewSection";
 import type { ProfessionalSocialLinks } from "@/lib/types";
@@ -59,15 +58,12 @@ export default function ProfessionalProfilePage({ params }: { params: Promise<{ 
   const { data: businessData } = useBusiness(professional?.studio_id ?? "");
   const business = businessData?.business;
 
-  const { slots, loading: slotsLoading } = useAvailability(
+  // Authoritative: the server already applies the shop's hours and this
+  // professional's own rota, so no client-side filtering is needed on top.
+  const { slots: availableTimes, loading: slotsLoading } = useAvailability(
     professional?.studio_id ?? "",
     professional?.id ?? null,
     selectedDate
-  );
-
-  const availableTimes = useMemo(
-    () => (business ? filterSlotsByWorkingHours(slots, business.workingHours, selectedDate) : slots),
-    [slots, business, selectedDate]
   );
 
   useEffect(() => {

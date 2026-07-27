@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, DependencyList } from "react";
 import { api } from "./api";
 import { useAuth } from "./auth";
 import { getRecentlyViewed } from "./recently-viewed";
-import type { RecentlyViewedCard } from "./types";
+import type { RecentlyViewedCard, AvailabilityReason, AvailabilityResponse, AvailabilitySlot } from "./types";
 
 interface ApiResponse<T = unknown> {
   data?: T;
@@ -108,42 +108,88 @@ export function useBookingTimeline(id: string, version = 0) {
 
 interface AvailabilityResult {
   slots: string[];
+  /** Every position in the professional's day, taken ones included, with per-slot state. */
+  grid: AvailabilitySlot[];
+  /** Set when `slots` is empty: why this date has nothing bookable. */
+  reason: AvailabilityReason | null;
+  /** The professional's working window for the date, when they work it at all. */
+  shift: AvailabilityResponse["shift"];
+  /** The longest appointment that could start anywhere on this date. */
+  longestFreeWindow: number;
+  /** Minutes between start times, derived server-side from the shop's shortest service. */
+  interval: number | null;
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
 }
 
-export function useAvailability(studioId: string, barberId: string | null, date: string, duration?: number): AvailabilityResult {
+/**
+ * Slots for one professional on one date.
+ *
+ * Pass `serviceIds` so the server sizes the appointment from the real service
+ * durations. The response is authoritative - it already accounts for the shop's
+ * opening hours, the professional's own rota, their time off and their existing
+ * bookings, so callers must not filter it further.
+ */
+export function useAvailability(
+  studioId: string,
+  barberId: string | null,
+  date: string,
+  duration?: number,
+  serviceIds?: string[]
+): AvailabilityResult {
   const [slots, setSlots] = useState<string[]>([]);
+  const [grid, setGrid] = useState<AvailabilitySlot[]>([]);
+  const [longestFreeWindow, setLongestFreeWindow] = useState(0);
+  // Named apart from the DOM global so nothing in this file accidentally shadows it.
+  const [gridInterval, setGridInterval] = useState<number | null>(null);
+  const [reason, setReason] = useState<AvailabilityReason | null>(null);
+  const [shift, setShift] = useState<AvailabilityResponse["shift"]>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Identity-stable dependency: a fresh array literal on every render would
+  // otherwise re-trigger the fetch in a loop.
+  const serviceKey = serviceIds?.join(",") ?? "";
 
   const fetchSlots = useCallback(async () => {
     if (!studioId || !barberId || !date) {
       setSlots([]);
+      setGrid([]);
+      setLongestFreeWindow(0);
+      setGridInterval(null);
+      setReason(null);
+      setShift(null);
       setError(null);
       return;
     }
     setLoading(true);
     try {
-      const result = await api.getAvailability(studioId, barberId, date, duration);
+      const ids = serviceKey ? serviceKey.split(",") : undefined;
+      const result = await api.getAvailability(studioId, barberId, date, duration, ids);
       if (result.error) {
         setError(result.error);
       } else {
+        setError(null);
         setSlots(result.slots || []);
+        setGrid(result.grid || []);
+        setLongestFreeWindow(result.longestFreeWindow ?? 0);
+        setGridInterval(result.interval ?? null);
+        setReason(result.reason ?? null);
+        setShift(result.shift ?? null);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setLoading(false);
     }
-  }, [studioId, barberId, date, duration]);
+  }, [studioId, barberId, date, duration, serviceKey]);
 
   useEffect(() => {
     fetchSlots();
   }, [fetchSlots]);
 
-  return { slots, loading, error, refetch: fetchSlots };
+  return { slots, grid, longestFreeWindow, interval: gridInterval, reason, shift, loading, error, refetch: fetchSlots };
 }
 
 // Review hooks

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Container, Tabs, TabsPanel } from "@/components/ui";
 import FavoritesRail from "@/components/user/sections/FavoritesRail";
@@ -20,6 +20,17 @@ const TAB_ITEMS = [
 function ProfilePageContent() {
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") ?? "bookings");
+
+  // Keep the active tab in sync with the URL so navigating to
+  // `/user/profile?tab=favorites` (e.g. the account menu's "Favorites" link)
+  // switches tabs even when we're already on the profile page and React reuses
+  // this component instead of remounting it.
+  const tabParam = searchParams.get("tab");
+  useEffect(() => {
+    if (tabParam && tabParam !== activeTab) setActiveTab(tabParam);
+    // Only react to the URL changing, not to in-page tab clicks.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tabParam]);
 
   return (
     <Container className="flex flex-col gap-6 py-8">

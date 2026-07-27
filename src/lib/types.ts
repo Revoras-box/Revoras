@@ -362,6 +362,74 @@ export interface WorkingHour {
   is_closed: boolean;
 }
 
+/**
+ * Why a date has no bookable slots. The server knows which of these applies -
+ * "the shop is shut on Sundays" and "she's booked solid" need very different
+ * copy, and guessing client-side gets it wrong.
+ */
+export type AvailabilityReason =
+  | "business_closed"
+  | "member_off"
+  | "time_off"
+  | "fully_booked"
+  | "day_ended"
+  | "duration_exceeds_shift";
+
+/**
+ * Per-slot state. `insufficient_time` is the only one the customer can act on —
+ * the slot is free, but the services they picked don't fit before the next
+ * appointment — so the UI treats it as a prompt to trim, not as a dead end.
+ */
+export type SlotStatus = "available" | "booked" | "blocked" | "past" | "insufficient_time";
+
+export interface AvailabilitySlot {
+  /** Start time as "HH:MM". */
+  time: string;
+  status: SlotStatus;
+  available: boolean;
+  /** Contiguous free minutes from this start — 0 when the slot is taken. */
+  maxDuration: number;
+  /** When a free window closes ("HH:MM"): the next appointment, or the end of the shift. */
+  freeUntil?: string;
+  /** When a taken slot frees up ("HH:MM"). */
+  freeAt?: string;
+  /** What caps the window — another booking, the professional's time off, or the shift end. */
+  limitedBy?: "booked" | "blocked" | "shift_end";
+}
+
+export interface AvailabilityResponse {
+  /** Bookable start times as "HH:MM", already filtered by hours, rota, bookings and time off. */
+  slots: string[];
+  /** Every grid position in the shift, including taken ones, so the day's shape is visible. */
+  grid?: AvailabilitySlot[];
+  available: boolean;
+  reason: AvailabilityReason | null;
+  /** The professional's effective window for the date; null when they aren't working. */
+  shift: { start: string; end: string; source: "business" | "member" } | null;
+  /** Total minutes the requested services occupy. */
+  duration?: number;
+  /**
+   * Minutes between start times. Derived from the shortest service the business
+   * sells, so no gap big enough to sell is skipped — not a fixed half hour.
+   */
+  interval?: number;
+  /** Where `interval` came from — the catalogue, or the business's fallback setting. */
+  intervalSource?: "shortest_service" | "business_setting";
+  /** The shortest active service in minutes; null when the business has none yet. */
+  shortestServiceDuration?: number | null;
+  /** The longest appointment that could start anywhere on this date. */
+  longestFreeWindow?: number;
+  error?: string;
+}
+
+export interface AvailabilityDay {
+  date: string;
+  available: boolean;
+  slotCount: number;
+  firstSlot: string | null;
+  reason: AvailabilityReason | null;
+}
+
 export interface Service {
   id: string;
   studio_id: string;

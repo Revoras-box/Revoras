@@ -5,12 +5,14 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import {
   User,
+  Heart,
   BookOpen,
   LogOut,
 } from "lucide-react";
 
 const menuItems = [
   { label: "My Profile", href: "/user/profile", icon: User },
+  { label: "Favorites", href: "/user/profile?tab=favorites", icon: Heart },
   { label: "Booking History", href: "/user/bookings", icon: BookOpen },
 ];
 

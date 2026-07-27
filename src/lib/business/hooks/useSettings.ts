@@ -144,6 +144,63 @@ export function useUpdateWorkingHours(studioId: string | undefined) {
   });
 }
 
+/** One weekday of a professional's own rota. */
+export interface MemberScheduleDay {
+  dayOfWeek: number;
+  startTime: string | null;
+  endTime: string | null;
+  isOff: boolean;
+}
+
+interface MemberScheduleRow {
+  day_of_week: number;
+  start_time: string | null;
+  end_time: string | null;
+  is_off: boolean;
+}
+
+export interface MemberSchedule {
+  /** No stored rota - this member works whenever the shop is open. */
+  followsBusinessHours: boolean;
+  days: MemberScheduleDay[];
+  businessHours: WorkingHoursDay[];
+}
+
+export function useMemberSchedule(studioId: string | undefined, memberId: string | undefined) {
+  return useQuery({
+    queryKey: ["business", studioId, "member-schedule", memberId],
+    queryFn: () =>
+      businessApi.getMemberWorkingHours(studioId as string, memberId as string).then((r) => {
+        const res = r as { followsBusinessHours: boolean; days: MemberScheduleRow[]; businessHours: WorkingHoursDayRow[] };
+        return {
+          followsBusinessHours: res.followsBusinessHours,
+          days: res.days.map((row) => ({
+            dayOfWeek: row.day_of_week,
+            startTime: row.start_time,
+            endTime: row.end_time,
+            isOff: row.is_off,
+          })),
+          businessHours: res.businessHours.map(toCamelDay),
+        } satisfies MemberSchedule;
+      }),
+    enabled: !!studioId && !!memberId,
+  });
+}
+
+export function useUpdateMemberSchedule(studioId: string | undefined, memberId: string | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { followsBusinessHours: boolean; days?: MemberScheduleDay[] }) =>
+      businessApi.updateMemberWorkingHours(studioId as string, memberId as string, body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["business", studioId, "member-schedule", memberId] });
+      // A rota change moves which slots customers can book, so any cached
+      // availability view for this studio is now stale.
+      queryClient.invalidateQueries({ queryKey: ["business", studioId, "availability"] });
+    },
+  });
+}
+
 export function useTimeOff(studioId: string | undefined, params: { businessMemberId?: string; date?: string; from?: string; to?: string } = {}) {
   return useQuery({
     queryKey: ["business", studioId, "time-off", params],

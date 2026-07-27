@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { Toaster } from "@/components/ui/Toast";
 import { Providers } from "./providers";
 import "./globals.css";
@@ -39,17 +40,30 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Set by src/proxy.ts, which also emits the matching Content-Security-Policy
+  // header. Without it the inline script below is blocked by that policy.
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
+
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
         {/* Set the theme class before first paint to avoid a flash of the
             wrong theme (FOUC). Mirrors the logic in ThemeProvider. */}
+        {/* suppressHydrationWarning is required, not cosmetic: once the browser
+            has read a nonce it blanks the attribute in the DOM (HTML spec's
+            nonce-hiding, so that a page can't leak its own nonce back out via
+            CSS attribute selectors). React then compares its "abc123" against
+            the DOM's "" and reports a mismatch on every render. The server
+            output is correct and the script does run - there is nothing to fix
+            but the warning. */}
         <script
+          nonce={nonce}
+          suppressHydrationWarning
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem('theme');if(t!=='light'&&t!=='dark'){t=window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';}document.documentElement.classList.toggle('dark',t==='dark');}catch(e){}})();`,
           }}

@@ -19,7 +19,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/business/DropdownMenu";
+} from "@/components/ui";
 import { useBusinessAuth } from "@/lib/business/auth";
 import { useOffers, useCreateOffer, useUpdateOffer, useDeleteOffer } from "@/lib/business/hooks/useOffers";
 import { useServices } from "@/lib/business/hooks/useServices";

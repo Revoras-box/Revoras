@@ -7,10 +7,12 @@ import {
   Check, Plus, ChevronLeft, ArrowRight, Clock, ShieldCheck, Star, Tag, Sparkles, CalendarClock,
 } from "lucide-react";
 import { Container, Avatar, Textarea, Button, ErrorState } from "@/components/ui";
+import { SlotGrid } from "@/components/user/booking/SlotGrid";
+import { ServiceFitModal } from "@/components/user/booking/ServiceFitModal";
 import { api } from "@/lib/api";
 import { useBusiness, useAvailability } from "@/lib/hooks";
-import { filterSlotsByWorkingHours } from "@/components/user/sections/utils";
-import type { BusinessDetail, Service } from "@/lib/types";
+import { displayDuration, displayTime } from "@/lib/slot-fit";
+import type { BusinessDetail, Service, AvailabilityReason, AvailabilityResponse, AvailabilitySlot } from "@/lib/types";
 
 const parseIdList = (v: string | null): string[] =>
   v ? v.split(",").map((x) => x.trim()).filter(Boolean) : [];
@@ -19,11 +21,6 @@ const toIsoDate = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
 const inr = (n: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
-
-const displayTime = (t: string) => {
-  const [h, m] = t.split(":").map(Number);
-  return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`;
-};
 
 const STEPS = ["Services", "Professional", "Date", "Time", "Confirm"] as const;
 
@@ -179,65 +176,101 @@ function DateStep({ dateOptions, selected, onSelect }: { dateOptions: { iso: str
 
 /* -------------------------------- step: time ------------------------------ */
 
+/**
+ * Why this date is empty, in the customer's words. The server distinguishes
+ * these cases; showing one blanket "no slots" for all of them sends someone
+ * hunting through a calendar when the real answer is "she doesn't work Sundays".
+ */
+function emptySlotCopy(reason: AvailabilityReason | null, name?: string): { title: string; hint: string } {
+  const who = name || "This professional";
+  switch (reason) {
+    case "business_closed":
+      return { title: "The business is closed on this date", hint: "Pick another day from the calendar above." };
+    case "member_off":
+      return { title: `${who} isn't working on this date`, hint: "Try another day, or choose a different professional." };
+    case "time_off":
+      return { title: `${who} is on time off this date`, hint: "Try another day, or choose a different professional." };
+    case "day_ended":
+      return { title: "No time left today", hint: "Pick a later date from the calendar above." };
+    case "duration_exceeds_shift":
+      return {
+        title: "The selected services don't fit in one appointment",
+        hint: "Remove a service, or split them across two bookings.",
+      };
+    case "fully_booked":
+    default:
+      return { title: `${who} is fully booked on this date`, hint: "Try another day from the calendar above." };
+  }
+}
+
 function TimeStep({
   loading,
   error,
   onRetry,
-  times,
+  reason,
+  shift,
+  professionalName,
+  grid,
+  requiredDuration,
+  interval,
   selected,
   onSelect,
+  onTooShort,
   hasPro,
 }: {
   loading: boolean;
   error: string | null;
   onRetry: () => void;
-  times: string[];
+  reason: AvailabilityReason | null;
+  shift: AvailabilityResponse["shift"];
+  professionalName?: string;
+  grid: AvailabilitySlot[];
+  requiredDuration: number;
+  interval: number | null;
   selected: string | null;
   onSelect: (t: string) => void;
+  onTooShort: (slot: AvailabilitySlot) => void;
   hasPro: boolean;
 }) {
   if (!hasPro) return <p className="text-sm text-muted">Select a professional first to see their available times.</p>;
   if (loading) return <div className="h-24 animate-pulse rounded-2xl bg-surface-container-high" />;
   if (error) return <ErrorState description={error} onRetry={onRetry} />;
-  if (times.length === 0) {
+  // A day the professional doesn't work at all has no grid to show - only an
+  // explanation. A day that's merely full still renders, so the customer can
+  // see who's taken and what's just too tight for their selection.
+  if (grid.length === 0) {
+    const { title, hint } = emptySlotCopy(reason, professionalName);
     return (
       <div className="rounded-2xl border border-border bg-card p-6 text-center">
         <CalendarClock size={22} className="mx-auto text-muted" />
-        <p className="mt-2 text-sm font-medium text-on-surface">No slots available on this date</p>
-        <p className="text-xs text-muted">Try another day from the calendar above.</p>
+        <p className="mt-2 text-sm font-medium text-on-surface">{title}</p>
+        <p className="text-xs text-muted">{hint}</p>
       </div>
     );
   }
-  const groups: { label: string; slots: string[] }[] = [
-    { label: "Morning", slots: times.filter((t) => Number(t.split(":")[0]) < 12) },
-    { label: "Afternoon", slots: times.filter((t) => { const h = Number(t.split(":")[0]); return h >= 12 && h < 17; }) },
-    { label: "Evening", slots: times.filter((t) => Number(t.split(":")[0]) >= 17) },
-  ].filter((g) => g.slots.length > 0);
 
   return (
     <div className="flex flex-col gap-5">
-      {groups.map((g) => (
-        <div key={g.label}>
-          <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">{g.label}</div>
-          <div className="flex flex-wrap gap-2">
-            {g.slots.map((t) => {
-              const isOn = selected === t;
-              return (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => onSelect(t)}
-                  className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
-                    isOn ? "border-primary bg-primary text-primary-foreground" : "border-border text-on-surface hover:border-primary hover:text-primary"
-                  }`}
-                >
-                  {displayTime(t)}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      ))}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        {shift ? (
+          <p className="text-xs text-muted">
+            {professionalName || "Working"} {shift.start}–{shift.end} on this date
+            {shift.source === "member" ? " (personal schedule)" : ""}
+          </p>
+        ) : <span />}
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-surface-container-low px-2.5 py-1 text-[11px] font-medium text-on-surface">
+          <Clock size={11} className="text-primary" /> Your booking needs {displayDuration(requiredDuration)}
+        </span>
+      </div>
+
+      <SlotGrid
+        grid={grid}
+        selected={selected}
+        requiredDuration={requiredDuration}
+        interval={interval}
+        onSelect={onSelect}
+        onTooShort={onTooShort}
+      />
     </div>
   );
 }
@@ -379,6 +412,9 @@ function BookPageContent() {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
   const [quote, setQuote] = useState<Quote | null>(null);
+  // The slot the customer tapped that can't hold their whole selection; drives
+  // the fit dialog. Null when the dialog is closed.
+  const [tightSlot, setTightSlot] = useState<AvailabilitySlot | null>(null);
 
   const { data, loading, error, refetch } = useBusiness(studioId);
   const business = data?.business;
@@ -395,12 +431,26 @@ function BookPageContent() {
   const totalDuration = selectedServices.reduce((sum, s) => sum + s.duration, 0);
   const subtotal = selectedServices.reduce((sum, s) => sum + Number(s.price), 0);
 
-  const { slots, loading: slotsLoading, error: slotsError, refetch: refetchSlots } = useAvailability(
-    studioId, selectedProfessionalId || null, selectedDate, totalDuration || undefined
-  );
-  const availableTimes = useMemo(
-    () => (business ? filterSlotsByWorkingHours(slots, business.workingHours, selectedDate) : []),
-    [slots, business, selectedDate]
+  // The server sizes the appointment from the selected services and applies the
+  // shop's hours, the professional's rota, their time off and their bookings.
+  // `slots` is therefore final - the old client-side working-hours filter here
+  // existed only because availability used to return a fixed 09:00-20:00 grid,
+  // and it wrongly hid legitimate early/late slots at shops open outside it.
+  const {
+    slots: availableTimes,
+    grid: slotGrid,
+    interval: slotInterval,
+    reason: slotsReason,
+    shift,
+    loading: slotsLoading,
+    error: slotsError,
+    refetch: refetchSlots,
+  } = useAvailability(
+    studioId,
+    selectedProfessionalId || null,
+    selectedDate,
+    totalDuration || undefined,
+    selectedServiceIds.length > 0 ? selectedServiceIds : undefined
   );
 
   useEffect(() => {
@@ -422,6 +472,27 @@ function BookPageContent() {
 
   const toggleService = (id: string) =>
     setSelectedServiceIds((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]));
+
+  /**
+   * The customer trimmed their services to fit the slot they wanted. Both
+   * changes are applied together - dropping the services and taking the time -
+   * so the wizard never sits in the intermediate state where the old selection
+   * is still attached to a slot that can't hold it.
+   *
+   * The time is applied optimistically: availability refetches for the shorter
+   * duration, and the effect below drops the selection again if the server
+   * disagrees (someone else booked it in the meantime).
+   */
+  const applyFit = (keepServiceIds: string[], time: string) => {
+    setSelectedServiceIds(keepServiceIds);
+    setSelectedTime(time);
+    setTightSlot(null);
+  };
+
+  const pickFittingTime = (time: string) => {
+    setSelectedTime(time);
+    setTightSlot(null);
+  };
 
   const goToStep = (i: number) => { setStep(i); setMaxReached((m) => Math.max(m, i)); };
 
@@ -476,7 +547,9 @@ function BookPageContent() {
             {step === 3 && (
               <TimeStep
                 loading={slotsLoading} error={slotsError} onRetry={refetchSlots}
-                times={availableTimes} selected={selectedTime} onSelect={setSelectedTime}
+                reason={slotsReason} shift={shift} professionalName={selectedProfessional?.name}
+                grid={slotGrid} requiredDuration={totalDuration} interval={slotInterval}
+                selected={selectedTime} onSelect={setSelectedTime} onTooShort={setTightSlot}
                 hasPro={Boolean(selectedProfessionalId)}
               />
             )}
@@ -528,6 +601,19 @@ function BookPageContent() {
           {ctaLabel} <ArrowRight size={16} />
         </Button>
       </div>
+
+      {/* Tapping a time that can't hold every selected service opens this
+          instead of silently doing nothing - it names the shortfall and lets
+          the customer resolve it in place. */}
+      <ServiceFitModal
+        open={Boolean(tightSlot)}
+        onOpenChange={(open) => { if (!open) setTightSlot(null); }}
+        slot={tightSlot}
+        services={selectedServices}
+        fittingSlots={slotGrid.filter((s) => s.available)}
+        onApply={applyFit}
+        onPickTime={pickFittingTime}
+      />
     </>
   );
 }
