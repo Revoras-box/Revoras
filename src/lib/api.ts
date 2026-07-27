@@ -410,10 +410,16 @@ export const api = {
   },
 
   // Phase 2.4 — price + applicable-offer preview for a set of services, before booking.
-  quoteBooking: async (studioId: string, serviceIds: string[]): Promise<BookingQuoteResponse> => {
+  // Pass businessMemberId once a professional is chosen: prices and durations are
+  // per-employee, so the quote is only exact once we know whose chair it is.
+  quoteBooking: async (
+    studioId: string,
+    serviceIds: string[],
+    businessMemberId?: string
+  ): Promise<BookingQuoteResponse> => {
     return authFetch(`${API}/bookings/quote`, {
       method: "POST",
-      body: JSON.stringify({ studioId, serviceIds }),
+      body: JSON.stringify({ studioId, serviceIds, businessMemberId }),
     });
   },
 

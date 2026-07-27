@@ -23,6 +23,7 @@ import { RowListEditor } from "@/components/business/RowListEditor";
 import { SocialLinksForm } from "@/components/business/SocialLinksForm";
 import { ProfileCompletionCard, type CompletionItem } from "@/components/business/ProfileCompletionCard";
 import { MemberScheduleEditor } from "@/components/business/MemberScheduleEditor";
+import { MemberServicesEditor } from "@/components/business/MemberServicesEditor";
 import { TimeSelect } from "@/components/ui/TimeSelect";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { Divider } from "@/components/ui/Divider";
@@ -333,6 +334,26 @@ function MemberDrawer({
           </div>
 
           <Divider />
+
+          {member.provides_services ? (
+            <>
+              <div>
+                <div className="text-sm font-semibold text-on-surface mb-1">Services &amp; durations</div>
+                <p className="text-xs text-muted mb-2">
+                  Pick what {member.name} performs and how long <em>they</em> take. Their booking times are spaced by
+                  their shortest service — set here, never chosen by hand.
+                </p>
+                <MemberServicesEditor
+                  studioId={studioId}
+                  memberId={member.id}
+                  memberName={member.name}
+                  canManage={canManage}
+                />
+              </div>
+
+              <Divider />
+            </>
+          ) : null}
 
           <div>
             <div className="text-sm font-semibold text-on-surface mb-1">Working schedule</div>

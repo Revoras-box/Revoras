@@ -63,12 +63,28 @@ function Stepper({ step, maxReached, onGo }: { step: number; maxReached: number;
 
 /* ------------------------------- step: services --------------------------- */
 
-function ServiceStep({ services, selected, onToggle }: { services: Service[]; selected: string[]; onToggle: (id: string) => void }) {
+function ServiceStep({
+  services,
+  selected,
+  onToggle,
+  durationRange,
+}: {
+  services: Service[];
+  selected: string[];
+  onToggle: (id: string) => void;
+  /** Min/max minutes across the team, when professionals differ on a service. */
+  durationRange: (serviceId: string) => { min: number; max: number } | null;
+}) {
   if (services.length === 0) return <p className="text-sm text-muted">This studio hasn&apos;t listed any services yet.</p>;
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       {services.map((s) => {
         const isOn = selected.includes(s.id);
+        const range = durationRange(s.id);
+        // Before a professional is picked there is no single true duration, so
+        // say so rather than quoting the catalogue number as if it were final.
+        const durationLabel =
+          range && range.min !== range.max ? `${range.min}–${range.max} min` : `${range?.min ?? s.duration} min`;
         return (
           <button
             key={s.id}
@@ -81,7 +97,10 @@ function ServiceStep({ services, selected, onToggle }: { services: Service[]; se
             <div className="min-w-0">
               <div className="font-headline text-sm font-semibold text-on-surface">{s.name}</div>
               <div className="mt-0.5 text-xs text-muted">
-                {inr(Number(s.price))} · {s.duration} min
+                {inr(Number(s.price))} · {durationLabel}
+                {range && range.min !== range.max ? (
+                  <span className="text-muted/80"> · varies by professional</span>
+                ) : null}
               </div>
             </div>
             <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors ${isOn ? "bg-primary text-primary-foreground" : "bg-surface-container-high text-on-surface"}`}>
@@ -96,14 +115,28 @@ function ServiceStep({ services, selected, onToggle }: { services: Service[]; se
 
 /* ----------------------------- step: professional ------------------------- */
 
+/**
+ * Each professional's own take on the basket: what they'd charge, how long
+ * they'd need, and whether they perform all of it at all.
+ */
+interface ProFit {
+  duration: number;
+  price: number;
+  missing: string[];
+}
+
 function ProfessionalStep({
   professionals,
   selectedId,
   onSelect,
+  fitFor,
+  hasSelection,
 }: {
   professionals: BusinessDetail["professionals"];
   selectedId: string;
   onSelect: (id: string) => void;
+  fitFor: (professionalId: string) => ProFit;
+  hasSelection: boolean;
 }) {
   if (professionals.length === 0) return <p className="text-sm text-muted">No professionals available. Try choosing another day or studio.</p>;
   return (
@@ -111,13 +144,23 @@ function ProfessionalStep({
       {professionals.map((p) => {
         const isOn = p.id === selectedId;
         const rating = Number(p.rating ?? 0);
+        const fit = fitFor(p.id);
+        // Someone who doesn't perform part of the basket is shown, not hidden:
+        // the customer needs to see the trade-off ("Aman can't do the colour")
+        // rather than wonder why a professional vanished.
+        const cantDoAll = fit.missing.length > 0;
         return (
           <button
             key={p.id}
             type="button"
             onClick={() => onSelect(p.id)}
+            aria-pressed={isOn}
             className={`flex items-center gap-4 rounded-2xl border p-4 text-left transition-colors ${
-              isOn ? "border-primary bg-primary/5" : "border-border bg-card hover:bg-surface-container-low"
+              isOn
+                ? "border-primary bg-primary/5"
+                : cantDoAll
+                  ? "border-dashed border-border bg-card opacity-75 hover:opacity-100"
+                  : "border-border bg-card hover:bg-surface-container-low"
             }`}
           >
             <Avatar name={p.name} src={p.image_url ?? undefined} size="lg" />
@@ -130,13 +173,24 @@ function ProfessionalStep({
                   {rating.toFixed(1)}
                 </div>
               )}
-              {p.specialties && p.specialties.length > 0 && (
+              {hasSelection ? (
+                cantDoAll ? (
+                  <div className="mt-1.5 text-[11px] font-medium text-on-warning-container">
+                    Doesn&apos;t offer {fit.missing.join(", ")}
+                  </div>
+                ) : (
+                  <div className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-medium text-on-surface">
+                    <Clock size={11} className="text-primary" />
+                    {displayDuration(fit.duration)} · {inr(fit.price)}
+                  </div>
+                )
+              ) : p.specialties && p.specialties.length > 0 ? (
                 <div className="mt-1.5 flex flex-wrap gap-1">
                   {p.specialties.slice(0, 2).map((sp) => (
                     <span key={sp} className="rounded-full bg-surface-container-high px-2 py-0.5 text-[10px] text-on-surface-variant">{sp}</span>
                   ))}
                 </div>
-              )}
+              ) : null}
             </div>
             <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${isOn ? "bg-primary text-primary-foreground" : "border border-border"}`}>
               {isOn ? <Check size={14} /> : null}
@@ -196,6 +250,12 @@ function emptySlotCopy(reason: AvailabilityReason | null, name?: string): { titl
       return {
         title: "The selected services don't fit in one appointment",
         hint: "Remove a service, or split them across two bookings.",
+      };
+    case "service_not_offered":
+      // No date helps here, so don't send them back to the calendar.
+      return {
+        title: `${who} doesn't offer one of your services`,
+        hint: "Go back and choose a different professional, or drop that service.",
       };
     case "fully_booked":
     default:
@@ -280,7 +340,7 @@ function TimeStep({
 interface Quote { discountAmount: number; total: number; offer: { label: string } | null }
 
 function Summary({
-  business, professionalName, services, duration, subtotal, quote, date, time,
+  business, professionalName, services, duration, subtotal, quote, date, time, priceFor,
 }: {
   business: BusinessDetail;
   professionalName?: string;
@@ -290,6 +350,8 @@ function Summary({
   quote: Quote | null;
   date?: string;
   time?: string | null;
+  /** The chosen professional's price for a service, falling back to the catalogue's. */
+  priceFor: (service: Service) => number;
 }) {
   const total = quote ? quote.total : subtotal;
   return (
@@ -315,7 +377,7 @@ function Summary({
           {services.map((s) => (
             <li key={s.id} className="flex justify-between gap-2">
               <span className="truncate text-on-surface">{s.name}</span>
-              <span className="shrink-0 tabular-nums text-muted">{inr(Number(s.price))}</span>
+              <span className="shrink-0 tabular-nums text-muted">{inr(priceFor(s))}</span>
             </li>
           ))}
         </ul>
@@ -428,8 +490,76 @@ function BookPageContent() {
 
   const selectedServices = useMemo(() => services.filter((s) => selectedServiceIds.includes(s.id)), [services, selectedServiceIds]);
   const selectedProfessional = professionals.find((p) => p.id === selectedProfessionalId);
-  const totalDuration = selectedServices.reduce((sum, s) => sum + s.duration, 0);
-  const subtotal = selectedServices.reduce((sum, s) => sum + Number(s.price), 0);
+
+  /**
+   * Per-professional durations and prices, keyed by professional then service.
+   *
+   * The same haircut is 25 minutes with one barber and 40 with another, so
+   * "how long is my appointment" has no answer until a chair is chosen. The
+   * server sends the whole matrix with the business so this step doesn't need a
+   * round trip per professional.
+   */
+  const proServiceMap = useMemo(() => {
+    const map = new Map<string, Map<string, { duration: number; price: number }>>();
+    for (const p of professionals) {
+      const own = new Map<string, { duration: number; price: number }>();
+      for (const row of p.services ?? []) own.set(row.serviceId, { duration: row.duration, price: row.price });
+      map.set(p.id, own);
+    }
+    return map;
+  }, [professionals]);
+
+  /** What this basket costs and takes with one specific professional. */
+  const fitFor = useMemo(
+    () =>
+      (professionalId: string): ProFit => {
+        const own = proServiceMap.get(professionalId);
+        let duration = 0;
+        let price = 0;
+        const missing: string[] = [];
+        for (const s of selectedServices) {
+          const row = own?.get(s.id);
+          if (!row) {
+            missing.push(s.name);
+            continue;
+          }
+          duration += row.duration;
+          price += row.price;
+        }
+        return { duration, price, missing };
+      },
+    [proServiceMap, selectedServices]
+  );
+
+  const priceFor = useMemo(
+    () => (service: Service) =>
+      proServiceMap.get(selectedProfessionalId)?.get(service.id)?.price ?? Number(service.price),
+    [proServiceMap, selectedProfessionalId]
+  );
+
+  /** Spread of a service's duration across the team, for the pre-choice step. */
+  const durationRange = useMemo(
+    () => (serviceId: string) => {
+      const values = professionals
+        .map((p) => proServiceMap.get(p.id)?.get(serviceId)?.duration)
+        .filter((d): d is number => typeof d === "number");
+      if (values.length === 0) return null;
+      return { min: Math.min(...values), max: Math.max(...values) };
+    },
+    [professionals, proServiceMap]
+  );
+
+  // Once a professional is chosen, THEIR figures are the real ones. Before that,
+  // the catalogue's stand in for the summary.
+  const selectedFit = selectedProfessionalId ? fitFor(selectedProfessionalId) : null;
+  const totalDuration =
+    selectedFit && selectedFit.missing.length === 0
+      ? selectedFit.duration
+      : selectedServices.reduce((sum, s) => sum + s.duration, 0);
+  const subtotal =
+    selectedFit && selectedFit.missing.length === 0
+      ? selectedFit.price
+      : selectedServices.reduce((sum, s) => sum + Number(s.price), 0);
 
   // The server sizes the appointment from the selected services and applies the
   // shop's hours, the professional's rota, their time off and their bookings.
@@ -463,12 +593,14 @@ function BookPageContent() {
   useEffect(() => {
     if (!studioId || selectedServiceIds.length === 0) { setQuote(null); return; }
     let cancelled = false;
-    api.quoteBooking(studioId, selectedServiceIds)
+    // Prices are per-professional too, so re-quote once a chair is chosen —
+    // otherwise the discount would be computed against the wrong subtotal.
+    api.quoteBooking(studioId, selectedServiceIds, selectedProfessionalId || undefined)
       .then((res) => { if (!cancelled && res.quote) setQuote({ discountAmount: res.quote.discountAmount, total: res.quote.total, offer: res.quote.offer }); })
-      .catch(() => {});
+      .catch(() => { if (!cancelled) setQuote(null); });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [studioId, serviceKey]);
+  }, [studioId, serviceKey, selectedProfessionalId]);
 
   const toggleService = (id: string) =>
     setSelectedServiceIds((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]));
@@ -498,7 +630,9 @@ function BookPageContent() {
 
   const stepValid = [
     selectedServices.length > 0,
-    Boolean(selectedProfessionalId),
+    // A professional who doesn't perform part of the basket can't be continued
+    // with — the booking endpoint would reject it, so the wizard says so here.
+    Boolean(selectedProfessionalId) && (selectedFit?.missing.length ?? 0) === 0,
     Boolean(selectedDate),
     Boolean(selectedTime),
     true,
@@ -541,8 +675,23 @@ function BookPageContent() {
               <p className="mt-0.5 text-sm text-muted">Step {step + 1} of {STEPS.length}</p>
             </div>
 
-            {step === 0 && <ServiceStep services={services} selected={selectedServiceIds} onToggle={toggleService} />}
-            {step === 1 && <ProfessionalStep professionals={professionals} selectedId={selectedProfessionalId} onSelect={setSelectedProfessionalId} />}
+            {step === 0 && (
+              <ServiceStep
+                services={services}
+                selected={selectedServiceIds}
+                onToggle={toggleService}
+                durationRange={durationRange}
+              />
+            )}
+            {step === 1 && (
+              <ProfessionalStep
+                professionals={professionals}
+                selectedId={selectedProfessionalId}
+                onSelect={setSelectedProfessionalId}
+                fitFor={fitFor}
+                hasSelection={selectedServices.length > 0}
+              />
+            )}
             {step === 2 && <DateStep dateOptions={dateOptions} selected={selectedDate} onSelect={setSelectedDate} />}
             {step === 3 && (
               <TimeStep
@@ -582,6 +731,7 @@ function BookPageContent() {
                 quote={quote}
                 date={selectedDate}
                 time={selectedTime}
+                priceFor={priceFor}
               />
               <Button className="mt-4 w-full" size="lg" disabled={!stepValid} onClick={next}>
                 {ctaLabel} <ArrowRight size={16} />

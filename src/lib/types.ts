@@ -373,7 +373,58 @@ export type AvailabilityReason =
   | "time_off"
   | "fully_booked"
   | "day_ended"
-  | "duration_exceeds_shift";
+  | "duration_exceeds_shift"
+  // This professional doesn't perform something in the basket. No other date
+  // helps — the customer needs a different professional or a different basket.
+  | "service_not_offered";
+
+/**
+ * Where a professional's scheduling rhythm came from. `employee_services` is the
+ * normal case: the owner recorded what this person performs and how long they
+ * take, and the interval falls out of it. The others are fallbacks for a
+ * professional or business that hasn't been configured yet.
+ */
+export type IntervalSource = "employee_services" | "studio_catalogue" | "business_setting";
+
+/** One row of the owner's "services this professional performs" form. */
+export interface MemberServiceAssignment {
+  serviceId: string;
+  enabled: boolean;
+  /** THIS professional's minutes for the service — required whenever enabled. */
+  duration?: number;
+  /** null / omitted means "charge the catalogue price". */
+  price?: number | null;
+}
+
+export interface MemberServiceRow extends MemberServiceAssignment {
+  name: string;
+  categoryName: string | null;
+  imageUrl: string | null;
+  isActive: boolean;
+  defaultDuration: number;
+  defaultPrice: number | null;
+  duration: number;
+  price: number | null;
+}
+
+export interface MemberScheduling {
+  /** Derived, never configured: the rounded step between this person's start times. */
+  interval: number;
+  intervalSource: IntervalSource;
+  /** Their shortest service, before rounding — what the interval was derived from. */
+  shortestServiceDuration: number | null;
+  serviceCount: number;
+}
+
+export interface MemberServicesResponse {
+  member?: { id: string; name: string; designation: string | null; providesServices: boolean };
+  services?: MemberServiceRow[];
+  scheduling?: MemberScheduling;
+  /** False while this professional is still on the whole-catalogue fallback. */
+  configured?: boolean;
+  message?: string;
+  error?: string;
+}
 
 /**
  * Per-slot state. `insufficient_time` is the only one the customer can act on —
@@ -409,13 +460,14 @@ export interface AvailabilityResponse {
   /** Total minutes the requested services occupy. */
   duration?: number;
   /**
-   * Minutes between start times. Derived from the shortest service the business
-   * sells, so no gap big enough to sell is skipped — not a fixed half hour.
+   * Minutes between start times for THIS professional. Derived from the shortest
+   * service they perform and rounded to a readable step — not a fixed half hour,
+   * and not shared with the rest of the team.
    */
   interval?: number;
-  /** Where `interval` came from — the catalogue, or the business's fallback setting. */
-  intervalSource?: "shortest_service" | "business_setting";
-  /** The shortest active service in minutes; null when the business has none yet. */
+  /** Where `interval` came from — this employee's services, or a fallback. */
+  intervalSource?: IntervalSource;
+  /** This professional's shortest service in minutes, before rounding. */
   shortestServiceDuration?: number | null;
   /** The longest appointment that could start anywhere on this date. */
   longestFreeWindow?: number;
@@ -444,6 +496,13 @@ export interface Service {
   is_active: boolean;
 }
 
+/** What one professional charges and takes for one service — their figures, not the catalogue's. */
+export interface ProfessionalService {
+  serviceId: string;
+  duration: number;
+  price: number;
+}
+
 export interface Professional {
   id: string; // business_members.id — this is the `businessMemberId` used for availability/booking
   name: string;
@@ -453,6 +512,14 @@ export interface Professional {
   rating: string | null;
   image_url: string | null;
   badges?: TrustBadge[]; // Phase 1.4c
+  /**
+   * The services this professional performs, with THEIR duration and price. The
+   * same haircut is 25 min with one barber and 40 with another, so a basket's
+   * total — and the grid that has to fit it — depends on who's chosen.
+   */
+  services?: ProfessionalService[];
+  /** False while this professional is still on the whole-catalogue fallback. */
+  servicesConfigured?: boolean;
 }
 
 // Phase 1.2 - Business Information & Trust Layer. Mirrors the jsonb columns on

@@ -343,6 +343,14 @@ export const businessApi = {
   getTeamAvailability: (studioId: string, params: { date: string; duration?: number }) =>
     request(`/business/${studioId}/availability`, { params }),
 
+  // Which of the shop's services this professional performs, and how long THEY
+  // take. The scheduling interval comes back derived from those durations — it
+  // is never sent up, because nobody sets it.
+  getMemberServices: (studioId: string, memberId: string) =>
+    request(`/business/${studioId}/members/${memberId}/services`),
+  updateMemberServices: (studioId: string, memberId: string, body: Record<string, unknown>) =>
+    request(`/business/${studioId}/members/${memberId}/services`, { method: "PUT", body }),
+
   getBusiness: (studioId: string) => request(`/business/${studioId}`),
   updateBusiness: (studioId: string, body: Record<string, unknown>) =>
     request(`/business/${studioId}`, { method: "PATCH", body }),
