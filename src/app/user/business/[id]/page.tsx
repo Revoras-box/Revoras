@@ -122,7 +122,12 @@ export default function BusinessDetailPage({ params }: BusinessDetailPageProps) 
             ) : null}
 
             <Block id="services" title="Services">
-              <ServiceGrid services={business.services} selectedIds={selectedServiceIds} onToggle={toggleService} />
+              <ServiceGrid
+                services={business.services}
+                professionals={business.professionals}
+                selectedIds={selectedServiceIds}
+                onToggle={toggleService}
+              />
             </Block>
 
             {business.professionals?.length ? (

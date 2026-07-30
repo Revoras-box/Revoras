@@ -1,6 +1,6 @@
 "use client";
 
-import { Lock, Clock, AlertTriangle } from "lucide-react";
+import { Lock, Clock, AlertTriangle, CalendarCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { displayTime, displayDuration } from "@/lib/slot-fit";
 import type { AvailabilitySlot } from "@/lib/types";
@@ -14,8 +14,14 @@ import type { AvailabilitySlot } from "@/lib/types";
  * reason about the day: "3:00 is booked, 3:30 only has 30 minutes free".
  *
  * Only `insufficient_time` slots are clickable-but-not-bookable, because they
- * are the one state the customer can resolve themselves (by trimming
- * services); the parent opens the fit dialog for them.
+ * are the one state worth explaining: while booking the customer can resolve it
+ * themselves by trimming services, and while rescheduling the dialog at least
+ * names what's in the way and offers the times that do fit. The parent decides
+ * which dialog that is.
+ *
+ * `mode` only changes wording. Moving an existing booking can't drop a service
+ * to fit — the appointment travels as it was paid for — so the grid must not
+ * promise an adjustment that isn't offered there.
  */
 
 const PART_OF_DAY = [
@@ -52,6 +58,23 @@ function SlotChip({ slot, selected, requiredDuration, onSelect, onTooShort }: Sl
           <Lock size={9} className="shrink-0" />
           <span className="truncate">{slot.freeAt ? `Till ${displayTime(slot.freeAt)}` : isBooked ? "Booked" : "Away"}</span>
         </span>
+      </div>
+    );
+  }
+
+  // Rescheduling only: the time they hold right now. Shown so the day has an
+  // anchor ("I'm moving from here"), and not offered — confirming it would
+  // spend one of a limited number of moves and change nothing.
+  if (slot.status === "current") {
+    return (
+      <div
+        aria-label={`${label} — your booking's current time`}
+        className="flex cursor-default select-none flex-col items-center justify-center rounded-xl border-2 border-dashed border-primary/60 bg-primary/5 px-2 py-2 text-center"
+      >
+        <span className="inline-flex items-center gap-1 text-sm font-semibold text-primary">
+          <CalendarCheck size={11} className="shrink-0" /> {label}
+        </span>
+        <span className="mt-0.5 truncate text-[10px] font-medium uppercase tracking-wide text-primary/80">Your time</span>
       </div>
     );
   }
@@ -128,11 +151,21 @@ export interface SlotGridProps {
    * pick up mid-hour after an appointment) reads as deliberate, not broken.
    */
   interval?: number | null;
+  /** `move` is the reschedule flow, where services can't be trimmed to fit. */
+  mode?: "book" | "move";
   onSelect: (time: string) => void;
   onTooShort: (slot: AvailabilitySlot) => void;
 }
 
-export function SlotGrid({ grid, selected, requiredDuration, interval, onSelect, onTooShort }: SlotGridProps) {
+export function SlotGrid({
+  grid,
+  selected,
+  requiredDuration,
+  interval,
+  mode = "book",
+  onSelect,
+  onTooShort,
+}: SlotGridProps) {
   const groups = PART_OF_DAY.map((part) => ({
     label: part.label,
     slots: grid.filter((slot) => part.test(Number(slot.time.split(":")[0]))),
@@ -140,6 +173,7 @@ export function SlotGrid({ grid, selected, requiredDuration, interval, onSelect,
 
   const freeCount = grid.filter((s) => s.available).length;
   const tightCount = grid.filter((s) => s.status === "insufficient_time").length;
+  const hasCurrent = grid.some((s) => s.status === "current");
 
   return (
     <div className="flex flex-col gap-5">
@@ -171,8 +205,12 @@ export function SlotGrid({ grid, selected, requiredDuration, interval, onSelect,
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border pt-3">
         <LegendDot className="border-border bg-card" label="Available" />
-        <LegendDot className="border-warning/50 bg-warning-container" label="Not enough time — tap to adjust" />
+        <LegendDot
+          className="border-warning/50 bg-warning-container"
+          label={mode === "move" ? "Not enough time — tap to see why" : "Not enough time — tap to adjust"}
+        />
         <LegendDot className="border-dashed border-border bg-surface-container-low" label="Booked" />
+        {hasCurrent ? <LegendDot className="border-dashed border-primary/60 bg-primary/10" label="Your time now" /> : null}
         {interval ? (
           <span className="ml-auto text-[11px] text-muted">Start times every {interval} min</span>
         ) : null}
@@ -182,8 +220,17 @@ export function SlotGrid({ grid, selected, requiredDuration, interval, onSelect,
         <div className="flex items-start gap-2.5 rounded-xl border border-warning/40 bg-warning-container/30 p-3">
           <Clock size={15} className="mt-0.5 shrink-0 text-on-warning-container" />
           <p className="text-xs text-on-warning-container">
-            Nothing on this date fits all {displayDuration(requiredDuration)} of your selection. Tap any amber time to
-            see what would fit there, or try another date.
+            {mode === "move" ? (
+              <>
+                Nothing on this date has room for all {displayDuration(requiredDuration)} of your appointment. Tap any
+                amber time to see what&apos;s in the way, or try another date.
+              </>
+            ) : (
+              <>
+                Nothing on this date fits all {displayDuration(requiredDuration)} of your selection. Tap any amber time
+                to see what would fit there, or try another date.
+              </>
+            )}
           </p>
         </div>
       ) : null}

@@ -10,6 +10,7 @@ import { useFavoriteState } from "@/lib/favorites";
 import { businessToCardProps } from "@/components/user/sections/utils";
 import DiscoveryRail from "@/components/user/sections/DiscoveryRail";
 import { FilterDrawer, FilterControls, EMPTY_FILTERS, countActiveFilters, type AdvancedFilters } from "@/components/user/sections/FilterDrawer";
+import { CategoryIcon } from "@/lib/category-icons";
 
 // Free-text searches the hero surfaces as one-tap chips. These are plain
 // keyword searches (they fill the search box), distinct from the category
@@ -23,6 +24,11 @@ const BROWSE_RAILS = [
   { key: "rating", title: "Top rated", Icon: Star, params: { sortBy: "rating" } },
   { key: "newest", title: "New on Revoras", Icon: Clock, params: { sortBy: "newest" } },
 ] as const;
+
+// How many cards a browse rail asks for. 12 divides evenly by 6, 4, 3 and 2 —
+// every column count the responsive grid produces — so a rail always ends on a
+// full row. It doubles as the "is there enough to fill a rail" threshold.
+const RAIL_SIZE = 12;
 
 const SORT_OPTIONS = [
   { value: "recommended", label: "Recommended" },
@@ -82,10 +88,6 @@ function SearchPageContent() {
   useEffect(() => setPage(1), [search, categoryId, sortBy, openNow, filters]);
 
   const { data: categoriesData } = useCategories("business");
-  const categoryOptions = useMemo(
-    () => [{ value: "", label: "All categories" }, ...(categoriesData?.categories ?? []).map((c) => ({ value: c.id, label: c.name }))],
-    [categoriesData]
-  );
   const { data: serviceCategoriesData } = useCategories("service");
   const serviceCategoryName = (id: string) => serviceCategoriesData?.categories.find((c) => c.id === id)?.name ?? id;
 
@@ -139,6 +141,24 @@ function SearchPageContent() {
   const isBrowseMode =
     !search.trim() && !categoryId && !openNow && activeFilterCount === 0 && sortBy === "recommended";
 
+  /**
+   * Are there enough studios for three differently-sorted rails to actually
+   * differ? Each rail asks for 12, so anything at or below that is the same set
+   * three times over — the headings promise a selection the data cannot make.
+   *
+   * `pagination.total` is already on hand: the results query runs in browse mode
+   * too (its output is what the flat-grid branch renders), so this costs no
+   * extra request.
+   *
+   * `null` means "not known yet", and is deliberately not folded into either
+   * answer. Defaulting it to "enough" rendered all three rails on first paint
+   * and then tore them down a moment later when the count arrived — three
+   * headings appearing and vanishing. Browse mode waits for the count instead
+   * and shows a skeleton, so the layout is chosen once.
+   */
+  const totalStudios = pagination?.total ?? null;
+  const railsWouldRepeat = totalStudios == null ? null : totalStudios <= RAIL_SIZE;
+
   // Category pills mirror the header <Select> — both drive categoryId, so they
   // stay in sync. The "All" pill clears back to every category.
   const categoryPills = categoriesData?.categories ?? [];
@@ -176,12 +196,24 @@ function SearchPageContent() {
 
   return (
     <>
-      {/* Gradient discovery hero — sets the tone and offers one-tap trending
-          searches. Kept compact so the sticky search + results stay above the
-          fold on scroll. */}
+      {/*
+        The page used to open with three stacked full-width bands offering three
+        overlapping ways to narrow things: free-text chips labelled "Trending",
+        a "Category" <Select>, and a row of category pills. The Select and the
+        pills were driving the same `categoryId` off the same list — the old
+        comment said as much — so one of them was pure duplication, and the
+        trending chips looked identical to the category pills while doing
+        something entirely different (filling the search box rather than
+        filtering). Three lookalike controls, two meanings, ~340px of chrome
+        before a single result.
+
+        Now: a slim hero that says where you are, one sticky search row, and one
+        row of category pills. Popular searches survive as underlined text links
+        rather than pills, so they no longer read as a second set of filters.
+      */}
       <div className="relative overflow-hidden border-b border-border bg-linear-to-br from-primary/12 via-surface-container to-accent/10">
         <div className="grainy-overlay absolute inset-0" />
-        <Container width="lg" className="relative flex flex-col gap-4 py-8 sm:py-10">
+        <Container width="full" className="max-w-[96rem] relative flex flex-col gap-2.5 py-6 sm:py-7">
           <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
             <Sparkles size={14} />
             Discover
@@ -189,20 +221,30 @@ function SearchPageContent() {
           <h1 className="max-w-xl font-headline text-2xl font-bold text-on-surface sm:text-3xl">
             Find your next great experience
           </h1>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-medium uppercase tracking-widest text-muted">Trending</span>
+          <p className="max-w-xl text-sm text-muted">
+            Browse trusted salons, barbers, spas and beauty professionals — then book in a few taps.
+          </p>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 pt-1 text-sm">
+            <span className="text-xs font-medium uppercase tracking-widest text-muted">Popular</span>
             {TRENDING_SEARCHES.map((term) => (
-              <Chip key={term} type="button" selected={search.trim().toLowerCase() === term.toLowerCase()} onClick={() => setSearch(term)}>
+              <button
+                key={term}
+                type="button"
+                onClick={() => setSearch(term)}
+                className="text-on-surface underline-offset-4 transition-colors hover:text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              >
                 {term}
-              </Chip>
+              </button>
             ))}
           </div>
         </Container>
       </div>
 
-      {/* Sticky compact search header */}
+      {/* Sticky compact search header. The Category <Select> that used to sit
+          here is gone — the pill row below it sets the same value from the same
+          list, and is easier to scan. */}
       <div className="sticky top-16 z-30 border-b border-border glass-nav">
-        <Container width="lg" className="flex items-center gap-2 py-3">
+        <Container width="full" className="max-w-[96rem] flex items-center gap-2 py-3">
           <div className="flex-1">
             <Input
               leadingIcon={<SearchIcon size={18} />}
@@ -212,13 +254,6 @@ function SearchPageContent() {
               aria-label="Search"
             />
           </div>
-          <Select
-            options={categoryOptions}
-            value={categoryId}
-            onValueChange={setCategoryId}
-            placeholder="Category"
-            className="hidden w-40 sm:block"
-          />
           <Button intent="outline" onClick={() => setFiltersOpen(true)} className="shrink-0 lg:hidden">
             <SlidersHorizontal size={16} /> Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
           </Button>
@@ -229,7 +264,7 @@ function SearchPageContent() {
           category filter (mirrors the header Select). */}
       {categoryPills.length > 0 ? (
         <div className="border-b border-border bg-surface">
-          <Container width="lg" className="py-3">
+          <Container width="full" className="max-w-[96rem] py-3">
             <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <Chip type="button" selected={!categoryId} onClick={() => setCategoryId("")} className="shrink-0">
                 All
@@ -240,7 +275,9 @@ function SearchPageContent() {
                   type="button"
                   selected={categoryId === c.id}
                   onClick={() => setCategoryId(categoryId === c.id ? "" : c.id)}
-                  icon={c.icon ? <span aria-hidden="true">{c.icon}</span> : undefined}
+                  // Was `{c.icon}` — printing the stored Material Symbols
+                  // ligature name as text. See lib/category-icons.
+                  icon={<CategoryIcon icon={c.icon} />}
                   className="shrink-0"
                 >
                   {c.name}
@@ -251,8 +288,16 @@ function SearchPageContent() {
         </div>
       ) : null}
 
-      <Container width="lg" className="flex flex-col gap-5 py-6">
-        {isBrowseMode ? (
+      <Container width="full" className="max-w-[96rem] flex flex-col gap-5 py-6">
+        {isBrowseMode && railsWouldRepeat === null ? (
+          /* Count not in yet — hold the space rather than commit to a layout
+             we may have to swap out a frame later. */
+          <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(200px, 45%), 1fr))" }}>
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <CardSkeleton key={i} />
+            ))}
+          </div>
+        ) : isBrowseMode && railsWouldRepeat === false ? (
           /* Idle browse mode — curated discovery rails instead of a flat grid. */
           <div className="flex flex-col gap-10">
             {BROWSE_RAILS.map(({ key, title, Icon, params: railParams }) => (
@@ -269,10 +314,63 @@ function SearchPageContent() {
                     See all
                   </button>
                 </div>
-                <DiscoveryRail params={railParams} emptyTitle="Nothing to show yet" count={8} />
+                <DiscoveryRail params={railParams} emptyTitle="Nothing to show yet" count={RAIL_SIZE} />
               </section>
             ))}
           </div>
+        ) : isBrowseMode ? (
+          /*
+            Too few studios for rails to mean anything, so one honest list.
+
+            "Trending now", "Top rated" and "New on Revoras" are three sorts of
+            the same table. That is a useful way to cut a large catalogue and a
+            silly one to cut a small one: with two approved studios all three
+            rails printed the same two cards, and the page read as though it were
+            padding itself — the same shop three times under three headings that
+            each implied a different selection.
+
+            Below the threshold the honest thing is to show every studio once,
+            with the sort control the rails were standing in for. The rails come
+            back on their own as the marketplace fills up; nothing here needs
+            changing when it does.
+          */
+          <section className="flex flex-col gap-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="font-headline text-xl font-semibold text-on-surface">
+                  {loading ? "Loading studios…" : `${totalCount} ${totalCount === 1 ? "studio" : "studios"} on Revoras`}
+                </h2>
+                <p className="text-sm text-muted">Everything available right now — more are joining.</p>
+              </div>
+              <Select options={SORT_OPTIONS} value={sortBy} onValueChange={setSortBy} className="w-44" />
+            </div>
+            {loading ? (
+              <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(200px, 45%), 1fr))" }}>
+                {[1, 2, 3, 4].map((i) => (
+                  <CardSkeleton key={i} />
+                ))}
+              </div>
+            ) : error ? (
+              <ErrorState description={error} onRetry={refetch} />
+            ) : businesses.length === 0 ? (
+              <EmptyState
+                title="No studios listed yet"
+                description="New salons, barbers and spas are being added — check back soon."
+              />
+            ) : (
+              <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(200px, 45%), 1fr))" }}>
+                {businesses.map((business) => (
+                  <BusinessCard
+                    key={business.id}
+                    {...businessToCardProps(business)}
+                    isFavorite={isFavorite(business.id)}
+                    onFavoriteToggle={() => toggleFavorite(business.id)}
+                    onClick={() => router.push(`/user/business/${business.id}`)}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
         ) : (
         <>
         {/* Results header */}

@@ -275,8 +275,10 @@ export interface BookingQuoteResponse {
   quote?: {
     originalAmount: number;
     discountAmount: number;
+    /** Services only — the optional add-on is added by checkout when ticked. */
     total: number;
     offer: { id: string; title: string; label: string } | null;
+    rescheduleAddon: RescheduleAddonOffer;
   };
   error?: string;
 }
@@ -431,7 +433,16 @@ export interface MemberServicesResponse {
  * the slot is free, but the services they picked don't fit before the next
  * appointment — so the UI treats it as a prompt to trim, not as a dead end.
  */
-export type SlotStatus = "available" | "booked" | "blocked" | "past" | "insufficient_time";
+export type SlotStatus =
+  | "available"
+  | "booked"
+  | "blocked"
+  | "past"
+  | "insufficient_time"
+  // Only when rescheduling: where the customer's own appointment sits today. It
+  // no longer blocks them, but it isn't offered either — "moving" a booking to
+  // the time it already has would spend one of their moves for nothing.
+  | "current";
 
 export interface AvailabilitySlot {
   /** Start time as "HH:MM". */
@@ -471,6 +482,12 @@ export interface AvailabilityResponse {
   shortestServiceDuration?: number | null;
   /** The longest appointment that could start anywhere on this date. */
   longestFreeWindow?: number;
+  /**
+   * Rescheduling only: the window the booking is moving OUT of, when it sits on
+   * this date. A new time may legitimately overlap it — the same update vacates
+   * it — so the picker labels that rather than treating it as a clash.
+   */
+  movingFrom?: { start: string; end: string } | null;
   error?: string;
 }
 
@@ -899,6 +916,45 @@ export interface BookingListItem {
   offer_id: string | null;
   /** Legal next transitions from the state machine — drives which actions render. */
   allowedNextStatuses?: BookingStatus[];
+  // Reschedule Protection — the paid checkout add-on.
+  /** true = protection bought, false = declined, null = booked before the add-on existed. */
+  reschedule_addon: boolean | null;
+  reschedule_addon_fee: string | null;
+  reschedule_count: number;
+  rescheduled_at: string | null;
+  /** The server's verdict on whether this booking may still be moved. */
+  reschedule?: RescheduleEligibility;
+}
+
+/**
+ * Computed server-side by the reschedule engine — the client renders `allowed`
+ * and `message` rather than re-deriving the cutoff, so the button can never
+ * offer a move the API would reject.
+ */
+export interface RescheduleEligibility {
+  allowed: boolean;
+  /** Whether the customer bought protection at checkout. */
+  protected: boolean;
+  reason: "ok" | "legacy" | "not_purchased" | "cutoff" | "limit" | "terminal";
+  /** Customer-facing explanation — shown as-is when `allowed` is false. */
+  message: string;
+  cutoffHours: number;
+  /** ISO instant after which no move is possible. */
+  deadline: string | null;
+  reschedulesRemaining: number;
+}
+
+/** The add-on as offered at checkout, from the business's own terms. */
+export interface RescheduleAddonOffer {
+  offered: boolean;
+  feeAmount: number;
+  cutoffHours: number;
+  maxReschedules: number;
+}
+
+export interface RescheduleQuoteResponse {
+  quote: RescheduleEligibility;
+  error?: string;
 }
 
 export interface BookingsResponse {
@@ -935,7 +991,14 @@ export interface BookingResponse {
 export interface Notification {
   id: string;
   user_id: string;
-  type: "booking_created" | "booking_confirmed" | "booking_cancelled" | "booking_reminder" | "payment_received";
+  type:
+    | "booking_created"
+    | "booking_confirmed"
+    | "booking_cancelled"
+    | "booking_reminder"
+    | "booking_rescheduled"
+    | "business_booking_rescheduled"
+    | "payment_received";
   title: string;
   message: string;
   data: Record<string, unknown> | null;

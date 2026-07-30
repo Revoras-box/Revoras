@@ -4,14 +4,16 @@ import Link from "next/link";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  Check, Plus, ChevronLeft, ArrowRight, Clock, ShieldCheck, Star, Tag, Sparkles, CalendarClock,
+  Check, ChevronLeft, ArrowRight, Clock, ShieldCheck, Tag, Sparkles, CalendarClock,
 } from "lucide-react";
 import { Container, Avatar, Textarea, Button, ErrorState } from "@/components/ui";
 import { SlotGrid } from "@/components/user/booking/SlotGrid";
 import { ServiceFitModal } from "@/components/user/booking/ServiceFitModal";
+import { ServicePicker } from "@/components/user/booking/ServicePicker";
+import { ProfessionalPicker, type ProfessionalFit } from "@/components/user/booking/ProfessionalPicker";
 import { api } from "@/lib/api";
 import { useBusiness, useAvailability } from "@/lib/hooks";
-import { displayDuration, displayTime } from "@/lib/slot-fit";
+import { displayDuration, displayTime, emptySlotCopy } from "@/lib/slot-fit";
 import type { BusinessDetail, Service, AvailabilityReason, AvailabilityResponse, AvailabilitySlot } from "@/lib/types";
 
 const parseIdList = (v: string | null): string[] =>
@@ -65,140 +67,49 @@ function Stepper({ step, maxReached, onGo }: { step: number; maxReached: number;
 
 function ServiceStep({
   services,
+  professionals,
   selected,
   onToggle,
-  durationRange,
 }: {
   services: Service[];
+  professionals: BusinessDetail["professionals"];
   selected: string[];
   onToggle: (id: string) => void;
-  /** Min/max minutes across the team, when professionals differ on a service. */
-  durationRange: (serviceId: string) => { min: number; max: number } | null;
 }) {
-  if (services.length === 0) return <p className="text-sm text-muted">This studio hasn&apos;t listed any services yet.</p>;
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
-      {services.map((s) => {
-        const isOn = selected.includes(s.id);
-        const range = durationRange(s.id);
-        // Before a professional is picked there is no single true duration, so
-        // say so rather than quoting the catalogue number as if it were final.
-        const durationLabel =
-          range && range.min !== range.max ? `${range.min}–${range.max} min` : `${range?.min ?? s.duration} min`;
-        return (
-          <button
-            key={s.id}
-            type="button"
-            onClick={() => onToggle(s.id)}
-            className={`flex items-center justify-between gap-3 rounded-2xl border p-4 text-left transition-colors ${
-              isOn ? "border-primary bg-primary/5" : "border-border bg-card hover:bg-surface-container-low"
-            }`}
-          >
-            <div className="min-w-0">
-              <div className="font-headline text-sm font-semibold text-on-surface">{s.name}</div>
-              <div className="mt-0.5 text-xs text-muted">
-                {inr(Number(s.price))} · {durationLabel}
-                {range && range.min !== range.max ? (
-                  <span className="text-muted/80"> · varies by professional</span>
-                ) : null}
-              </div>
-            </div>
-            <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors ${isOn ? "bg-primary text-primary-foreground" : "bg-surface-container-high text-on-surface"}`}>
-              {isOn ? <Check size={16} /> : <Plus size={16} />}
-            </span>
-          </button>
-        );
-      })}
-    </div>
+    <ServicePicker
+      services={services}
+      professionals={professionals}
+      selectedIds={selected}
+      onToggle={onToggle}
+      emptyLabel="This studio hasn't listed any services yet"
+    />
   );
 }
 
 /* ----------------------------- step: professional ------------------------- */
 
-/**
- * Each professional's own take on the basket: what they'd charge, how long
- * they'd need, and whether they perform all of it at all.
- */
-interface ProFit {
-  duration: number;
-  price: number;
-  missing: string[];
-}
-
 function ProfessionalStep({
   professionals,
+  selectedServices,
   selectedId,
   onSelect,
   fitFor,
-  hasSelection,
 }: {
   professionals: BusinessDetail["professionals"];
+  selectedServices: Service[];
   selectedId: string;
   onSelect: (id: string) => void;
-  fitFor: (professionalId: string) => ProFit;
-  hasSelection: boolean;
+  fitFor: (professionalId: string) => ProfessionalFit;
 }) {
-  if (professionals.length === 0) return <p className="text-sm text-muted">No professionals available. Try choosing another day or studio.</p>;
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
-      {professionals.map((p) => {
-        const isOn = p.id === selectedId;
-        const rating = Number(p.rating ?? 0);
-        const fit = fitFor(p.id);
-        // Someone who doesn't perform part of the basket is shown, not hidden:
-        // the customer needs to see the trade-off ("Aman can't do the colour")
-        // rather than wonder why a professional vanished.
-        const cantDoAll = fit.missing.length > 0;
-        return (
-          <button
-            key={p.id}
-            type="button"
-            onClick={() => onSelect(p.id)}
-            aria-pressed={isOn}
-            className={`flex items-center gap-4 rounded-2xl border p-4 text-left transition-colors ${
-              isOn
-                ? "border-primary bg-primary/5"
-                : cantDoAll
-                  ? "border-dashed border-border bg-card opacity-75 hover:opacity-100"
-                  : "border-border bg-card hover:bg-surface-container-low"
-            }`}
-          >
-            <Avatar name={p.name} src={p.image_url ?? undefined} size="lg" />
-            <div className="min-w-0 flex-1">
-              <div className="font-headline text-sm font-semibold text-on-surface">{p.name}</div>
-              {p.designation && <div className="truncate text-xs text-muted">{p.designation}</div>}
-              {rating > 0 && (
-                <div className="mt-1 inline-flex items-center gap-1 text-xs text-on-surface">
-                  <Star size={12} className="fill-primary text-primary" />
-                  {rating.toFixed(1)}
-                </div>
-              )}
-              {hasSelection ? (
-                cantDoAll ? (
-                  <div className="mt-1.5 text-[11px] font-medium text-on-warning-container">
-                    Doesn&apos;t offer {fit.missing.join(", ")}
-                  </div>
-                ) : (
-                  <div className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-medium text-on-surface">
-                    <Clock size={11} className="text-primary" />
-                    {displayDuration(fit.duration)} · {inr(fit.price)}
-                  </div>
-                )
-              ) : p.specialties && p.specialties.length > 0 ? (
-                <div className="mt-1.5 flex flex-wrap gap-1">
-                  {p.specialties.slice(0, 2).map((sp) => (
-                    <span key={sp} className="rounded-full bg-surface-container-high px-2 py-0.5 text-[10px] text-on-surface-variant">{sp}</span>
-                  ))}
-                </div>
-              ) : null}
-            </div>
-            <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${isOn ? "bg-primary text-primary-foreground" : "border border-border"}`}>
-              {isOn ? <Check size={14} /> : null}
-            </span>
-          </button>
-        );
-      })}
-    </div>
+    <ProfessionalPicker
+      professionals={professionals}
+      selectedServices={selectedServices}
+      selectedId={selectedId}
+      onSelect={onSelect}
+      fitFor={fitFor}
+    />
   );
 }
 
@@ -229,39 +140,6 @@ function DateStep({ dateOptions, selected, onSelect }: { dateOptions: { iso: str
 }
 
 /* -------------------------------- step: time ------------------------------ */
-
-/**
- * Why this date is empty, in the customer's words. The server distinguishes
- * these cases; showing one blanket "no slots" for all of them sends someone
- * hunting through a calendar when the real answer is "she doesn't work Sundays".
- */
-function emptySlotCopy(reason: AvailabilityReason | null, name?: string): { title: string; hint: string } {
-  const who = name || "This professional";
-  switch (reason) {
-    case "business_closed":
-      return { title: "The business is closed on this date", hint: "Pick another day from the calendar above." };
-    case "member_off":
-      return { title: `${who} isn't working on this date`, hint: "Try another day, or choose a different professional." };
-    case "time_off":
-      return { title: `${who} is on time off this date`, hint: "Try another day, or choose a different professional." };
-    case "day_ended":
-      return { title: "No time left today", hint: "Pick a later date from the calendar above." };
-    case "duration_exceeds_shift":
-      return {
-        title: "The selected services don't fit in one appointment",
-        hint: "Remove a service, or split them across two bookings.",
-      };
-    case "service_not_offered":
-      // No date helps here, so don't send them back to the calendar.
-      return {
-        title: `${who} doesn't offer one of your services`,
-        hint: "Go back and choose a different professional, or drop that service.",
-      };
-    case "fully_booked":
-    default:
-      return { title: `${who} is fully booked on this date`, hint: "Try another day from the calendar above." };
-  }
-}
 
 function TimeStep({
   loading,
@@ -299,7 +177,7 @@ function TimeStep({
   // explanation. A day that's merely full still renders, so the customer can
   // see who's taken and what's just too tight for their selection.
   if (grid.length === 0) {
-    const { title, hint } = emptySlotCopy(reason, professionalName);
+    const { title, hint } = emptySlotCopy(reason, { who: professionalName });
     return (
       <div className="rounded-2xl border border-border bg-card p-6 text-center">
         <CalendarClock size={22} className="mx-auto text-muted" />
@@ -483,11 +361,6 @@ function BookPageContent() {
   const services = useMemo(() => business?.services ?? [], [business]);
   const professionals = useMemo(() => business?.professionals ?? [], [business]);
 
-  useEffect(() => {
-    if (professionals.length === 0 || selectedProfessionalId) return;
-    setSelectedProfessionalId(professionals[0].id);
-  }, [professionals, selectedProfessionalId]);
-
   const selectedServices = useMemo(() => services.filter((s) => selectedServiceIds.includes(s.id)), [services, selectedServiceIds]);
   const selectedProfessional = professionals.find((p) => p.id === selectedProfessionalId);
 
@@ -512,7 +385,7 @@ function BookPageContent() {
   /** What this basket costs and takes with one specific professional. */
   const fitFor = useMemo(
     () =>
-      (professionalId: string): ProFit => {
+      (professionalId: string): ProfessionalFit => {
         const own = proServiceMap.get(professionalId);
         let duration = 0;
         let price = 0;
@@ -537,21 +410,28 @@ function BookPageContent() {
     [proServiceMap, selectedProfessionalId]
   );
 
-  /** Spread of a service's duration across the team, for the pre-choice step. */
-  const durationRange = useMemo(
-    () => (serviceId: string) => {
-      const values = professionals
-        .map((p) => proServiceMap.get(p.id)?.get(serviceId)?.duration)
-        .filter((d): d is number => typeof d === "number");
-      if (values.length === 0) return null;
-      return { min: Math.min(...values), max: Math.max(...values) };
-    },
-    [professionals, proServiceMap]
-  );
-
   // Once a professional is chosen, THEIR figures are the real ones. Before that,
   // the catalogue's stand in for the summary.
   const selectedFit = selectedProfessionalId ? fitFor(selectedProfessionalId) : null;
+
+  /**
+   * Default to someone who can actually do the basket.
+   *
+   * Picking professionals[0] blindly used to be harmless; now that a
+   * professional can be ineligible — and ineligible cards aren't selectable —
+   * it could seat the customer on a disabled card with no way forward. Also
+   * re-runs when the basket changes, so adding a service nobody-but-Rahul does
+   * moves the selection to Rahul instead of silently blocking Continue.
+   */
+  useEffect(() => {
+    if (professionals.length === 0) return;
+    if (selectedProfessionalId && fitFor(selectedProfessionalId).missing.length === 0) return;
+    const eligible = professionals.find((p) => fitFor(p.id).missing.length === 0);
+    // If nobody qualifies, leave the current pick alone: the picker explains why
+    // the whole team is greyed out, which beats a silent reset.
+    if (eligible) setSelectedProfessionalId(eligible.id);
+    else if (!selectedProfessionalId) setSelectedProfessionalId(professionals[0].id);
+  }, [professionals, selectedProfessionalId, fitFor]);
   const totalDuration =
     selectedFit && selectedFit.missing.length === 0
       ? selectedFit.duration
@@ -678,18 +558,18 @@ function BookPageContent() {
             {step === 0 && (
               <ServiceStep
                 services={services}
+                professionals={professionals}
                 selected={selectedServiceIds}
                 onToggle={toggleService}
-                durationRange={durationRange}
               />
             )}
             {step === 1 && (
               <ProfessionalStep
                 professionals={professionals}
+                selectedServices={selectedServices}
                 selectedId={selectedProfessionalId}
                 onSelect={setSelectedProfessionalId}
                 fitFor={fitFor}
-                hasSelection={selectedServices.length > 0}
               />
             )}
             {step === 2 && <DateStep dateOptions={dateOptions} selected={selectedDate} onSelect={setSelectedDate} />}

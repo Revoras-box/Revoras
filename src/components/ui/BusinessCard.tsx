@@ -107,7 +107,11 @@ export function BusinessCard({
       <div className="flex min-w-0 flex-1 flex-col gap-1 p-3.5">
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-headline text-sm font-semibold text-on-surface truncate">{name}</h3>
-          <RatingDisplay value={rating} count={reviewCount} />
+          {/* "No reviews" rather than the default "New": a newly listed studio
+              already carries a `new` trust badge below, and having the card say
+              "New" twice describes the listing twice while answering nothing
+              about reviews. */}
+          <RatingDisplay value={rating} count={reviewCount} unratedLabel="No reviews" className="shrink-0" />
         </div>
         <div className="flex items-center gap-1.5 text-xs text-muted">
           <span>{category}</span>

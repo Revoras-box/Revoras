@@ -53,19 +53,19 @@ export default function NotificationsPage() {
             {data.notifications.map((n) => (
               <button
                 key={n.id}
-                onClick={() => !n.is_read && markRead.mutate(n.id)}
+                onClick={() => !n.read_at && markRead.mutate(n.id)}
                 className={cn(
                   "flex items-start gap-3 p-4 text-left w-full transition-colors hover:bg-surface-container-low",
-                  !n.is_read && "bg-primary-container/20"
+                  !n.read_at && "bg-primary-container/20"
                 )}
               >
-                <span className={cn("mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full", n.is_read ? "bg-surface-container-low text-muted" : "bg-primary-container text-on-primary-container")}>
+                <span className={cn("mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full", n.read_at ? "bg-surface-container-low text-muted" : "bg-primary-container text-on-primary-container")}>
                   <Bell size={ICON_SIZE.sm} />
                 </span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-3">
                     <span className="text-sm font-medium text-on-surface">{n.title}</span>
-                    {!n.is_read ? <Badge tone="primary">New</Badge> : null}
+                    {!n.read_at ? <Badge tone="primary">New</Badge> : null}
                   </div>
                   <p className="text-sm text-muted mt-0.5">{n.message}</p>
                   <span className="text-xs text-muted mt-1 block">

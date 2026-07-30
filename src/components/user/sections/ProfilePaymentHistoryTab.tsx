@@ -6,6 +6,7 @@ import type { DataTableColumn } from "@/components/ui";
 import { useBookings } from "@/lib/hooks";
 import type { BookingListItem, PaymentStatus } from "@/lib/types";
 import { formatBookingDateLabel } from "./utils";
+import { ProfileSection } from "./ProfileSection";
 
 const PAYMENT_TONE: Record<PaymentStatus, "success" | "warning" | "danger" | "neutral"> = {
   paid: "success",
@@ -38,7 +39,7 @@ export default function ProfilePaymentHistoryTab() {
   const pagination = data?.pagination;
 
   return (
-    <div className="flex flex-col gap-4">
+    <ProfileSection title="Payment history" description="Every booking you've paid for, most recent first.">
       <DataTable
         columns={columns}
         data={bookings}
@@ -46,7 +47,9 @@ export default function ProfilePaymentHistoryTab() {
         rowKey={(row) => row.id}
         emptyTitle="No payment history yet"
       />
-      {pagination ? <Pagination page={pagination.page} pages={pagination.pages} onPageChange={setPage} /> : null}
-    </div>
+      {pagination && pagination.pages > 1 ? (
+        <Pagination page={pagination.page} pages={pagination.pages} onPageChange={setPage} />
+      ) : null}
+    </ProfileSection>
   );
 }

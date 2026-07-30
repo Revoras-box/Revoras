@@ -19,6 +19,7 @@ export * from "./Chip";
 export * from "./Divider";
 export * from "./Tooltip";
 export * from "./DropdownMenu";
+export * from "./Popover";
 
 // Layout
 export * from "./Card";

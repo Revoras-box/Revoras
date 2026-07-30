@@ -3,7 +3,7 @@
 import { use, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CalendarPlus, MapPin, Phone, QrCode, ChevronLeft, Clock, CalendarClock } from "lucide-react";
+import { CalendarPlus, MapPin, Phone, QrCode, ChevronLeft, Clock, CalendarClock, ShieldCheck, ShieldOff } from "lucide-react";
 import { Container, Card, Badge, Button, Avatar, ErrorState } from "@/components/ui";
 import { useBooking, useBookingTimeline } from "@/lib/hooks";
 import { STATUS_LABEL, STATUS_TONE, buildICS, directionsUrl, bookingStartDate } from "@/lib/bookings";
@@ -13,6 +13,14 @@ import CancelBookingModal from "@/components/user/sections/CancelBookingModal";
 import RescheduleBookingModal from "@/components/user/sections/RescheduleBookingModal";
 
 const inr = (n: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
+
+/** The reschedule cutoff as a moment the customer can act on, not a duration. */
+const deadlineLabel = (iso: string): string => {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "your cutoff";
+  const time = d.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
+  return `${d.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })}, ${time}`;
+};
 
 export default function BookingDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -44,7 +52,16 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
   const original = booking.original_amount != null ? Number(booking.original_amount) : null;
   const discount = booking.discount_amount != null ? Number(booking.discount_amount) : 0;
   const total = Number(booking.total_amount);
-  const canReschedule = booking.status === "pending" || booking.status === "confirmed";
+  // The reschedule engine's verdict; the status check is a fallback for a payload
+  // that lacks it.
+  const isOpen = booking.status === "pending" || booking.status === "confirmed";
+  const canReschedule = booking.reschedule ? booking.reschedule.allowed : isOpen;
+  // This is the one page with room to say WHY a still-open booking can't be
+  // moved. Elsewhere the button simply doesn't render; here the customer came to
+  // understand their booking, and "no button, no reason" is the confusing answer.
+  const rescheduleBlockedReason = isOpen && booking.reschedule && !booking.reschedule.allowed
+    ? booking.reschedule.message
+    : null;
   const canCancel = (booking.allowedNextStatuses ?? []).includes("cancelled");
   const start = bookingStartDate(booking.booking_date, booking.start_time);
 
@@ -190,12 +207,25 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
             <p className="flex items-center gap-1 text-xs uppercase tracking-wide text-muted"><QrCode size={12} /> Show at check-in</p>
           </Card>
 
-          {canReschedule || canCancel ? (
+          {canReschedule || canCancel || rescheduleBlockedReason ? (
             <div className="flex flex-col gap-2">
               {canReschedule ? (
-                <Button intent="outline" className="w-full" onClick={() => setShowReschedule(true)}>
-                  <CalendarClock size={15} /> Reschedule
-                </Button>
+                <>
+                  <Button intent="outline" className="w-full" onClick={() => setShowReschedule(true)}>
+                    <CalendarClock size={15} /> Reschedule
+                  </Button>
+                  {booking.reschedule?.protected && booking.reschedule.deadline ? (
+                    <p className="flex items-start gap-1.5 text-xs text-muted">
+                      <ShieldCheck size={13} className="mt-0.5 shrink-0 text-primary" />
+                      <span>Reschedule protection active until {deadlineLabel(booking.reschedule.deadline)}.</span>
+                    </p>
+                  ) : null}
+                </>
+              ) : rescheduleBlockedReason ? (
+                <p className="flex items-start gap-1.5 rounded-xl bg-surface-container-low p-3 text-xs text-muted">
+                  <ShieldOff size={13} className="mt-0.5 shrink-0" />
+                  <span>{rescheduleBlockedReason}</span>
+                </p>
               ) : null}
               {canCancel ? (
                 <Button intent="ghost" className="w-full text-error" onClick={() => setShowCancel(true)}>
@@ -214,6 +244,7 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
           studioId={booking.studio_id}
           businessMemberId={booking.business_member_id}
           durationMinutes={booking.total_duration}
+          professionalName={booking.member_name}
           onClose={() => setShowReschedule(false)}
           onRescheduled={afterAction}
         />

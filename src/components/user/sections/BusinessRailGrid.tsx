@@ -15,6 +15,29 @@ import { businessToCardProps } from "./utils";
  * this component deliberately takes no hooks so a rail backed by any future
  * source can reuse it.
  */
+/**
+ * Columns are derived from the space available, not from viewport breakpoints.
+ *
+ * This grid was `grid-cols-2 md:grid-cols-4` — four columns from `md` upward, no
+ * matter how wide the container actually was. That is fine at the ~990px the
+ * home rails get, and wrong on the widened Discover page, where four columns
+ * across ~1400px stretched each card to 424px: enormous photos, three words of
+ * text, and a page that looked zoomed in.
+ *
+ * `auto-fill` asks the container how many ~200px cards fit instead, so the same
+ * component gives four columns in a narrow rail and six or seven on Discover,
+ * with the card itself staying a consistent, legible size in both. The
+ * `min(200px, 45%)` floor is what keeps phones at two columns rather than
+ * collapsing to one — 45% of a small container is well under 200px, so the
+ * smaller value wins exactly where it needs to.
+ *
+ * Written as an inline style rather than `grid-cols-[repeat(auto-fill,...)]`
+ * because Tailwind v4 silently drops some arbitrary grid-template values in this
+ * project, which fails as a *layout that looks fine* — the class is simply
+ * absent and the browser falls back to one column.
+ */
+const RAIL_GRID_STYLE = { gridTemplateColumns: "repeat(auto-fill, minmax(min(200px, 45%), 1fr))" } as const;
+
 export interface BusinessRailGridProps {
   businesses: Business[];
   loading: boolean;
@@ -31,7 +54,7 @@ export default function BusinessRailGrid({ businesses, loading, emptyTitle, empt
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div className="grid gap-4" style={RAIL_GRID_STYLE}>
         {Array.from({ length: count }).map((_, i) => (
           <CardSkeleton key={i} />
         ))}
@@ -44,7 +67,7 @@ export default function BusinessRailGrid({ businesses, loading, emptyTitle, empt
   }
 
   return (
-    <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+    <div className="grid gap-4" style={RAIL_GRID_STYLE}>
       {businesses.map((business) => (
         <BusinessCard
           key={business.id}

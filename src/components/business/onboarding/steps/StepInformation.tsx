@@ -8,6 +8,13 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { useBusinessProfile, type SocialLinks, type BusinessPolicies } from "@/lib/business/hooks/useSettings";
 import { CancellationPolicyEditor } from "@/components/business/CancellationPolicyEditor";
 import { DEFAULT_REFUNDS, refundsFromPolicy, policyFromRefunds, type RefundMap } from "@/lib/business/cancellation-policy";
+import { ReschedulePolicyEditor } from "@/components/business/ReschedulePolicyEditor";
+import {
+  DEFAULT_RESCHEDULE_POLICY,
+  reschedulePolicyFrom,
+  reschedulePolicyPayload,
+  type ReschedulePolicy,
+} from "@/lib/business/reschedule-policy";
 import { StepHeader } from "../StepHeader";
 import { WizardFooter } from "../WizardFooter";
 import type { WizardStepProps } from "../types";
@@ -42,6 +49,7 @@ export function StepInformation({ studioId, goNext, goPrev, exit, saving }: Wiza
   const [social, setSocial] = useState<SocialLinks>({});
   const [policies, setPolicies] = useState<BusinessPolicies>({});
   const [refunds, setRefunds] = useState<RefundMap>(DEFAULT_REFUNDS);
+  const [reschedule, setReschedule] = useState<ReschedulePolicy>(DEFAULT_RESCHEDULE_POLICY);
 
   useEffect(() => {
     if (business) {
@@ -56,6 +64,7 @@ export function StepInformation({ studioId, goNext, goPrev, exit, saving }: Wiza
       // Prefill refund tiers from stored policy; keep defaults for any window
       // the stored policy doesn't cover (or when it's a legacy non-tiered row).
       setRefunds(refundsFromPolicy(business.cancellation_policy));
+      setReschedule(reschedulePolicyFrom(business.reschedule_policy));
     }
   }, [business]);
 
@@ -73,6 +82,7 @@ export function StepInformation({ studioId, goNext, goPrev, exit, saving }: Wiza
       socialLinks: cleanObject(social),
       policies: cleanObject(policies),
       cancellationPolicy: policyFromRefunds(refunds),
+      reschedulePolicy: reschedulePolicyPayload(reschedule),
     });
 
   return (
@@ -115,6 +125,8 @@ export function StepInformation({ studioId, goNext, goPrev, exit, saving }: Wiza
           </Card>
 
           <CancellationPolicyEditor refunds={refunds} onChange={setRefunds} />
+
+          <ReschedulePolicyEditor policy={reschedule} onChange={setReschedule} />
 
           <Card className="flex flex-col gap-4">
             <h3 className="font-headline text-base font-semibold text-on-surface">Policies</h3>

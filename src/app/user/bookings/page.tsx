@@ -331,6 +331,7 @@ export default function BookingsPage() {
           studioId={rescheduleFor.studio_id}
           businessMemberId={rescheduleFor.business_member_id}
           durationMinutes={rescheduleFor.total_duration}
+          professionalName={rescheduleFor.member_name}
           onClose={() => setRescheduleFor(null)}
           onRescheduled={afterAction}
         />

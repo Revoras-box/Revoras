@@ -1,64 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Check, Clock, Wand2, ArrowRight, AlertTriangle } from "lucide-react";
+import { Check, Wand2, ArrowRight, AlertTriangle } from "lucide-react";
 import { Modal, Button } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { displayTime, displayDuration, totalDurationOf, totalPriceOf, slotLimitReason, suggestFit } from "@/lib/slot-fit";
+import { TimeMeter } from "./TimeMeter";
 import type { AvailabilitySlot, Service } from "@/lib/types";
 
 const inr = (n: number) =>
   new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
-
-/* --------------------------------- meter ---------------------------------- */
-
-/**
- * The budget, drawn. A number ("60 of 30 min") states the problem; the bar
- * shows how far over the line the selection is and shrinks back under it as
- * services come off, which is what makes the fix feel obvious rather than
- * arithmetic.
- */
-function TimeMeter({ used, budget }: { used: number; budget: number }) {
-  const scale = Math.max(used, budget, 1);
-  const usedPct = Math.min((used / scale) * 100, 100);
-  const budgetPct = Math.min((budget / scale) * 100, 100);
-  const fits = used <= budget;
-  const over = Math.max(used - budget, 0);
-
-  return (
-    <div>
-      <div className="mb-1.5 flex items-baseline justify-between gap-3 text-xs">
-        <span className="font-medium text-on-surface">
-          Selected {displayDuration(used)}
-        </span>
-        <span className={cn("font-medium tabular-nums", fits ? "text-secondary" : "text-error")}>
-          {fits ? `${displayDuration(budget - used)} to spare` : `${displayDuration(over)} too long`}
-        </span>
-      </div>
-
-      <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-surface-container-high">
-        <div
-          className={cn(
-            "h-full rounded-full transition-[width] duration-normal ease-out",
-            fits ? "bg-secondary" : "bg-error"
-          )}
-          style={{ width: `${usedPct}%` }}
-        />
-        {/* The hard edge of the window — where the next appointment starts. */}
-        <div
-          className="absolute inset-y-0 w-0.5 bg-on-surface/70"
-          style={{ left: `calc(${budgetPct}% - 1px)` }}
-          aria-hidden
-        />
-      </div>
-
-      <div className="mt-1.5 flex items-center gap-1.5 text-[11px] text-muted">
-        <Clock size={11} />
-        {displayDuration(budget)} free at this time
-      </div>
-    </div>
-  );
-}
 
 /* ------------------------------- service row ------------------------------ */
 

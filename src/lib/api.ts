@@ -36,6 +36,7 @@ import type {
   BookingQuoteResponse,
   BookingTimelineResponse,
   CancellationQuoteResponse,
+  RescheduleQuoteResponse,
   AvailabilityResponse,
   AvailabilityDay,
 } from "./types";
@@ -77,6 +78,12 @@ interface BookingData {
   date: string;
   startTime: string;
   notes?: string;
+  /**
+   * Reschedule Protection — the paid opt-in from checkout. Omitting it books
+   * without protection (and is charged nothing for it), which is what the
+   * server treats as a declined offer.
+   */
+  rescheduleAddon?: boolean;
 }
 
 // Matches createReviewSchema. The studio and professional are derived from the
@@ -91,12 +98,20 @@ interface ReviewData {
   comment?: string;
 }
 
+/**
+ * Mirrors `updateProfileSchema` on the server, which is camelCase and strips
+ * anything it doesn't recognise. This previously declared `date_of_birth`, the
+ * column name rather than the field name — Zod would have dropped it silently,
+ * so a date of birth could never have been saved through here. `email` was
+ * listed too and is not updatable at all: the schema has no such field, and
+ * changing the address you sign in with is not a profile edit.
+ */
 interface ProfileData {
   name?: string;
-  email?: string;
   phone?: string;
-  date_of_birth?: string;
+  dateOfBirth?: string;
   gender?: string;
+  avatarUrl?: string;
 }
 
 interface NotificationSettings {
@@ -375,13 +390,20 @@ export const api = {
     businessMemberId: string,
     date: string,
     duration?: number,
-    serviceIds?: string[]
+    serviceIds?: string[],
+    /**
+     * The booking being rescheduled. The server drops it from the busy ranges —
+     * an appointment must not block the move that vacates it — and marks the
+     * positions it holds today as `current`. Only honoured for its owner.
+     */
+    excludeBookingId?: string
   ) => {
     const params = new URLSearchParams();
     params.append("businessMemberId", businessMemberId);
     params.append("date", date);
     if (serviceIds?.length) params.append("serviceIds", serviceIds.join(","));
     else if (duration) params.append("duration", String(duration));
+    if (excludeBookingId) params.append("excludeBookingId", excludeBookingId);
     return authFetch<AvailabilityResponse>(`${API}/bookings/availability?${params}`);
   },
 
@@ -450,6 +472,15 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify({ reason })
     });
+  },
+
+  /**
+   * May this booking still be moved, and until when? The reschedule engine's
+   * verdict, so the modal shows the real deadline and the real reason rather
+   * than letting the customer discover the block by being rejected.
+   */
+  getRescheduleQuote: async (id: string): Promise<RescheduleQuoteResponse> => {
+    return authFetch(`${API}/bookings/${id}/reschedule-quote`);
   },
 
   rescheduleBooking: async (id: string, data: { date: string; startTime: string }): Promise<{ message?: string; error?: string }> => {

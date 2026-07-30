@@ -1,5 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { businessApi } from "../api";
+// Lives beside the conversions the onboarding and Settings editors share, rather
+// than being duplicated here.
+import type { ReschedulePolicy } from "../reschedule-policy";
 
 export interface SocialLinks {
   instagram?: string;
@@ -62,6 +65,8 @@ export interface BusinessProfile {
   payment_methods: string[];
   policies: BusinessPolicies;
   cancellation_policy: CancellationPolicy;
+  /** Reschedule Protection terms — the paid add-on offered at checkout. */
+  reschedule_policy: ReschedulePolicy;
   accessibility: string[];
   house_rules: string[];
   is_active: boolean;

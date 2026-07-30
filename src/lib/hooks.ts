@@ -118,6 +118,8 @@ interface AvailabilityResult {
   longestFreeWindow: number;
   /** Minutes between start times, derived server-side from the shop's shortest service. */
   interval: number | null;
+  /** Rescheduling only: the window being vacated, when it falls on this date. */
+  movingFrom: AvailabilityResponse["movingFrom"];
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
@@ -136,7 +138,9 @@ export function useAvailability(
   barberId: string | null,
   date: string,
   duration?: number,
-  serviceIds?: string[]
+  serviceIds?: string[],
+  /** Rescheduling: the booking being moved, so it doesn't block its own move. */
+  excludeBookingId?: string
 ): AvailabilityResult {
   const [slots, setSlots] = useState<string[]>([]);
   const [grid, setGrid] = useState<AvailabilitySlot[]>([]);
@@ -145,6 +149,7 @@ export function useAvailability(
   const [gridInterval, setGridInterval] = useState<number | null>(null);
   const [reason, setReason] = useState<AvailabilityReason | null>(null);
   const [shift, setShift] = useState<AvailabilityResponse["shift"]>(null);
+  const [movingFrom, setMovingFrom] = useState<AvailabilityResponse["movingFrom"]>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -160,13 +165,14 @@ export function useAvailability(
       setGridInterval(null);
       setReason(null);
       setShift(null);
+      setMovingFrom(null);
       setError(null);
       return;
     }
     setLoading(true);
     try {
       const ids = serviceKey ? serviceKey.split(",") : undefined;
-      const result = await api.getAvailability(studioId, barberId, date, duration, ids);
+      const result = await api.getAvailability(studioId, barberId, date, duration, ids, excludeBookingId);
       if (result.error) {
         setError(result.error);
       } else {
@@ -177,19 +183,31 @@ export function useAvailability(
         setGridInterval(result.interval ?? null);
         setReason(result.reason ?? null);
         setShift(result.shift ?? null);
+        setMovingFrom(result.movingFrom ?? null);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setLoading(false);
     }
-  }, [studioId, barberId, date, duration, serviceKey]);
+  }, [studioId, barberId, date, duration, serviceKey, excludeBookingId]);
 
   useEffect(() => {
     fetchSlots();
   }, [fetchSlots]);
 
-  return { slots, grid, longestFreeWindow, interval: gridInterval, reason, shift, loading, error, refetch: fetchSlots };
+  return {
+    slots,
+    grid,
+    longestFreeWindow,
+    interval: gridInterval,
+    reason,
+    shift,
+    movingFrom,
+    loading,
+    error,
+    refetch: fetchSlots,
+  };
 }
 
 // Review hooks

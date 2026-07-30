@@ -19,6 +19,13 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { LocationPicker, type LocationValue } from "@/components/business/LocationPicker";
 import { CancellationPolicyEditor } from "@/components/business/CancellationPolicyEditor";
+import { ReschedulePolicyEditor } from "@/components/business/ReschedulePolicyEditor";
+import {
+  DEFAULT_RESCHEDULE_POLICY,
+  reschedulePolicyFrom,
+  reschedulePolicyPayload,
+  type ReschedulePolicy,
+} from "@/lib/business/reschedule-policy";
 import { DEFAULT_REFUNDS, refundsFromPolicy, policyFromRefunds, type RefundMap } from "@/lib/business/cancellation-policy";
 import { useBusinessAuth } from "@/lib/business/auth";
 import { PermissionGate, PERMISSIONS } from "@/lib/business/permissions";
@@ -130,6 +137,7 @@ function ProfileTab({ studioId }: { studioId: string | undefined }) {
   const [social, setSocial] = useState<SocialLinks>({});
   const [policies, setPolicies] = useState<BusinessPolicies>({});
   const [refunds, setRefunds] = useState<RefundMap>(DEFAULT_REFUNDS);
+  const [reschedule, setReschedule] = useState<ReschedulePolicy>(DEFAULT_RESCHEDULE_POLICY);
   // Phase 4A - the map pin. Kept alongside `form` rather than inside it because
   // lat/lng are numbers, not the text `field()` produces.
   const [location, setLocation] = useState<LocationValue>({ lat: null, lng: null });
@@ -157,6 +165,7 @@ function ProfileTab({ studioId }: { studioId: string | undefined }) {
       setSocial(business.social_links || {});
       setPolicies(business.policies || {});
       setRefunds(refundsFromPolicy(business.cancellation_policy));
+      setReschedule(reschedulePolicyFrom(business.reschedule_policy));
       setLocation({
         lat: business.lat ?? null,
         lng: business.lng ?? null,
@@ -217,6 +226,7 @@ function ProfileTab({ studioId }: { studioId: string | undefined }) {
         socialLinks: cleanObject(social),
         policies: cleanObject(policies),
         cancellationPolicy: policyFromRefunds(refunds),
+        reschedulePolicy: reschedulePolicyPayload(reschedule),
       },
       {
         onSuccess: () => toast.success("Business profile updated"),
@@ -281,6 +291,8 @@ function ProfileTab({ studioId }: { studioId: string | undefined }) {
       </Card>
 
       <CancellationPolicyEditor refunds={refunds} onChange={setRefunds} />
+
+      <ReschedulePolicyEditor policy={reschedule} onChange={setReschedule} />
 
       <Card className="flex flex-col gap-4">
         <h3 className="font-headline text-base font-semibold text-on-surface">Policies &amp; house rules</h3>

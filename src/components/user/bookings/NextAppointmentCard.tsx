@@ -54,7 +54,11 @@ export function NextAppointmentCard({
 }) {
   const start = bookingStartDate(booking.booking_date, booking.start_time);
   const countdown = countdownLabel(start, now);
-  const canReschedule = booking.status === "pending" || booking.status === "confirmed";
+  // The server's reschedule verdict (paid protection + cutoff + moves used), with
+  // the old status check as a fallback for payloads that lack it.
+  const canReschedule = booking.reschedule
+    ? booking.reschedule.allowed
+    : booking.status === "pending" || booking.status === "confirmed";
 
   const copyCode = async () => {
     try {

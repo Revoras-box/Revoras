@@ -67,7 +67,11 @@ export function BookingRow({
   const allowed = b.allowedNextStatuses ?? [];
   const canCancel = allowed.includes("cancelled");
   const isActive = b.status === "pending" || b.status === "confirmed" || b.status === "checked_in";
-  const canReschedule = b.status === "pending" || b.status === "confirmed";
+  // The reschedule engine decides this, same principle as the state machine
+  // above: paid protection, the cutoff and the moves already used are all folded
+  // into one server verdict. The status check is only a fallback for a payload
+  // from a server that predates it.
+  const canReschedule = b.reschedule ? b.reschedule.allowed : b.status === "pending" || b.status === "confirmed";
   const isDone = b.status === "completed";
   const isDead = b.status === "cancelled" || b.status === "no_show";
   const awaitingPayment = isActive && (b.payment_status === "unpaid" || b.payment_status === "pending");

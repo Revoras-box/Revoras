@@ -257,6 +257,11 @@ export interface NotificationRow {
   type: string;
   title: string;
   message: string;
-  is_read: boolean;
+  // The API returns notification rows straight from the table, and the table has
+  // no `is_read` column - it records `read_at`, null until the row is read. This
+  // was typed as `is_read: boolean` and read as such by the notifications page,
+  // which TypeScript could not catch because the response is cast rather than
+  // parsed: every notification therefore evaluated as unread, permanently.
+  read_at: string | null;
   created_at: string;
 }

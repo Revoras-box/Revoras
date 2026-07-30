@@ -12,7 +12,7 @@ import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { useBusiness } from "@/lib/hooks";
 import { openRazorpayCheckout } from "@/lib/razorpay";
-import type { BusinessDetail, Service } from "@/lib/types";
+import type { BusinessDetail, RescheduleAddonOffer, Service } from "@/lib/types";
 
 const parseIdList = (value: string | null): string[] =>
   value ? value.split(",").map((v) => v.trim()).filter(Boolean) : [];
@@ -45,7 +45,24 @@ const displayDate = (date: string): string => {
 const inr = (n: number) =>
   new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
 
-interface Quote { discountAmount: number; total: number; offer: { label: string } | null }
+interface Quote {
+  discountAmount: number;
+  total: number;
+  offer: { label: string } | null;
+  rescheduleAddon: RescheduleAddonOffer;
+}
+
+/**
+ * How long the studio's cutoff is, in words. "2h before" is what an owner
+ * configures, but "up to 2 hours before" is what a customer reads, and a studio
+ * that sets 24 or 48 should say "1 day" rather than make them do the division.
+ */
+const cutoffLabel = (hours: number): string => {
+  if (hours <= 0) return "right up until it starts";
+  if (hours < 24) return `up to ${hours} hour${hours === 1 ? "" : "s"} before it starts`;
+  const days = Math.round(hours / 24);
+  return `up to ${days} day${days === 1 ? "" : "s"} before it starts`;
+};
 
 /* ------------------------------ progress overlay -------------------------- */
 
@@ -130,7 +147,7 @@ function SummaryRow({ icon, label, value }: { icon: React.ReactNode; label: stri
 }
 
 function OrderSummary({
-  business, professionalName, services, duration, subtotal, quote, date, time,
+  business, professionalName, services, duration, subtotal, quote, date, time, addonFee,
 }: {
   business: BusinessDetail;
   professionalName?: string;
@@ -140,8 +157,10 @@ function OrderSummary({
   quote: Quote | null;
   date: string;
   time: string;
+  /** The reschedule add-on, or 0 when it isn't taken. */
+  addonFee: number;
 }) {
-  const total = quote ? quote.total : subtotal;
+  const total = (quote ? quote.total : subtotal) + addonFee;
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3">
@@ -180,11 +199,81 @@ function OrderSummary({
         </div>
       ) : null}
 
+      {/* The add-on is a separate charge from the services, so it gets its own
+          line rather than quietly inflating the total. */}
+      {addonFee > 0 ? (
+        <div className="flex items-center justify-between gap-2 border-t border-border pt-3 text-sm">
+          <span className="inline-flex min-w-0 items-center gap-1.5 text-on-surface">
+            <CalendarClock size={13} className="shrink-0 text-primary" />
+            <span className="truncate">Reschedule protection</span>
+          </span>
+          <span className="shrink-0 tabular-nums text-muted">+{inr(addonFee)}</span>
+        </div>
+      ) : null}
+
       <div className="flex items-end justify-between border-t border-border pt-3">
         <span className="font-medium text-on-surface">Total</span>
         <span className="font-headline text-2xl font-extrabold text-primary tabular-nums">{inr(total)}</span>
       </div>
     </div>
+  );
+}
+
+/* --------------------------- reschedule protection ------------------------ */
+
+/**
+ * The paid opt-in. Deliberately unticked by default: it adds money to the total,
+ * and a pre-ticked upsell is a charge the customer didn't ask for.
+ *
+ * The copy states the trade honestly in both directions — what ticking buys AND
+ * that leaving it unticked means the appointment can't be moved online — because
+ * that consequence only becomes visible later, when it's too late to change.
+ * Every number comes from the studio's own terms via the quote.
+ */
+function RescheduleProtection({
+  offer,
+  checked,
+  onChange,
+  disabled,
+}: {
+  offer: RescheduleAddonOffer;
+  checked: boolean;
+  onChange: (next: boolean) => void;
+  disabled: boolean;
+}) {
+  const multi = offer.maxReschedules > 1;
+  return (
+    <label
+      className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-colors duration-normal ${
+        checked ? "border-primary bg-primary/5" : "border-border bg-surface-container-low hover:border-primary/50"
+      } ${disabled ? "pointer-events-none opacity-60" : ""}`}
+    >
+      {/* A real checkbox, so the label, keyboard and screen readers all work. */}
+      <input
+        type="checkbox"
+        checked={checked}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.checked)}
+        className="mt-0.5 h-4 w-4 shrink-0 accent-primary"
+      />
+      <span className="min-w-0 flex-1">
+        <span className="flex items-baseline justify-between gap-3">
+          <span className="font-headline text-sm font-semibold text-on-surface">Add reschedule protection</span>
+          <span className="shrink-0 font-semibold text-primary tabular-nums">+{inr(offer.feeAmount)}</span>
+        </span>
+        <span className="mt-1 block text-xs text-muted">
+          Change your appointment to another date or time {cutoffLabel(offer.cutoffHours)}
+          {multi ? `, up to ${offer.maxReschedules} times` : ""}. Your slot is rebooked instantly — no calls, no fee at
+          the time.
+        </span>
+        {!checked ? (
+          <span className="mt-1.5 block text-xs text-muted">
+            Without it, this booking can&apos;t be moved online — you&apos;d need to cancel under the studio&apos;s
+            cancellation policy instead.
+          </span>
+        ) : null}
+      </span>
+    </label>
   );
 }
 
@@ -290,6 +379,8 @@ function CheckoutPageContent() {
   // Phase 2.4 - preview the applicable offer + discounted total, computed by the
   // same offer engine that applies at booking, so "you pay" matches the charge.
   const [quote, setQuote] = useState<Quote | null>(null);
+  // Reschedule Protection — off until the customer ticks it, since it costs money.
+  const [rescheduleAddon, setRescheduleAddon] = useState(false);
   const serviceKey = selectedServiceIds.join(",");
   useEffect(() => {
     if (!studioId || selectedServiceIds.length === 0) { setQuote(null); return; }
@@ -297,7 +388,12 @@ function CheckoutPageContent() {
     api.quoteBooking(studioId, selectedServiceIds)
       .then((res) => {
         if (!cancelled && res.quote) {
-          setQuote({ discountAmount: res.quote.discountAmount, total: res.quote.total, offer: res.quote.offer });
+          setQuote({
+            discountAmount: res.quote.discountAmount,
+            total: res.quote.total,
+            offer: res.quote.offer,
+            rescheduleAddon: res.quote.rescheduleAddon,
+          });
         }
       })
       .catch(() => { /* fall back to the undiscounted subtotal */ });
@@ -305,7 +401,20 @@ function CheckoutPageContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [studioId, serviceKey]);
 
-  const payable = quote ? quote.total : subtotal;
+  // Only offered if this studio sells it. A studio that switches it off mid-visit
+  // must not leave a ticked box behind that silently charges nothing and grants
+  // nothing, so the selection is dropped with the offer.
+  const addonOffer = quote?.rescheduleAddon;
+  const addonAvailable = Boolean(addonOffer?.offered);
+  const addonSelected = addonAvailable && rescheduleAddon;
+  useEffect(() => {
+    if (!addonAvailable && rescheduleAddon) setRescheduleAddon(false);
+  }, [addonAvailable, rescheduleAddon]);
+
+  const addonFee = addonSelected && addonOffer ? addonOffer.feeAmount : 0;
+  // The quote's total is services-only; the add-on is added here so the number on
+  // the button is exactly what the server will charge.
+  const payable = (quote ? quote.total : subtotal) + addonFee;
   const busy = stage !== "idle";
 
   const invalidContext = !studioId || !businessMemberId || !bookingDate || !bookingTime || selectedServiceIds.length === 0;
@@ -343,6 +452,7 @@ function CheckoutPageContent() {
         date: bookingDate,
         startTime: bookingTime,
         notes: noteParts.filter(Boolean).join(" | ") || undefined,
+        rescheduleAddon: addonSelected,
       });
 
       if (result.error || !result.booking) {
@@ -563,6 +673,18 @@ function CheckoutPageContent() {
               )}
             </section>
 
+            {addonAvailable && addonOffer ? (
+              <section className={sectionCard}>
+                <h2 className={sectionTitle}>Plans change?</h2>
+                <RescheduleProtection
+                  offer={addonOffer}
+                  checked={addonSelected}
+                  onChange={setRescheduleAddon}
+                  disabled={busy}
+                />
+              </section>
+            ) : null}
+
             <section className={sectionCard}>
               <h2 className={sectionTitle}>Cancellation</h2>
               <div className="flex items-start gap-3">
@@ -601,6 +723,7 @@ function CheckoutPageContent() {
                 quote={quote}
                 date={bookingDate}
                 time={bookingTime ?? ""}
+                addonFee={addonFee}
               />
               <Button
                 className="mt-4 hidden w-full lg:inline-flex"
